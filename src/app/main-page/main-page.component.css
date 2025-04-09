@@ -1,0 +1,31 @@
+.container {
+    display: flex;
+    height: 100vh;
+  }
+  
+  
+  .sidebar {
+    width: 200px;
+    background-color: #f4f4f4;
+    padding: 10px;
+  }
+  
+  .sidebar ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .sidebar ul li {
+    padding: 10px;
+    cursor: pointer;
+  }
+  
+  .sidebar ul li:hover {
+    background-color: #ddd;
+  }
+  
+  
+  .content {
+    flex: 1;
+    padding: 20px;
+  }

@@ -1,0 +1,30 @@
+<div class="container">
+    <div class="sidebar">
+      <ul>
+        <li (click)="showChart('bar')">Bar Chart</li>
+        <li (click)="showChart('line')">Line Chart</li>
+        <li (click)="showChart('column')">Column Chart</li>
+        <li (click)="showChart('combo')">Combo Chart</li>
+        <li (click)="showChart('table')">Table</li>
+        <li (click)="showChart('new-bar')">New Bar Chart</li>
+        <li (click)="showChart('new-line')">New Line Chart</li>
+        <li (click)="showChart('multi-chart')">Multi Chart</li>
+        <li (click)="showChart('new-table')">New table</li>
+        <li (click)="showChart('stacked-bar-chart')">Stacked-bar-chart</li>
+        <li (click)="showChart('clima')">Clima</li>
+      </ul>
+    </div>
+    <div class="content">
+      <app-bar-chart *ngIf="currentChart === 'bar'"></app-bar-chart>
+      <app-line-chart *ngIf="currentChart === 'line'"></app-line-chart>
+      <app-column-chart *ngIf="currentChart === 'column'"></app-column-chart>
+      <app-combo-chart *ngIf="currentChart === 'combo'"></app-combo-chart>
+      <app-table *ngIf="currentChart === 'table'"></app-table>
+      <app-new-bar-chart *ngIf="currentChart === 'new-bar'"></app-new-bar-chart>
+      <app-new-line-chart *ngIf="currentChart === 'new-line'"></app-new-line-chart>
+      <app-multi-chart *ngIf="currentChart === 'multi-chart'"></app-multi-chart>
+      <app-new-table *ngIf="currentChart === 'new-table'"></app-new-table>
+      <app-stacked-bar-chart *ngIf="currentChart === 'stacked-bar-chart'"></app-stacked-bar-chart>
+      <app-clima *ngIf="currentChart === 'clima'"></app-clima>
+    </div>
+  </div>

@@ -1,0 +1,36 @@
+/* bar-chart.component.css */
+.chart-container {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+  margin: 1rem 0;
+}
+
+.loading-message {
+  padding: 2rem;
+  text-align: center;
+  font-style: italic;
+  color: #666;
+}
+
+canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 500px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th, td {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background-color: #f5f5f5;
+}
