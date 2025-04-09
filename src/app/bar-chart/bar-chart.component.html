@@ -2,7 +2,7 @@
   <h2>Gráfico de PolEnCana</h2>
   <p>{{ apiConnectionStatus }}</p>
   
-  @if (data.length > 0) {
+  @if (data.length > 0 && isBrowser) {
     <div class="chart-container">
       <canvas #chartCanvas></canvas>
     </div>
