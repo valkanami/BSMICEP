@@ -1,66 +1,14 @@
-<div class="chart-container">
-  @if (isBrowser) {
-    @if (isLoading) {
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <p>Cargando datos del gráfico...</p>
-      </div>
-    } @else if (errorMessage) {
-      <div class="error-state">
-        <mat-icon>error_outline</mat-icon>
-        <p>{{ errorMessage }}</p>
-        <button mat-stroked-button color="primary" (click)="loadData()">
-          Reintentar
-        </button>
-      </div>
-    } @else {
-      <div class="chart-wrapper">
-        <canvas id="polChart"
-                aria-label="Gráfico de Pol en Caña por día de la semana"
-                role="img">
-          <p>Tu navegador no soporta el elemento canvas. Aquí están los datos:</p>
-          <table class="data-fallback">
-            <thead>
-              <tr>
-                <th>Día</th>
-                <th>Valor</th>
-                <th>Justificación</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (day of chartLabels; track day; let i = $index) {
-                @if (chartData.length > 0) {
-                  <tr>
-                    <td>{{ day }}</td>
-                    <td>{{ getDayValue(i) }}</td>
-                    <td>{{ getJustificationForDay(day.toLowerCase()) }}</td>
-                  </tr>
-                }
-              }
-            </tbody>
-          </table>
-        </canvas>
-      </div>
-    }
-  } @else {
-    <div class="ssr-message">
-      <p>El gráfico se cargará cuando la página se renderice en tu navegador.</p>
-      <table class="data-preview">
-        <thead>
-          <tr>
-            <th>Día</th>
-            <th>Justificación</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (day of chartLabels; track day) {
-            <tr>
-              <td>{{ day }}</td>
-              <td>Disponible después de cargaR</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+<div class="container">
+  <h2>Gráfico de PolEnCana</h2>
+  <p>{{ apiConnectionStatus }}</p>
+  
+  @if (data.length > 0) {
+    <div class="chart-container">
+      <canvas #chartCanvas></canvas>
     </div>
+  }
+
+  @if (data.length === 0 && apiConnectionStatus.includes('✅')) {
+    <p class="no-data">No hay datos disponibles.</p>
   }
 </div>

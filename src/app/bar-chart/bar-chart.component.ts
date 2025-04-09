@@ -1,189 +1,94 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-
-interface PolEnCanaData {
-  id: number;
-  domingo: number;
-  lunes: number;
-  martes: number;
-  miercoles: number;
-  jueves: number;
-  viernes: number;
-  sabado: number;
-  justificacionDomingo: string;
-  justificacionLunes: string;
-  justificacionMartes: string;
-  justificacionMiercoles: string;
-  justificacionJueves: string;
-  justificacionViernes: string;
-  justificacionSabado: string;
-}
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-bar-chart',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatIconModule,    // <-- Añade esto
-    MatButtonModule   // <-- Añade esto si usas mat-button
-  ],
+  imports: [CommonModule],
   templateUrl: './bar-chart.component.html',
-  styleUrls: ['./bar-chart.component.css'],
-  
+  styleUrls: ['./bar-chart.component.css']
 })
 export class BarChartComponent implements OnInit, OnDestroy {
-  private chart: any;
-  public isBrowser: boolean = false;
-  public isLoading: boolean = true;
-  public chartData: PolEnCanaData[] = [];
-  public chartLabels: string[] = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-  public errorMessage: string | null = null;
+  @ViewChild('chartCanvas') chartCanvas!: ElementRef;
+  public chart: any;
+  public apiConnectionStatus: string = 'Verificando conexión...';
+  public data: any[] = [];
 
-  constructor(
-    private http: HttpClient,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {
-    this.isBrowser = isPlatformBrowser(this.platformId);
-    if (this.isBrowser) {
-      Chart.register(...registerables);
-    }
+  constructor(private http: HttpClient) {
+    Chart.register(...registerables);
   }
 
   ngOnInit(): void {
-    if (this.isBrowser) {
-      this.loadData();
-    } else {
-      this.isLoading = false;
-    }
+    this.checkApiConnection();
   }
 
   ngOnDestroy(): void {
     this.destroyChart();
   }
 
-  private destroyChart(): void {
+  checkApiConnection(): void {
+    this.http.get('http://localhost:3000/api/polEnCana').subscribe({
+      next: (response) => {
+        this.apiConnectionStatus = '✅ Conexión exitosa con la API';
+        this.data = response as any[];
+        this.initChart();
+      },
+      error: (error) => {
+        this.apiConnectionStatus = '❌ Error al conectar con la API: ' + error.message;
+        console.error('Error:', error);
+      }
+    });
+  }
+
+  initChart(): void {
+    
+    setTimeout(() => {
+      try {
+        this.destroyChart();
+        
+        const ctx = this.chartCanvas.nativeElement.getContext('2d');
+        if (!ctx) {
+          throw new Error('No se pudo obtener el contexto del canvas');
+        }
+
+        const days = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+        const values = days.map(day => this.data[0]?.[day.toLowerCase()] || 0);
+
+        this.chart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: days,
+            datasets: [{
+              label: 'Valores por día',
+              data: values,
+              backgroundColor: 'rgba(54, 162, 235, 0.7)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error al crear el gráfico:', error);
+        this.apiConnectionStatus = '❌ Error al renderizar el gráfico';
+      }
+    });
+  }
+
+  destroyChart(): void {
     if (this.chart) {
       this.chart.destroy();
       this.chart = null;
     }
-  }
-
-  loadData(): void {
-    this.isLoading = true;
-    this.errorMessage = null;
-    
-    this.http.get<PolEnCanaData[]>('http://localhost:3000/api/polencana/1').subscribe({
-      next: (data: PolEnCanaData[]) => {
-        this.chartData = data;
-        this.updateChart();
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error al cargar datos:', error);
-        this.errorMessage = 'Error al cargar los datos. Por favor, intente nuevamente más tarde.';
-        this.isLoading = false;
-      }
-    });
-  }
-
-  private updateChart(): void {
-    if (this.chartData.length === 0) {
-      this.errorMessage = 'No hay datos disponibles para mostrar.';
-      return;
-    }
-
-    this.destroyChart();
-
-    const latestData = this.chartData[this.chartData.length - 1];
-    const dataValues = this.getDayValues(latestData);
-    const ctx = document.getElementById('polChart') as HTMLCanvasElement;
-
-    if (!ctx) return;
-
-    this.chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: this.chartLabels,
-        datasets: [{
-          label: 'Pol en Caña',
-          data: dataValues,
-          backgroundColor: 'rgba(75, 192, 192, 0.6)',
-          borderColor: 'rgba(75, 192, 192, 1)',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Valor'
-            }
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Días de la semana'
-            }
-          }
-        },
-        plugins: {
-          tooltip: {
-            callbacks: {
-              afterLabel: (context) => {
-                const days = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-                const dayIndex = context.dataIndex;
-                return `Justificación: ${this.getJustificationForDay(days[dayIndex])}`;
-              }
-            }
-          },
-          legend: {
-            position: 'top',
-          }
-        }
-      }
-    });
-  }
-
-  private getDayValues(data: PolEnCanaData): number[] {
-    return [
-      data.domingo,
-      data.lunes,
-      data.martes,
-      data.miercoles,
-      data.jueves,
-      data.viernes,
-      data.sabado
-    ];
-  }
-
-  getJustificationForDay(day: string): string {
-    if (this.chartData.length === 0) return '';
-    
-    const latestData = this.chartData[this.chartData.length - 1];
-    
-    switch(day.toLowerCase()) {
-      case 'domingo': return latestData.justificacionDomingo;
-      case 'lunes': return latestData.justificacionLunes;
-      case 'martes': return latestData.justificacionMartes;
-      case 'miércoles': return latestData.justificacionMiercoles;
-      case 'jueves': return latestData.justificacionJueves;
-      case 'viernes': return latestData.justificacionViernes;
-      case 'sábado': return latestData.justificacionSabado;
-      default: return '';
-    }
-  }
-
-  getDayValue(index: number): number {
-    if (this.chartData.length === 0) return 0;
-    const values = this.getDayValues(this.chartData[this.chartData.length - 1]);
-    return values[index] || 0;
   }
 }
