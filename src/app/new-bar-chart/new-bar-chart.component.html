@@ -1,1 +1,23 @@
-<p>new-bar-chart works!</p>
+
+<div class="chart-container">
+    <h2 *ngIf="!connectionTested">Verificando conexión con el servidor</h2>
+    
+    <div *ngIf="connectionTested">
+      <div *ngIf="loading" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Cargando datos</p>
+      </div>
+  
+      <div *ngIf="error" class="error-message">
+        {{ error }}
+      </div>
+  
+      <div *ngIf="!loading" class="chart-wrapper">
+        <canvas baseChart
+          [data]="barChartData"
+          [options]="barChartOptions"
+          type="bar">
+        </canvas>
+      </div>
+    </div>
+  </div>

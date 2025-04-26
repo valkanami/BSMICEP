@@ -1,1 +1,31 @@
-<p>table works!</p>
+<div class="table-container">
+    <h2 class="table-title">Reporte de Cosecha</h2>
+  
+    <div *ngIf="loading" class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Cargando datos...</p>
+    </div>
+  
+    <div *ngIf="error" class="error-message">
+      {{ error }}
+    </div>
+  
+    <div *ngIf="!loading" class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Concepto</th>
+            <th>Valor</th>
+            <th>Objetivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of data">
+            <td>{{ item.CONCEPTO }}</td>
+            <td [class.highlight]="item.VALOR > 1000">{{ item.VALOR | number }}</td>
+            <td>{{ item.OBJETIVO }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>

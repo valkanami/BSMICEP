@@ -15,7 +15,7 @@ export class BarChartComponent implements OnInit, AfterViewInit, OnDestroy {
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
   public data: any[] = [];
-  public isBrowser: boolean; // Made public for template access
+  public isBrowser: boolean; 
 
   constructor(
     private http: HttpClient,
@@ -46,14 +46,14 @@ export class BarChartComponent implements OnInit, AfterViewInit, OnDestroy {
   checkApiConnection(): void {
     this.http.get('http://localhost:3000/api/polEnCana').subscribe({
       next: (response) => {
-        this.apiConnectionStatus = '✅ Conexión exitosa con la API';
+        this.apiConnectionStatus = ' Conexión la API';
         this.data = response as any[];
         if (this.isBrowser) {
-          setTimeout(() => this.initChart(), 0); // Ensure view is ready
+          setTimeout(() => this.initChart(), 0); 
         }
       },
       error: (error) => {
-        this.apiConnectionStatus = '❌ Error al conectar con la API: ' + error.message;
+        this.apiConnectionStatus = ' Error al conectar con la API: ' + error.message;
         console.error('Error:', error);
       }
     });
@@ -89,7 +89,7 @@ export class BarChartComponent implements OnInit, AfterViewInit, OnDestroy {
           responsive: true,
           maintainAspectRatio: false,
           animation: {
-            duration: 0 // Disable animations for better SSR compatibility
+            duration: 0 
           },
           scales: {
             y: {
