@@ -1,20 +1,51 @@
 <div class="container">
-    <div class="sidebar">
-      <ul>
-        <li (click)="showChart('bar')">Bar Chart</li>
-        <li (click)="showChart('line')">Line Chart</li>
-        <li (click)="showChart('column')">Column Chart</li>
-        <li (click)="showChart('combo')">Combo Chart</li>
-        <li (click)="showChart('table')">Table</li>
-        <li (click)="showChart('new-bar')">New Bar Chart</li>
-        <li (click)="showChart('new-line')">New Line Chart</li>
-        <li (click)="showChart('multi-chart')">Multi Chart</li>
-        <li (click)="showChart('new-table')">New table</li>
-        <li (click)="showChart('stacked-bar-chart')">Stacked-bar-chart</li>
-        <li (click)="showChart('clima')">Clima</li>
-      </ul>
+  <!-- Botón flotante para mostrar/ocultar barra -->
+  <button class="floating-toggle-btn" (click)="toggleSidebar()">
+    {{ isSidebarHidden ? '☰' : '✕' }}
+  </button>
+
+  <!-- Barra lateral -->
+  <div class="sidebar" [class.hidden]="isSidebarHidden">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Menú</span>
     </div>
-    <div class="content">
+    
+    <ul class="menu">
+      <!-- Menú Prueba -->
+      <li class="menu-item">
+        <div class="menu-header" (click)="toggleMenu('prueba')">
+          <span>Prueba</span>
+          <span class="menu-icon">{{ isMenuOpen('prueba') ? '▼' : '►' }}</span>
+        </div>
+        <ul class="submenu" [class.open]="isMenuOpen('prueba')">
+          <li (click)="showChart('bar')">Bar Chart</li>
+          <li (click)="showChart('line')">Line Chart</li>
+          <li (click)="showChart('column')">Column Chart</li>
+          <li (click)="showChart('combo')">Combo Chart</li>
+          <li (click)="showChart('table')">Table</li>
+          <li (click)="showChart('new-bar')">New Bar Chart</li>
+          <li (click)="showChart('new-line')">New Line Chart</li>
+          <li (click)="showChart('multi-chart')">Multi Chart</li>
+          <li (click)="showChart('new-table')">New table</li>
+          <li (click)="showChart('stacked-bar-chart')">Stacked-bar-chart</li>
+        </ul>
+      </li>
+      
+      <!-- Menú Clima -->
+      <li class="menu-item">
+        <div class="menu-header" (click)="toggleMenu('clima')">
+          <span>Clima</span>
+          <span class="menu-icon">{{ isMenuOpen('clima') ? '▼' : '►' }}</span>
+        </div>
+        <ul class="submenu" [class.open]="isMenuOpen('clima')">
+          <li (click)="showChart('clima')">Componente Clima</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  
+  <div class="content" [class.full-width]="isSidebarHidden">
+    <div class="content-container">
       <app-bar-chart *ngIf="currentChart === 'bar'"></app-bar-chart>
       <app-line-chart *ngIf="currentChart === 'line'"></app-line-chart>
       <app-column-chart *ngIf="currentChart === 'column'"></app-column-chart>
@@ -28,3 +59,4 @@
       <app-clima *ngIf="currentChart === 'clima'"></app-clima>
     </div>
   </div>
+</div>

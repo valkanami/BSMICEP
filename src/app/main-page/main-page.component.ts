@@ -28,15 +28,88 @@ import { ClimaComponent } from '../clima/clima.component';
     NewTableComponent,
     StackedBarChartComponent,
     ClimaComponent
-    
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']
 })
 export class MainPageComponent {
   currentChart: string = 'bar';
+  openMenus: {[key: string]: boolean} = {
+    prueba: false,
+    clima: false
+  };
+  isSidebarHidden = false;
+  sidebarWidth = 220;
 
-  showChart(chartType: string) {
+  /**
+   * Muestra el componente seleccionado sin cerrar los menús
+   */
+  showChart(chartType: string): void {
     this.currentChart = chartType;
+    if (window.innerWidth < 768) {
+      this.toggleSidebarWithDelay();
+    }
+  }
+
+  /**
+   * Alterna el estado de un menú desplegable con delay para mejor animación
+   */
+  toggleMenu(menuKey: string): void {
+    if (!this.openMenus[menuKey]) {
+      setTimeout(() => {
+        this.openMenus[menuKey] = true;
+      }, 10);
+    } else {
+      this.openMenus[menuKey] = false;
+    }
+  }
+
+  /**
+   * Verifica si un menú está abierto
+   */
+  isMenuOpen(menuKey: string): boolean {
+    return this.openMenus[menuKey] || false;
+  }
+
+  /**
+   * Alterna la barra lateral con delay para mejor experiencia
+   */
+  toggleSidebar(): void {
+    if (this.isSidebarHidden) {
+      setTimeout(() => {
+        this.isSidebarHidden = false;
+      }, 50);
+    } else {
+      this.isSidebarHidden = true;
+    }
+  }
+
+  /**
+   * Alterna la barra lateral con un pequeño delay
+   */
+  private toggleSidebarWithDelay(): void {
+    setTimeout(() => {
+      this.toggleSidebar();
+    }, 100);
+  }
+
+  /**
+   * Cierra todos los menús desplegables
+   */
+  private closeAllMenus(): void {
+    Object.keys(this.openMenus).forEach(key => {
+      this.openMenus[key] = false;
+    });
+  }
+
+  /**
+   * Cierra otros menús excepto el especificado
+   */
+  private closeOtherMenus(menuKey: string): void {
+    Object.keys(this.openMenus).forEach(key => {
+      if (key !== menuKey) {
+        this.openMenus[key] = false;
+      }
+    });
   }
 }
