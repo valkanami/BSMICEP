@@ -11,7 +11,7 @@ import { MultiChartComponent } from '../multi-chart/multi-chart.component';
 import { NewTableComponent } from '../new-table/new-table.component'; 
 import { StackedBarChartComponent } from '../stacked-bar-chart/stacked-bar-chart.component';
 import { ClimaComponent } from '../clima/clima.component';
-
+import { TurbidezJugoClaroComponent } from '../components/turbidez-jugo-claro/turbidez-jugo-claro.component';
 @Component({
   selector: 'app-main-page',
   standalone: true,
@@ -27,7 +27,8 @@ import { ClimaComponent } from '../clima/clima.component';
     MultiChartComponent,
     NewTableComponent,
     StackedBarChartComponent,
-    ClimaComponent
+    ClimaComponent,
+    TurbidezJugoClaroComponent
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']
@@ -41,9 +42,7 @@ export class MainPageComponent {
   isSidebarHidden = false;
   sidebarWidth = 220;
 
-  /**
-   * Muestra el componente seleccionado sin cerrar los menús
-   */
+  
   showChart(chartType: string): void {
     this.currentChart = chartType;
     if (window.innerWidth < 768) {
@@ -51,9 +50,7 @@ export class MainPageComponent {
     }
   }
 
-  /**
-   * Alterna el estado de un menú desplegable con delay para mejor animación
-   */
+  
   toggleMenu(menuKey: string): void {
     if (!this.openMenus[menuKey]) {
       setTimeout(() => {
@@ -64,16 +61,12 @@ export class MainPageComponent {
     }
   }
 
-  /**
-   * Verifica si un menú está abierto
-   */
+  
   isMenuOpen(menuKey: string): boolean {
     return this.openMenus[menuKey] || false;
   }
 
-  /**
-   * Alterna la barra lateral con delay para mejor experiencia
-   */
+  
   toggleSidebar(): void {
     if (this.isSidebarHidden) {
       setTimeout(() => {
@@ -84,27 +77,21 @@ export class MainPageComponent {
     }
   }
 
-  /**
-   * Alterna la barra lateral con un pequeño delay
-   */
+  
   private toggleSidebarWithDelay(): void {
     setTimeout(() => {
       this.toggleSidebar();
     }, 100);
   }
 
-  /**
-   * Cierra todos los menús desplegables
-   */
+  
   private closeAllMenus(): void {
     Object.keys(this.openMenus).forEach(key => {
       this.openMenus[key] = false;
     });
   }
 
-  /**
-   * Cierra otros menús excepto el especificado
-   */
+  
   private closeOtherMenus(menuKey: string): void {
     Object.keys(this.openMenus).forEach(key => {
       if (key !== menuKey) {

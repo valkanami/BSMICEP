@@ -1,4 +1,4 @@
-/* Estilos generales */
+
 .container {
   display: flex;
   min-height: 100vh;
@@ -6,7 +6,7 @@
   overflow-x: hidden;
 }
 
-/* Botón flotante con animación mejorada */
+
 .toggle-sidebar {
   position: fixed;
   top: 15px;
@@ -33,7 +33,7 @@
   transform: scale(1.15) rotate(90deg);
 }
 
-/* Barra lateral con transición suave */
+
 .sidebar {
   width: 220px;
   background: #2c3e50;
@@ -74,7 +74,7 @@
   transition: color 0.3s ease;
 }
 
-/* Contenido principal con transición fluida */
+
 .content {
   flex: 1;
   padding: 20px;
@@ -88,7 +88,7 @@
   margin-left: 0;
 }
 
-/* Menús con animaciones mejoradas */
+
 .menu {
   list-style: none;
   padding: 0;

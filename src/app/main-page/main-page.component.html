@@ -1,17 +1,17 @@
 <div class="container">
-  <!-- Botón flotante para mostrar/ocultar barra -->
+  
   <button class="floating-toggle-btn" (click)="toggleSidebar()">
     {{ isSidebarHidden ? '☰' : '✕' }}
   </button>
 
-  <!-- Barra lateral -->
+  
   <div class="sidebar" [class.hidden]="isSidebarHidden">
     <div class="sidebar-header">
       <span class="sidebar-title">Menú</span>
     </div>
     
     <ul class="menu">
-      <!-- Menú Prueba -->
+      
       <li class="menu-item">
         <div class="menu-header" (click)="toggleMenu('prueba')">
           <span>Prueba</span>
@@ -31,7 +31,7 @@
         </ul>
       </li>
       
-      <!-- Menú Clima -->
+      
       <li class="menu-item">
         <div class="menu-header" (click)="toggleMenu('clima')">
           <span>Clima</span>
@@ -39,6 +39,7 @@
         </div>
         <ul class="submenu" [class.open]="isMenuOpen('clima')">
           <li (click)="showChart('clima')">Componente Clima</li>
+          <li (click)="showChart('turbidez-jugo-claro')">turbidez-jugo-claro</li>
         </ul>
       </li>
     </ul>
@@ -57,6 +58,7 @@
       <app-new-table *ngIf="currentChart === 'new-table'"></app-new-table>
       <app-stacked-bar-chart *ngIf="currentChart === 'stacked-bar-chart'"></app-stacked-bar-chart>
       <app-clima *ngIf="currentChart === 'clima'"></app-clima>
+      <app-turbidez-jugo-claro-chart *ngIf="currentChart === 'turbidez-jugo-claro'"></app-turbidez-jugo-claro-chart>
     </div>
   </div>
 </div>
