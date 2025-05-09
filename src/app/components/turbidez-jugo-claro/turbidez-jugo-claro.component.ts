@@ -72,17 +72,14 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   private formatTimeToHHMM(timeString: string | Date): string {
     if (typeof timeString === 'string') {
       if (timeString.includes('T')) {
-        // ISO format
         const timePart = timeString.split('T')[1].split('.')[0];
         const [hours, minutes] = timePart.split(':');
         return `${hours}:${minutes}`;
       } else {
-        // Already in time format
         const parts = timeString.split(':');
         return `${parts[0]}:${parts[1]}`;
       }
     } else if (timeString instanceof Date) {
-      // Date object
       const hours = timeString.getHours().toString().padStart(2, '0');
       const minutes = timeString.getMinutes().toString().padStart(2, '0');
       return `${hours}:${minutes}`;
@@ -97,7 +94,8 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
         this.originalData = this.preserveOriginalTimes(response as any[]);
         this.extractAvailableDates();
         if (this.availableDates.length > 0) {
-          this.selectedDate = this.availableDates[0];
+          
+          this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
         }
         if (this.isBrowser) {
@@ -123,7 +121,10 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
         }
       }
     });
-    this.availableDates = Array.from(uniqueDates).sort();
+    // Sort dates in ascending order (oldest to newest)
+    this.availableDates = Array.from(uniqueDates).sort((a, b) => {
+      return new Date(a).getTime() - new Date(b).getTime();
+    });
   }
 
   filterDataByDate(): void {
@@ -177,7 +178,7 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
         throw new Error('No se pudo obtener el contexto del canvas');
       }
 
-      // Ajustar canvas para alta resolución
+      
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
       
@@ -326,6 +327,7 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
               100, 
               20
             );
+            
             
             ctx.fillStyle = 'rgb(255, 0, 0)';
             ctx.textAlign = 'right';
