@@ -12,6 +12,8 @@ import { NewTableComponent } from '../new-table/new-table.component';
 import { StackedBarChartComponent } from '../stacked-bar-chart/stacked-bar-chart.component';
 import { ClimaComponent } from '../clima/clima.component';
 import { TurbidezJugoClaroComponent } from '../components/turbidez-jugo-claro/turbidez-jugo-claro.component';
+import { RsdComponent } from '../components/rsd/rsd.component';
+
 @Component({
   selector: 'app-main-page',
   standalone: true,
@@ -28,7 +30,8 @@ import { TurbidezJugoClaroComponent } from '../components/turbidez-jugo-claro/tu
     NewTableComponent,
     StackedBarChartComponent,
     ClimaComponent,
-    TurbidezJugoClaroComponent
+    TurbidezJugoClaroComponent,
+    RsdComponent,
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

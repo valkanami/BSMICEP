@@ -40,6 +40,7 @@
         <ul class="submenu" [class.open]="isMenuOpen('clima')">
           <li (click)="showChart('clima')">Componente Clima</li>
           <li (click)="showChart('turbidez-jugo-claro')">turbidez-jugo-claro</li>
+          <li (click)="showChart('rsd')">rsd</li>
         </ul>
       </li>
     </ul>
@@ -59,6 +60,7 @@
       <app-stacked-bar-chart *ngIf="currentChart === 'stacked-bar-chart'"></app-stacked-bar-chart>
       <app-clima *ngIf="currentChart === 'clima'"></app-clima>
       <app-turbidez-jugo-claro-chart *ngIf="currentChart === 'turbidez-jugo-claro'"></app-turbidez-jugo-claro-chart>
+      <app-rsd *ngIf="currentChart === 'rsd'"></app-rsd>
     </div>
   </div>
 </div>
