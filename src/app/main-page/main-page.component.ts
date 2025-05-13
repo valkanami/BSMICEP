@@ -13,6 +13,7 @@ import { StackedBarChartComponent } from '../stacked-bar-chart/stacked-bar-chart
 import { ClimaComponent } from '../clima/clima.component';
 import { TurbidezJugoClaroComponent } from '../components/turbidez-jugo-claro/turbidez-jugo-claro.component';
 import { RsdComponent } from '../components/rsd/rsd.component';
+import { RendimientoCristalesComponent } from '../components/rendimiento-cristales/rendimiento-cristales.component';
 
 @Component({
   selector: 'app-main-page',
@@ -32,6 +33,7 @@ import { RsdComponent } from '../components/rsd/rsd.component';
     ClimaComponent,
     TurbidezJugoClaroComponent,
     RsdComponent,
+    RendimientoCristalesComponent
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

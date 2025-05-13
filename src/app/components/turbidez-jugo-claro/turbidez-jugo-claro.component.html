@@ -25,18 +25,12 @@
     <div class="data-info">
       <p>Datos:</p>
       <ul>
-        <li><span class="line-color"></span> Turbidez del jugo claro (línea)</li>
-        <li><span class="bar1-color"></span> Clarificador 2 (barras azules)</li>
-        <li><span class="bar2-color"></span> Clarificador 3 (barras verdes)</li>
+        <li><span class="line-color"></span> Turbidez del jugo claro </li>
+        <li><span class="bar1-color"></span> Clarificador 2 </li>
+        <li><span class="bar2-color"></span> Clarificador 3 </li>
         <li><span class="limit-line-color"></span> Límite de turbidez</li> <!-- Nueva línea añadida -->
       </ul>
     </div>
-    <div class="time-info">
-      <button class="refresh-btn" (click)="refreshData()">Actualizar datos</button>
-      <div class="limit-control">
-        <label for="limitValue">Límite:</label>
-        <input type="number" id="limitValue" [(ngModel)]="limitValue" (change)="updateChartData()">
-      </div>
-    </div>
+    
   </div>
 </div>

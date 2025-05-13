@@ -149,3 +149,57 @@
     gap: 5px;
   }
 }
+/* Agrega esto a tu archivo rsd.component.css */
+
+.limit-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.limit-control {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.limit-control input {
+  width: 60px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.chart-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.limit-line1-color {
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background-color: rgb(255, 0, 0);
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.limit-line2-color {
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background-color: rgb(0, 128, 0);
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.limit-line3-color {
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background-color: rgb(255, 165, 0);
+  vertical-align: middle;
+  margin-right: 5px;
+}

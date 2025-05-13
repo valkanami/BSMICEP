@@ -20,7 +20,9 @@ interface LimitLineAnnotation {
 }
 
 interface ChartAnnotations {
-  ['limitLine']?: LimitLineAnnotation;
+  ['limitLine1']?: LimitLineAnnotation;
+  ['limitLine2']?: LimitLineAnnotation;
+  ['limitLine3']?: LimitLineAnnotation;
   [key: string]: any;
 }
 
@@ -41,7 +43,9 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public limitValue: number = 5;
+  public limitValue1: number = 0.07;
+  public limitValue2: number = 0.13;
+  public limitValue3: number = 0.15;
 
   constructor(
     private http: HttpClient,
@@ -180,6 +184,51 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       ];
 
+      const limitLine1: LimitLineAnnotation = {
+        type: 'line',
+        yMin: this.limitValue1,
+        yMax: this.limitValue1,
+        borderColor: 'rgb(255, 0, 0)',
+        borderWidth: 2,
+        borderDash: [6, 6],
+        label: {
+          content: `Límite 1: ${this.limitValue1}`,
+          enabled: true,
+          position: 'end',
+          backgroundColor: 'rgba(255,255,255,0.8)'
+        }
+      };
+
+      const limitLine2: LimitLineAnnotation = {
+        type: 'line',
+        yMin: this.limitValue2,
+        yMax: this.limitValue2,
+        borderColor: 'rgb(0, 128, 0)',
+        borderWidth: 2,
+        borderDash: [6, 6],
+        label: {
+          content: `Límite 2: ${this.limitValue2}`,
+          enabled: true,
+          position: 'end',
+          backgroundColor: 'rgba(255,255,255,0.8)'
+        }
+      };
+
+      const limitLine3: LimitLineAnnotation = {
+        type: 'line',
+        yMin: this.limitValue3,
+        yMax: this.limitValue3,
+        borderColor: 'rgb(255, 165, 0)',
+        borderWidth: 2,
+        borderDash: [6, 6],
+        label: {
+          content: `Límite 3: ${this.limitValue3}`,
+          enabled: true,
+          position: 'end',
+          backgroundColor: 'rgba(255,255,255,0.8)'
+        }
+      };
+
       this.chart = new Chart(ctx, {
         type: 'bar',
         data: { labels, datasets },
@@ -204,9 +253,58 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
                 afterLabel: (context) => `Hora: ${labels[context.dataIndex]}`
               }
             },
-            legend: { position: 'top' }
+            legend: { position: 'top' },
+            annotation: {
+              annotations: {
+                ['limitLine1']: limitLine1,
+                ['limitLine2']: limitLine2,
+                ['limitLine3']: limitLine3
+              }
+            }
           }
-        }
+        },
+        plugins: [{
+          id: 'limitLines',
+          beforeDraw: (chart: any) => {
+            const {ctx, chartArea, scales} = chart;
+            
+            if (!ctx || !chartArea || !scales?.['y']) return;
+            
+            ctx.save();
+            ctx.translate(0.5, 0.5);
+            
+            const drawLimitLine = (value: number, color: string, label: string) => {
+              const yScale = scales['y'] as Scale;
+              const yPixel = Math.floor(yScale.getPixelForValue(value));
+              
+              ctx.beginPath();
+              ctx.strokeStyle = color;
+              ctx.lineWidth = 2;
+              ctx.setLineDash([6, 6]);
+              ctx.moveTo(Math.floor(chartArea.left), yPixel);
+              ctx.lineTo(Math.floor(chartArea.right), yPixel);
+              ctx.stroke();
+              
+              ctx.fillStyle = 'rgba(255,255,255,0.8)';
+              ctx.fillRect(
+                Math.floor(chartArea.right - 100), 
+                Math.floor(yPixel - 15), 
+                100, 
+                20
+              );
+              
+              ctx.fillStyle = color;
+              ctx.textAlign = 'right';
+              ctx.fillText(` ${value}`, Math.floor(chartArea.right - 10), yPixel);
+            };
+            
+            drawLimitLine(this.limitValue1, 'rgb(255, 0, 0)', `Límite 1: ${this.limitValue1}`);
+            drawLimitLine(this.limitValue2, 'rgb(0, 128, 0)', `Límite 2: ${this.limitValue2}`);
+            drawLimitLine(this.limitValue3, 'rgb(255, 165, 0)', `Límite 3: ${this.limitValue3}`);
+            
+            ctx.restore();
+          }
+        }]
       });
 
     } catch (error) {
@@ -224,6 +322,30 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chart.data.datasets[0].data = this.filteredData.map(item => item.RDS_FUNDIDO);
     this.chart.data.datasets[1].data = this.filteredData.map(item => item.RDS_CLARIF);
     this.chart.data.datasets[2].data = this.filteredData.map(item => item.RDS_PULIDO);
+
+    const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
+    if (annotations?.['limitLine1']) {
+      annotations['limitLine1'].yMin = this.limitValue1;
+      annotations['limitLine1'].yMax = this.limitValue1;
+      if (annotations['limitLine1'].label) {
+        annotations['limitLine1'].label.content = `Límite 1: ${this.limitValue1}`;
+      }
+    }
+    if (annotations?.['limitLine2']) {
+      annotations['limitLine2'].yMin = this.limitValue2;
+      annotations['limitLine2'].yMax = this.limitValue2;
+      if (annotations['limitLine2'].label) {
+        annotations['limitLine2'].label.content = `Límite 2: ${this.limitValue2}`;
+      }
+    }
+    if (annotations?.['limitLine3']) {
+      annotations['limitLine3'].yMin = this.limitValue3;
+      annotations['limitLine3'].yMax = this.limitValue3;
+      if (annotations['limitLine3'].label) {
+        annotations['limitLine3'].label.content = `Límite 3: ${this.limitValue3}`;
+      }
+    }
+  
     this.chart.update();
   }
 

@@ -41,6 +41,7 @@
           <li (click)="showChart('clima')">Componente Clima</li>
           <li (click)="showChart('turbidez-jugo-claro')">turbidez-jugo-claro</li>
           <li (click)="showChart('rsd')">rsd</li>
+          <li (click)="showChart('rendimiento-cristales')">rendimiento-cristales</li>
         </ul>
       </li>
     </ul>
@@ -61,6 +62,7 @@
       <app-clima *ngIf="currentChart === 'clima'"></app-clima>
       <app-turbidez-jugo-claro-chart *ngIf="currentChart === 'turbidez-jugo-claro'"></app-turbidez-jugo-claro-chart>
       <app-rsd *ngIf="currentChart === 'rsd'"></app-rsd>
+      <app-rendimiento-cristales *ngIf="currentChart === 'rendimiento-cristales'"></app-rendimiento-cristales>
     </div>
   </div>
 </div>
