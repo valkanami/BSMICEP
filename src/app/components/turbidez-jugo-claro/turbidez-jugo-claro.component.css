@@ -69,12 +69,12 @@
   }
   
   .chart-footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 15px;
-    font-size: 0.85rem;
-    color: #555;
-  }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+}
+
   
   .data-info ul {
     list-style: none;
