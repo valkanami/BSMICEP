@@ -25,13 +25,13 @@ interface ChartAnnotations {
 }
 
 @Component({
-  selector: 'app-turbidez-jugo-claro-chart',
+  selector: 'app-molienda',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './turbidez-jugo-claro.component.html',
-  styleUrls: ['./turbidez-jugo-claro.component.css']
+  templateUrl: './molienda.component.html',
+  styleUrls: ['./molienda.component.css']
 })
-export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MoliendaComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
@@ -41,7 +41,7 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public limitValue: number = 8; // Valor por defecto
+  public limitValue: number = 120; // Valor por defecto para molienda
   public fixedHours: string[] = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
@@ -77,13 +77,15 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   }
 
   private loadLimitValue(): void {
-    this.http.get('http://localhost:3000/api/limites/18').subscribe({
+    this.http.get('http://localhost:3000/api/limites/3').subscribe({
       next: (response: any) => {
         if (response && response.LIMITE !== undefined) {
           this.limitValue = response.LIMITE;
           if (this.chart) {
             this.updateChartData();
           }
+        } else {
+          console.warn('No se encontró LIMITE en los datos, usando valor por defecto');
         }
       },
       error: (error) => {
@@ -112,7 +114,7 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   }
 
   checkApiConnection(): void {
-    this.http.get('http://localhost:3000/api/turbidezjugoclaro').subscribe({
+    this.http.get('http://localhost:3000/api/molienda').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
@@ -126,7 +128,7 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
         }
       },
       error: (error) => {
-        this.apiConnectionStatus = 'Error al conectar con la API ';
+        this.apiConnectionStatus = 'Error al conectar con la API';
         this.errorMessage = error.message;
         console.error('Error:', error);
       }
@@ -191,8 +193,10 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
       return {
         ...item,
         HORA_ORIGINAL: horaOriginal || '00:00',
-        TURBIDEZ_CLARO: item.TURBIDEZ_CLARO || null,
-        JUSTIFICACION_CLARO: item.JUSTIFICACION_CLARO || ''
+        TON_CAÑA_BJ: item.TON_CAÑA_BJ || null,
+        JUSTIFICACION_TON: item.JUSTIFICACION_TON || '',
+        TON_CAÑA_HORA: item.TON_CAÑA_HORA || null,
+        JUSTIFICACION_HORA: item.JUSTIFICACION_HORA || ''
       };
     });
   }
@@ -220,7 +224,8 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const turbidezClaroData = this.mapDataToFixedHours('TURBIDEZ_CLARO');
+      const toneladasData = this.mapDataToFixedHours('TON_CAÑA_BJ');
+      const toneladasHoraData = this.mapDataToFixedHours('TON_CAÑA_HORA');
 
       const limitLine: LimitLineAnnotation = {
         type: 'line',
@@ -240,17 +245,24 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
       const componentLimitValue = this.limitValue;
 
       this.chart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels: labels,
           datasets: [
             {
-              label: 'Turbidez Jugo Claro',
-              data: turbidezClaroData,
-              borderColor: 'rgba(255, 99, 132, 1)',
-              backgroundColor: 'rgba(255, 99, 132, 0.2)',
-              borderWidth: 2,
-              tension: 0.1,
+              label: 'Toneladas de Caña (BJ)',
+              data: toneladasData,
+              backgroundColor: 'rgba(54, 162, 235, 0.7)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Toneladas por Hora',
+              data: toneladasHoraData,
+              backgroundColor: 'rgba(75, 192, 192, 0.7)',
+              borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 1,
               yAxisID: 'y'
             }
           ]
@@ -263,7 +275,7 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
               beginAtZero: false,
               title: {
                 display: true,
-                text: 'Nivel de turbidez'
+                text: 'Toneladas'
               }
             },
             x: {
@@ -292,13 +304,15 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
                   
                   if (!dataItem) return 'No hay datos para esta hora';
                   
-                  const justificacion = dataItem.JUSTIFICACION_CLARO || 'No hay justificación registrada';
+                  const justificacion = context.datasetIndex === 0 
+                    ? dataItem.JUSTIFICACION_TON 
+                    : dataItem.JUSTIFICACION_HORA;
                   
                   return [
                     `─────────────────────`,
                     `Hora: ${hour}`,
                     `Justificación:`,
-                    `${justificacion}`
+                    `${justificacion || 'No hay justificación registrada'}`
                   ];
                 }
               },
@@ -370,7 +384,10 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   private mapDataToFixedHours(dataField: string): (number | null)[] {
     return this.fixedHours.map(hour => {
       const dataItem = this.findDataItemByHour(hour);
-      return dataItem ? dataItem[dataField] : null;
+      if (!dataItem || dataItem[dataField] === null || dataItem[dataField] === undefined) {
+        return null;
+      }
+      return parseFloat(dataItem[dataField]);
     });
   }
 
@@ -395,7 +412,8 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToFixedHours('TURBIDEZ_CLARO');
+    this.chart.data.datasets[0].data = this.mapDataToFixedHours('TON_CAÑA_BJ');
+    this.chart.data.datasets[1].data = this.mapDataToFixedHours('TON_CAÑA_HORA');
   
     const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
     if (annotations?.['limitLine']) {

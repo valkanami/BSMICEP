@@ -20,18 +20,17 @@ interface LimitLineAnnotation {
 }
 
 interface ChartAnnotations {
-  ['limitLine']?: LimitLineAnnotation;
   [key: string]: any;
 }
 
 @Component({
-  selector: 'app-turbidez-jugo-claro-chart',
+  selector: 'app-bagazo-chart',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './turbidez-jugo-claro.component.html',
-  styleUrls: ['./turbidez-jugo-claro.component.css']
+  templateUrl: './bagazo.component.html',
+  styleUrls: ['./bagazo.component.css']
 })
-export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDestroy {
+export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
@@ -41,7 +40,8 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public limitValue: number = 8; // Valor por defecto
+  public limitHumValue: number = 50; // Valor por defecto humedad
+  public limitPolValue: number = 3; // Valor por defecto pol
   public fixedHours: string[] = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
@@ -62,7 +62,7 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   ngOnInit(): void {
     if (this.isBrowser) {
       this.checkApiConnection();
-      this.loadLimitValue();
+      this.loadLimitValues();
     }
   }
 
@@ -76,23 +76,24 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
     this.destroyChart();
   }
 
-  private loadLimitValue(): void {
-    this.http.get('http://localhost:3000/api/limites/18').subscribe({
+  private loadLimitValues(): void {
+    this.http.get('http://localhost:3000/api/limites').subscribe({
       next: (response: any) => {
-        if (response && response.LIMITE !== undefined) {
-          this.limitValue = response.LIMITE;
+        if (response && response.length > 0) {
+          const lastLimit = response[response.length - 1];
+          this.limitHumValue = lastLimit.LIM_BAGAZO_HUM || 50;
+          this.limitPolValue = lastLimit.LIM_BAGAZO_POL || 3;
           if (this.chart) {
             this.updateChartData();
           }
         }
       },
       error: (error) => {
-        console.error('Error al obtener el valor límite:', error);
+        console.error('Error al obtener los valores límite:', error);
       }
     });
   }
 
-  // Resto de los métodos permanecen igual...
   private formatTimeToHHMM(timeString: string | Date): string {
     if (typeof timeString === 'string') {
       if (timeString.includes('T')) {
@@ -112,7 +113,7 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   }
 
   checkApiConnection(): void {
-    this.http.get('http://localhost:3000/api/turbidezjugoclaro').subscribe({
+    this.http.get('http://localhost:3000/api/bagazo').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
@@ -191,8 +192,10 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
       return {
         ...item,
         HORA_ORIGINAL: horaOriginal || '00:00',
-        TURBIDEZ_CLARO: item.TURBIDEZ_CLARO || null,
-        JUSTIFICACION_CLARO: item.JUSTIFICACION_CLARO || ''
+        HUM: item.HUM || null,
+        POL: item.POL || null,
+        JUSTIFICACION_HUM: item.JUSTIFICACION_HUM || '',
+        JUSTIFICACION_POL: item.JUSTIFICACION_POL || ''
       };
     });
   }
@@ -220,24 +223,41 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const turbidezClaroData = this.mapDataToFixedHours('TURBIDEZ_CLARO');
+      const humData = this.mapDataToFixedHours('HUM');
+      const polData = this.mapDataToFixedHours('POL');
 
-      const limitLine: LimitLineAnnotation = {
+      const humLimitLine: LimitLineAnnotation = {
         type: 'line',
-        yMin: this.limitValue,
-        yMax: this.limitValue,
+        yMin: this.limitHumValue,
+        yMax: this.limitHumValue,
         borderColor: 'rgb(255, 0, 0)',
         borderWidth: 2,
         borderDash: [6, 6],
         label: {
-          content: `Límite: ${this.limitValue}`,
+          content: `Límite Humedad: ${this.limitHumValue}`,
           enabled: true,
           position: 'end',
           backgroundColor: 'rgba(255,255,255,0.8)'
         }
       };
 
-      const componentLimitValue = this.limitValue;
+      const polLimitLine: LimitLineAnnotation = {
+        type: 'line',
+        yMin: this.limitPolValue,
+        yMax: this.limitPolValue,
+        borderColor: 'rgb(0, 0, 255)',
+        borderWidth: 2,
+        borderDash: [6, 6],
+        label: {
+          content: `Límite Pol: ${this.limitPolValue}`,
+          enabled: true,
+          position: 'end',
+          backgroundColor: 'rgba(255,255,255,0.8)'
+        }
+      };
+
+      const componentHumLimitValue = this.limitHumValue;
+      const componentPolLimitValue = this.limitPolValue;
 
       this.chart = new Chart(ctx, {
         type: 'line',
@@ -245,13 +265,22 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
           labels: labels,
           datasets: [
             {
-              label: 'Turbidez Jugo Claro',
-              data: turbidezClaroData,
+              label: 'Humedad Bagazo',
+              data: humData,
               borderColor: 'rgba(255, 99, 132, 1)',
               backgroundColor: 'rgba(255, 99, 132, 0.2)',
               borderWidth: 2,
               tension: 0.1,
               yAxisID: 'y'
+            },
+            {
+              label: 'Pol Bagazo',
+              data: polData,
+              borderColor: 'rgba(54, 162, 235, 1)',
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              borderWidth: 2,
+              tension: 0.1,
+              yAxisID: 'y1'
             }
           ]
         },
@@ -260,10 +289,28 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
           maintainAspectRatio: false,
           scales: {
             y: {
-              beginAtZero: false,
+              type: 'linear',
+              display: true,
+              position: 'left',
               title: {
                 display: true,
-                text: 'Nivel de turbidez'
+                text: 'Humedad (%)'
+              },
+              min: 0,
+              max: 100
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              title: {
+                display: true,
+                text: 'Pol (%)'
+              },
+              min: 0,
+              max: 10,
+              grid: {
+                drawOnChartArea: false
               }
             },
             x: {
@@ -292,7 +339,9 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
                   
                   if (!dataItem) return 'No hay datos para esta hora';
                   
-                  const justificacion = dataItem.JUSTIFICACION_CLARO || 'No hay justificación registrada';
+                  const justificacion = context.datasetIndex === 0 
+                    ? dataItem.JUSTIFICACION_HUM || 'No hay justificación registrada'
+                    : dataItem.JUSTIFICACION_POL || 'No hay justificación registrada';
                   
                   return [
                     `─────────────────────`,
@@ -314,7 +363,8 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
             },
             annotation: {
               annotations: {
-                ['limitLine']: limitLine
+                humLimitLine: humLimitLine,
+                polLimitLine: polLimitLine
               }
             }
           }
@@ -324,36 +374,56 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
           beforeDraw: (chart: any) => {
             const {ctx, chartArea, scales} = chart;
             
-            if (!ctx || !chartArea || !scales?.['y']) return;
+            if (!ctx || !chartArea || !scales?.['y'] || !scales?.['y1']) return;
             
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            const annotations = chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-            const limitValue = Number(annotations?.['limitLine']?.yMin ?? componentLimitValue);
-          
-            const yScale = scales['y'] as Scale;
-            const yPixel = Math.floor(yScale.getPixelForValue(limitValue));
+            // Dibujar línea de límite de humedad
+            const yPixelHum = Math.floor(scales['y'].getPixelForValue(componentHumLimitValue));
             
             ctx.beginPath();
             ctx.strokeStyle = 'rgb(255, 0, 0)';
             ctx.lineWidth = 2;
             ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixel);
-            ctx.lineTo(Math.floor(chartArea.right), yPixel);
+            ctx.moveTo(Math.floor(chartArea.left), yPixelHum);
+            ctx.lineTo(Math.floor(chartArea.right), yPixelHum);
             ctx.stroke();
             
             ctx.fillStyle = 'rgba(255,255,255,0.8)';
             ctx.fillRect(
-              Math.floor(chartArea.right - 100), 
-              Math.floor(yPixel - 15), 
-              100, 
+              Math.floor(chartArea.right - 120), 
+              Math.floor(yPixelHum - 15), 
+              120, 
               20
             );
             
             ctx.fillStyle = 'rgb(255, 0, 0)';
             ctx.textAlign = 'right';
-            ctx.fillText(` ${limitValue}`, Math.floor(chartArea.right - 10), yPixel);
+            ctx.fillText(` Humedad: ${componentHumLimitValue}`, Math.floor(chartArea.right - 10), yPixelHum);
+            
+            // Dibujar línea de límite de pol
+            const yPixelPol = Math.floor(scales['y1'].getPixelForValue(componentPolLimitValue));
+            
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgb(0, 0, 255)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 6]);
+            ctx.moveTo(Math.floor(chartArea.left), yPixelPol);
+            ctx.lineTo(Math.floor(chartArea.right), yPixelPol);
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.fillRect(
+              Math.floor(chartArea.right - 100), 
+              Math.floor(yPixelPol - 15), 
+              100, 
+              20
+            );
+            
+            ctx.fillStyle = 'rgb(0, 0, 255)';
+            ctx.textAlign = 'right';
+            ctx.fillText(` Pol: ${componentPolLimitValue}`, Math.floor(chartArea.right - 10), yPixelPol);
             
             ctx.restore();
           }
@@ -395,15 +465,25 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToFixedHours('TURBIDEZ_CLARO');
+    this.chart.data.datasets[0].data = this.mapDataToFixedHours('HUM');
+    this.chart.data.datasets[1].data = this.mapDataToFixedHours('POL');
   
     const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-    if (annotations?.['limitLine']) {
-      annotations['limitLine'].yMin = this.limitValue;
-      annotations['limitLine'].yMax = this.limitValue;
+    if (annotations?.['humLimitLine']) {
+      annotations['humLimitLine'].yMin = this.limitHumValue;
+      annotations['humLimitLine'].yMax = this.limitHumValue;
       
-      if (annotations['limitLine'].label) {
-        annotations['limitLine'].label.content = `Límite: ${this.limitValue}`;
+      if (annotations['humLimitLine'].label) {
+        annotations['humLimitLine'].label.content = `Límite Humedad: ${this.limitHumValue}`;
+      }
+    }
+    
+    if (annotations?.['polLimitLine']) {
+      annotations['polLimitLine'].yMin = this.limitPolValue;
+      annotations['polLimitLine'].yMax = this.limitPolValue;
+      
+      if (annotations['polLimitLine'].label) {
+        annotations['polLimitLine'].label.content = `Límite Pol: ${this.limitPolValue}`;
       }
     }
   
@@ -421,6 +501,6 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
     this.apiConnectionStatus = 'Verificando conexión...';
     this.errorMessage = '';
     this.checkApiConnection();
-    this.loadLimitValue();
+    this.loadLimitValues();
   }
 }

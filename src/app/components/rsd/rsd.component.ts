@@ -46,6 +46,7 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
   public limitValue1: number = 0.07;
   public limitValue2: number = 0.13;
   public limitValue3: number = 0.15;
+  private fixedTimeLabels: string[] = [];
 
   constructor(
     private http: HttpClient,
@@ -55,6 +56,17 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isBrowser) {
       Chart.register(...registerables);
     }
+    this.generateFixedTimeLabels();
+  }
+
+  private generateFixedTimeLabels(): void {
+    this.fixedTimeLabels = [];
+    // Generar horas de 6 AM a 10 PM (22:00)
+    for (let hour = 6; hour <= 22; hour += 2) {
+      this.fixedTimeLabels.push(`${hour.toString().padStart(2, '0')}:00`);
+    }
+    // Agregar 12 AM (medianoche) y 2 AM, 4 AM
+    this.fixedTimeLabels.push('24:00', '02:00', '04:00');
   }
 
   ngOnInit(): void {
@@ -138,7 +150,10 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
       HORA_ORIGINAL: this.formatTimeToHHMM(item.TURNO) || '00:00',
       RDS_FUNDIDO: item.RDS_FUNDIDO || null,
       RDS_CLARIF: item.RDS_CLARIF || null,
-      RDS_PULIDO: item.RDS_PULIDO || null
+      RDS_PULIDO: item.RDS_PULIDO || null,
+      JUSTIFICACION_FUNDIDO: item.JUSTIFICACION_FUNDIDO || '',
+      JUSTIFICACION_CLARIF: item.JUSTIFICACION_CLARIF || '',
+      JUSTIFICACION_PULIDO: item.JUSTIFICACION_PULIDO || ''
     }));
   }
 
@@ -159,25 +174,35 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
       canvas.style.height = `${rect.height}px`;
       ctx.scale(dpr, dpr);
 
-      const labels = this.filteredData.map(item => item.HORA_ORIGINAL);
+      // Usamos las etiquetas de tiempo fijas
+      const labels = this.fixedTimeLabels;
+      
+      // Creamos datasets vacíos inicialmente
+      const initialData = Array(labels.length).fill(null);
+      
+      // Mapeamos los datos reales a las etiquetas fijas
+      const fundidoData = this.mapDataToFixedTimes('RDS_FUNDIDO');
+      const clarifData = this.mapDataToFixedTimes('RDS_CLARIF');
+      const pulidoData = this.mapDataToFixedTimes('RDS_PULIDO');
+
       const datasets = [
         {
           label: 'RDS Fundido',
-          data: this.filteredData.map(item => item.RDS_FUNDIDO),
+          data: fundidoData,
           backgroundColor: 'rgba(255, 99, 132, 0.7)',
           borderColor: 'rgba(255, 99, 132, 1)',
           borderWidth: 1
         },
         {
           label: 'RDS Clarif',
-          data: this.filteredData.map(item => item.RDS_CLARIF),
+          data: clarifData,
           backgroundColor: 'rgba(54, 162, 235, 0.7)',
           borderColor: 'rgba(54, 162, 235, 1)',
           borderWidth: 1
         },
         {
           label: 'RDS Pulido',
-          data: this.filteredData.map(item => item.RDS_PULIDO),
+          data: pulidoData,
           backgroundColor: 'rgba(75, 192, 192, 0.7)',
           borderColor: 'rgba(75, 192, 192, 1)',
           borderWidth: 1
@@ -243,17 +268,65 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             x: {
               title: { display: true, text: 'Hora del turno' },
-              grid: { display: false }
+              grid: { display: false },
+              ticks: {
+                autoSkip: false,
+                maxRotation: 45,
+                minRotation: 45
+              }
             }
           },
           plugins: {
             tooltip: {
               callbacks: {
-                label: (context) => `${context.dataset.label}: ${context.parsed.y?.toFixed(2) || 'N/D'}`,
-                afterLabel: (context) => `Hora: ${labels[context.dataIndex]}`
+                label: (context) => `${context.dataset.label}: ${context.parsed.y?.toFixed(4) || 'N/D'}`,
+                afterLabel: (context) => {
+                  const dataIndex = context.dataIndex;
+                  const datasetIndex = context.datasetIndex;
+                  const horaLabel = labels[dataIndex];
+                  
+                  // Buscar el dato correspondiente a esta hora
+                  const dataItem = this.filteredData.find(item => 
+                    item.HORA_ORIGINAL === horaLabel
+                  );
+                  
+                  if (!dataItem) return 'No hay datos para esta hora';
+                  
+                  let justificacion = '';
+                  
+                  if (datasetIndex === 0) {
+                    justificacion = dataItem.JUSTIFICACION_FUNDIDO || 'No hay justificación registrada';
+                  } else if (datasetIndex === 1) {
+                    justificacion = dataItem.JUSTIFICACION_CLARIF || 'No hay justificación registrada';
+                  } else if (datasetIndex === 2) {
+                    justificacion = dataItem.JUSTIFICACION_PULIDO || 'No hay justificación registrada';
+                  }
+                  
+                  return [
+                    `─────────────────────`,
+                    `Hora: ${horaLabel}`,
+                    `Justificación:`,
+                    `${justificacion}`
+                  ];
+                }
+              },
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleFont: { size: 14, weight: 'bold' },
+              bodyFont: { size: 12 },
+              padding: 12,
+              bodySpacing: 4,
+              displayColors: false
+            },
+            legend: { 
+              position: 'top',
+              labels: {
+                boxWidth: 20,
+                padding: 15,
+                font: {
+                  size: 12
+                }
               }
             },
-            legend: { position: 'top' },
             annotation: {
               annotations: {
                 ['limitLine1']: limitLine1,
@@ -295,7 +368,7 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
               
               ctx.fillStyle = color;
               ctx.textAlign = 'right';
-              ctx.fillText(` ${value}`, Math.floor(chartArea.right - 10), yPixel);
+              ctx.fillText(` ${value.toFixed(4)}`, Math.floor(chartArea.right - 10), yPixel);
             };
             
             drawLimitLine(this.limitValue1, 'rgb(255, 0, 0)', `Límite 1: ${this.limitValue1}`);
@@ -314,35 +387,48 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private mapDataToFixedTimes(field: string): (number | null)[] {
+    const result = Array(this.fixedTimeLabels.length).fill(null);
+    
+    this.filteredData.forEach(item => {
+      const hora = item.HORA_ORIGINAL;
+      const index = this.fixedTimeLabels.indexOf(hora);
+      if (index !== -1) {
+        result[index] = item[field];
+      }
+    });
+    
+    return result;
+  }
+
   public updateChartData(): void {
     if (!this.chart) return;
   
-    const labels = this.filteredData.map(item => item.HORA_ORIGINAL);
-    this.chart.data.labels = labels;
-    this.chart.data.datasets[0].data = this.filteredData.map(item => item.RDS_FUNDIDO);
-    this.chart.data.datasets[1].data = this.filteredData.map(item => item.RDS_CLARIF);
-    this.chart.data.datasets[2].data = this.filteredData.map(item => item.RDS_PULIDO);
+    // Actualizar los datos mapeados a las horas fijas
+    this.chart.data.datasets[0].data = this.mapDataToFixedTimes('RDS_FUNDIDO');
+    this.chart.data.datasets[1].data = this.mapDataToFixedTimes('RDS_CLARIF');
+    this.chart.data.datasets[2].data = this.mapDataToFixedTimes('RDS_PULIDO');
 
     const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
     if (annotations?.['limitLine1']) {
       annotations['limitLine1'].yMin = this.limitValue1;
       annotations['limitLine1'].yMax = this.limitValue1;
       if (annotations['limitLine1'].label) {
-        annotations['limitLine1'].label.content = `Límite 1: ${this.limitValue1}`;
+        annotations['limitLine1'].label.content = `Límite 1: ${this.limitValue1.toFixed(4)}`;
       }
     }
     if (annotations?.['limitLine2']) {
       annotations['limitLine2'].yMin = this.limitValue2;
       annotations['limitLine2'].yMax = this.limitValue2;
       if (annotations['limitLine2'].label) {
-        annotations['limitLine2'].label.content = `Límite 2: ${this.limitValue2}`;
+        annotations['limitLine2'].label.content = `Límite 2: ${this.limitValue2.toFixed(4)}`;
       }
     }
     if (annotations?.['limitLine3']) {
       annotations['limitLine3'].yMin = this.limitValue3;
       annotations['limitLine3'].yMax = this.limitValue3;
       if (annotations['limitLine3'].label) {
-        annotations['limitLine3'].label.content = `Límite 3: ${this.limitValue3}`;
+        annotations['limitLine3'].label.content = `Límite 3: ${this.limitValue3.toFixed(4)}`;
       }
     }
   

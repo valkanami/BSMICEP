@@ -14,6 +14,7 @@ import { ClimaComponent } from '../clima/clima.component';
 import { TurbidezJugoClaroComponent } from '../components/turbidez-jugo-claro/turbidez-jugo-claro.component';
 import { RsdComponent } from '../components/rsd/rsd.component';
 import { RendimientoCristalesComponent } from '../components/rendimiento-cristales/rendimiento-cristales.component';
+import { MoliendaComponent } from '../components/molienda/molienda.component';
 
 @Component({
   selector: 'app-main-page',
@@ -33,7 +34,8 @@ import { RendimientoCristalesComponent } from '../components/rendimiento-cristal
     ClimaComponent,
     TurbidezJugoClaroComponent,
     RsdComponent,
-    RendimientoCristalesComponent
+    RendimientoCristalesComponent,
+    MoliendaComponent
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

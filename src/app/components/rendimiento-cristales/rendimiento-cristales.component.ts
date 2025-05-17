@@ -7,9 +7,12 @@ import { FormsModule } from '@angular/forms';
 interface RendimientoData {
   FECHA: Date;
   DIA: string;
-  'Rendimiento_Cristales_A': number | null;
-  'Rendimiento_Cristales_B': number | null;
-  'Rendimiento_Cristales_C': number | null;
+  RENDIMIENTO_CRISTALES_A: number | null;
+  RENDIMIENTO_CRISTALES_B: number | null;
+  RENDIMIENTO_CRISTALES_C: number | null;
+  JUSTIFICACION_A: string | null;
+  JUSTIFICACION_B: string | null;
+  JUSTIFICACION_C: string | null;
 }
 
 interface WeekRange {
@@ -77,12 +80,14 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
           const fechaAjustada = new Date(fecha.getTime() + offset);
           
           return {
-            ...item,
             FECHA: fechaAjustada,
             DIA: this.getDayName(fechaAjustada),
-            'Rendimiento_Cristales_A': item['Rendimiento_Cristales_A'] ?? null,
-            'Rendimiento_Cristales_B': item['Rendimiento_Cristales_B'] ?? null,
-            'Rendimiento_Cristales_C': item['Rendimiento_Cristales_C'] ?? null
+            RENDIMIENTO_CRISTALES_A: item.RENDIMIENTO_CRISTALES_A ?? null,
+            RENDIMIENTO_CRISTALES_B: item.RENDIMIENTO_CRISTALES_B ?? null,
+            RENDIMIENTO_CRISTALES_C: item.RENDIMIENTO_CRISTALES_C ?? null,
+            JUSTIFICACION_A: item.JUSTIFICACION_A ?? null,
+            JUSTIFICACION_B: item.JUSTIFICACION_B ?? null,
+            JUSTIFICACION_C: item.JUSTIFICACION_C ?? null
           };
         });
         this.extractAvailableWeeks();
@@ -202,9 +207,12 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
         return {
           DIA: day,
           FECHA: dateForDay,
-          'Rendimiento_Cristales_A': null,
-          'Rendimiento_Cristales_B': null,
-          'Rendimiento_Cristales_C': null
+          RENDIMIENTO_CRISTALES_A: null,
+          RENDIMIENTO_CRISTALES_B: null,
+          RENDIMIENTO_CRISTALES_C: null,
+          JUSTIFICACION_A: null,
+          JUSTIFICACION_B: null,
+          JUSTIFICACION_C: null
         };
       }
     });
@@ -247,21 +255,21 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
       const datasets = [
         {
           label: 'Rendimiento Cristales A',
-          data: this.filteredData.map(item => item['Rendimiento_Cristales_A']),
+          data: this.filteredData.map(item => item.RENDIMIENTO_CRISTALES_A),
           backgroundColor: 'rgba(255, 99, 132, 0.7)',
           borderColor: 'rgba(255, 99, 132, 1)',
           borderWidth: 1
         },
         {
           label: 'Rendimiento Cristales B',
-          data: this.filteredData.map(item => item['Rendimiento_Cristales_B']),
+          data: this.filteredData.map(item => item.RENDIMIENTO_CRISTALES_B),
           backgroundColor: 'rgba(54, 162, 235, 0.7)',
           borderColor: 'rgba(54, 162, 235, 1)',
           borderWidth: 1
         },
         {
           label: 'Rendimiento Cristales C',
-          data: this.filteredData.map(item => item['Rendimiento_Cristales_C']),
+          data: this.filteredData.map(item => item.RENDIMIENTO_CRISTALES_C),
           backgroundColor: 'rgba(75, 192, 192, 0.7)',
           borderColor: 'rgba(75, 192, 192, 1)',
           borderWidth: 1
@@ -296,11 +304,34 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
                   return `${label}: ${value}%`;
                 },
                 afterLabel: (context) => {
-                  const item = this.filteredData[context.dataIndex];
-                  // Mostrar fecha en formato local sin problemas de zona horaria
-                  return `Fecha: ${item.FECHA.toISOString().split('T')[0]}`;
+                  const dataIndex = context.dataIndex;
+                  const datasetIndex = context.datasetIndex;
+                  const item = this.filteredData[dataIndex];
+                  let justificacion = '';
+                  
+                  // Obtener la justificación correspondiente según el dataset
+                  if (datasetIndex === 0) { // Cristales A
+                    justificacion = item.JUSTIFICACION_A || 'No hay justificación registrada';
+                  } else if (datasetIndex === 1) { // Cristales B
+                    justificacion = item.JUSTIFICACION_B || 'No hay justificación registrada';
+                  } else if (datasetIndex === 2) { // Cristales C
+                    justificacion = item.JUSTIFICACION_C || 'No hay justificación registrada';
+                  }
+                  
+                  return [
+                    `─────────────────────`,
+                    `Fecha: ${item.FECHA.toISOString().split('T')[0]}`,
+                    `Justificación:`,
+                    `${justificacion}`
+                  ];
                 }
-              }
+              },
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleFont: { size: 14, weight: 'bold' },
+              bodyFont: { size: 12 },
+              padding: 12,
+              bodySpacing: 4,
+              displayColors: false
             },
             legend: { 
               position: 'top',
@@ -325,9 +356,9 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
     const labels = this.filteredData.map(item => item.DIA);
     this.chart.data.labels = labels;
     
-    this.chart.data.datasets[0].data = this.filteredData.map(item => item['Rendimiento_Cristales_A']);
-    this.chart.data.datasets[1].data = this.filteredData.map(item => item['Rendimiento_Cristales_B']);
-    this.chart.data.datasets[2].data = this.filteredData.map(item => item['Rendimiento_Cristales_C']);
+    this.chart.data.datasets[0].data = this.filteredData.map(item => item.RENDIMIENTO_CRISTALES_A);
+    this.chart.data.datasets[1].data = this.filteredData.map(item => item.RENDIMIENTO_CRISTALES_B);
+    this.chart.data.datasets[2].data = this.filteredData.map(item => item.RENDIMIENTO_CRISTALES_C);
   
     this.chart.update();
   }
