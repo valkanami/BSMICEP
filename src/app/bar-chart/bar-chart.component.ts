@@ -46,7 +46,7 @@ export class BarChartComponent implements OnInit, AfterViewInit, OnDestroy {
   checkApiConnection(): void {
     this.http.get('http://localhost:3000/api/polEnCana').subscribe({
       next: (response) => {
-        this.apiConnectionStatus = ' Conexión la API';
+        this.apiConnectionStatus = ' ';
         this.data = response as any[];
         if (this.isBrowser) {
           setTimeout(() => this.initChart(), 0); 

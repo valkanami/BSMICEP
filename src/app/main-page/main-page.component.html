@@ -43,6 +43,8 @@
           <li (click)="showChart('rsd')">rsd</li>
           <li (click)="showChart('rendimiento-cristales')">rendimiento-cristales</li>
           <li (click)="showChart('molienda')">molienda</li>
+          <li (click)="showChart('bagazo')">bagazo</li>
+          <li (click)="showChart('imbibicion')">imbibicion</li>
         </ul>
       </li>
     </ul>
@@ -65,6 +67,8 @@
       <app-rsd *ngIf="currentChart === 'rsd'"></app-rsd>
       <app-rendimiento-cristales *ngIf="currentChart === 'rendimiento-cristales'"></app-rendimiento-cristales>
       <app-molienda *ngIf="currentChart === 'molienda'"></app-molienda>
+      <app-bagazo *ngIf="currentChart === 'bagazo'"></app-bagazo>
+      <app-imbibicion *ngIf="currentChart === 'imbibicion'"></app-imbibicion>
     </div>
   </div>
 </div>

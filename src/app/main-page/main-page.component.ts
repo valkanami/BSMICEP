@@ -15,7 +15,8 @@ import { TurbidezJugoClaroComponent } from '../components/turbidez-jugo-claro/tu
 import { RsdComponent } from '../components/rsd/rsd.component';
 import { RendimientoCristalesComponent } from '../components/rendimiento-cristales/rendimiento-cristales.component';
 import { MoliendaComponent } from '../components/molienda/molienda.component';
-
+import { BagazoComponent } from '../components/bagazo/bagazo.component';
+import { ImbibicionComponent } from '../components/imbibicion/imbibicion.component';
 @Component({
   selector: 'app-main-page',
   standalone: true,
@@ -35,7 +36,9 @@ import { MoliendaComponent } from '../components/molienda/molienda.component';
     TurbidezJugoClaroComponent,
     RsdComponent,
     RendimientoCristalesComponent,
-    MoliendaComponent
+    MoliendaComponent,
+    BagazoComponent,
+    ImbibicionComponent
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']
