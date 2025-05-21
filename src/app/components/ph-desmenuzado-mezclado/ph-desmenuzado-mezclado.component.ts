@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Chart, registerables, Scale } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -20,18 +20,17 @@ interface LimitLineAnnotation {
 }
 
 interface ChartAnnotations {
-  ['limitLine']?: LimitLineAnnotation;
   [key: string]: any;
 }
 
 @Component({
-  selector: 'app-imbibicion',
+  selector: 'app-ph-desmenuzado-mezclado',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './imbibicion.component.html',
-  styleUrls: ['./imbibicion.component.css']
+  templateUrl: './ph-desmenuzado-mezclado.component.html',
+  styleUrls: ['./ph-desmenuzado-mezclado.component.css']
 })
-export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
@@ -41,7 +40,10 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public limitValue: number = 300; 
+  public limitValueDesmenuzado: number = 7.0;
+  public limitValueMezclado: number = 6.8;
+  public dataLoaded: boolean = false;
+  public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
@@ -61,14 +63,18 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.isBrowser) {
-      this.checkApiConnection();
-      this.loadLimitValue();
+      this.loadInitialData();
     }
   }
 
+  private loadInitialData(): void {
+    this.checkApiConnection();
+    this.loadLimitValues();
+  }
+
   ngAfterViewInit(): void {
-    if (this.isBrowser && this.filteredData.length > 0) {
-      this.initChart();
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
+      this.initChartIfReady();
     }
   }
 
@@ -76,22 +82,39 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroyChart();
   }
 
-  private loadLimitValue(): void {
-    this.http.get('http://localhost:3000/api/limites/4').subscribe({
-      next: (response: any) => {
-        if (response && response.LIMITE !== undefined) {
-          this.limitValue = response.LIMITE;
-          if (this.chart) {
-            this.updateChartData();
-          }
-        } else {
-          console.warn('No se encontró LIMITE en los datos, usando valor por defecto');
+  private loadLimitValues(): void {
+    this.limitsLoaded = false;
+    
+    const desmenuzadoRequest = this.http.get('http://localhost:3000/api/limites/11').toPromise();
+    const mezcladoRequest = this.http.get('http://localhost:3000/api/limites/12').toPromise();
+
+    Promise.all([desmenuzadoRequest, mezcladoRequest])
+      .then(([desmenuzadoResponse, mezcladoResponse]: [any, any]) => {
+        if (desmenuzadoResponse && desmenuzadoResponse.LIMITE !== undefined) {
+          this.limitValueDesmenuzado = desmenuzadoResponse.LIMITE;
         }
-      },
-      error: (error) => {
-        console.error('Error al obtener el valor límite:', error);
-      }
-    });
+        if (mezcladoResponse && mezcladoResponse.LIMITE !== undefined) {
+          this.limitValueMezclado = mezcladoResponse.LIMITE;
+        }
+        
+        this.limitsLoaded = true;
+        if (this.dataLoaded) {
+          this.initChartIfReady();
+        }
+      })
+      .catch((error) => {
+        console.error('Error al obtener los valores límite:', error);
+        this.limitsLoaded = true;
+        if (this.dataLoaded) {
+          this.initChartIfReady();
+        }
+      });
+  }
+
+  private initChartIfReady(): void {
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded && this.filteredData.length > 0) {
+      this.initChart();
+    }
   }
 
   private formatTimeToHHMM(timeString: string | Date): string {
@@ -113,7 +136,8 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   checkApiConnection(): void {
-    this.http.get('http://localhost:3000/api/imbibicion').subscribe({
+    this.dataLoaded = false;
+    this.http.get('http://localhost:3000/api/ph').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
@@ -122,14 +146,19 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
         }
-        if (this.isBrowser) {
-          setTimeout(() => this.initChart(), 0);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
         }
       },
       error: (error) => {
         this.apiConnectionStatus = 'Error al conectar con la API';
         this.errorMessage = error.message;
         console.error('Error:', error);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
+        }
       }
     });
   }
@@ -172,7 +201,7 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.chart) {
       this.updateChartData();
-    } else if (this.isBrowser) {
+    } else if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
       this.initChart();
     }
   }
@@ -192,8 +221,10 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
       return {
         ...item,
         HORA_ORIGINAL: horaOriginal || '00:00',
-        IMBIBICION: item.IMBIBICION || null,
-        JUSTIFICACION: item.JUSTIFICACION || ''
+        DESMENUZADO: item.DEZMENUZADO || null,
+        JUSTIFICACION_DESMENUZADO: item.JUSTIFICACION_DESMENUZADO || '',
+        MEZCLADO: item.MEZCLADO || null,
+        JUSTIFICACION_MEZCLADO: item.JUSTIFICACION_MEZCLADO || ''
       };
     });
   }
@@ -221,24 +252,41 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const imbibicionData = this.mapDataToFixedHours('IMBIBICION');
+      const desmenuzadoData = this.mapDataToFixedHours('DESMENUZADO');
+      const mezcladoData = this.mapDataToFixedHours('MEZCLADO');
 
-      const limitLine: LimitLineAnnotation = {
+      const limitLineDesmenuzado: LimitLineAnnotation = {
         type: 'line',
-        yMin: this.limitValue,
-        yMax: this.limitValue,
+        yMin: this.limitValueDesmenuzado,
+        yMax: this.limitValueDesmenuzado,
         borderColor: 'rgb(255, 0, 0)',
         borderWidth: 2,
         borderDash: [6, 6],
         label: {
-          content: `Límite: ${this.limitValue}`,
+          content: `Límite Desmenuzado: ${this.limitValueDesmenuzado}`,
           enabled: true,
           position: 'end',
           backgroundColor: 'rgba(255,255,255,0.8)'
         }
       };
 
-      const componentLimitValue = this.limitValue;
+      const limitLineMezclado: LimitLineAnnotation = {
+        type: 'line',
+        yMin: this.limitValueMezclado,
+        yMax: this.limitValueMezclado,
+        borderColor: 'rgb(255, 165, 0)',
+        borderWidth: 2,
+        borderDash: [6, 6],
+        label: {
+          content: `Límite Mezclado: ${this.limitValueMezclado}`,
+          enabled: true,
+          position: 'end',
+          backgroundColor: 'rgba(255,255,255,0.8)'
+        }
+      };
+
+      const componentLimitValueDesmenuzado = this.limitValueDesmenuzado;
+      const componentLimitValueMezclado = this.limitValueMezclado;
 
       this.chart = new Chart(ctx, {
         type: 'bar',
@@ -246,10 +294,18 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
           labels: labels,
           datasets: [
             {
-              label: 'Imbibición',
-              data: imbibicionData,
+              label: 'PH Desmenuzado',
+              data: desmenuzadoData,
               backgroundColor: 'rgba(54, 162, 235, 0.7)',
               borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1,
+              yAxisID: 'y'
+            },
+            {
+              label: 'PH Mezclado',
+              data: mezcladoData,
+              backgroundColor: 'rgba(75, 192, 192, 0.7)',
+              borderColor: 'rgba(75, 192, 192, 1)',
               borderWidth: 1,
               yAxisID: 'y'
             }
@@ -263,8 +319,10 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
               beginAtZero: false,
               title: {
                 display: true,
-                text: 'Porcentaje de Imbibición'
-              }
+                text: 'Valor de PH'
+              },
+              min: 5.0,
+              max: 6.0  // Cambio clave: máximo establecido en 6.5
             },
             x: {
               title: {
@@ -284,7 +342,7 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
                 label: (context: any) => {
                   const label = context.dataset.label || '';
                   const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/D';
-                  return `${label}: ${value}%`;
+                  return `${label}: ${value}`;
                 },
                 afterLabel: (context: any) => {
                   const hour = labels[context.dataIndex];
@@ -292,11 +350,15 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
                   
                   if (!dataItem) return 'No hay datos para esta hora';
                   
+                  const justificacion = context.datasetIndex === 0 
+                    ? dataItem.JUSTIFICACION_DESMENUZADO || 'No hay justificación registrada'
+                    : dataItem.JUSTIFICACION_MEZCLADO || 'No hay justificación registrada';
+                  
                   return [
                     `─────────────────────`,
                     `Hora: ${hour}`,
                     `Justificación:`,
-                    `${dataItem.JUSTIFICACION || 'No hay justificación registrada'}`
+                    `${justificacion}`
                   ];
                 }
               },
@@ -312,7 +374,8 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             annotation: {
               annotations: {
-                ['limitLine']: limitLine
+                limitLineDesmenuzado: limitLineDesmenuzado,
+                limitLineMezclado: limitLineMezclado
               }
             }
           }
@@ -327,31 +390,49 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            const annotations = chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-            const limitValue = Number(annotations?.['limitLine']?.yMin ?? componentLimitValue);
-          
-            const yScale = scales['y'] as Scale;
-            const yPixel = Math.floor(yScale.getPixelForValue(limitValue));
-            
+            // Dibujar línea para PH Desmenuzado
+            const yPixelDesmenuzado = Math.floor(scales['y'].getPixelForValue(componentLimitValueDesmenuzado));
             ctx.beginPath();
             ctx.strokeStyle = 'rgb(255, 0, 0)';
             ctx.lineWidth = 2;
             ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixel);
-            ctx.lineTo(Math.floor(chartArea.right), yPixel);
+            ctx.moveTo(Math.floor(chartArea.left), yPixelDesmenuzado);
+            ctx.lineTo(Math.floor(chartArea.right), yPixelDesmenuzado);
             ctx.stroke();
             
             ctx.fillStyle = 'rgba(255,255,255,0.8)';
             ctx.fillRect(
-              Math.floor(chartArea.right - 100), 
-              Math.floor(yPixel - 15), 
-              100, 
+              Math.floor(chartArea.right - 150), 
+              Math.floor(yPixelDesmenuzado - 15), 
+              150, 
               20
             );
             
             ctx.fillStyle = 'rgb(255, 0, 0)';
             ctx.textAlign = 'right';
-            ctx.fillText(` ${limitValue}`, Math.floor(chartArea.right - 10), yPixel);
+            ctx.fillText(`Desmenuzado: ${componentLimitValueDesmenuzado}`, Math.floor(chartArea.right - 10), yPixelDesmenuzado);
+            
+            // Dibujar línea para PH Mezclado
+            const yPixelMezclado = Math.floor(scales['y'].getPixelForValue(componentLimitValueMezclado));
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgb(255, 165, 0)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 6]);
+            ctx.moveTo(Math.floor(chartArea.left), yPixelMezclado);
+            ctx.lineTo(Math.floor(chartArea.right), yPixelMezclado);
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.fillRect(
+              Math.floor(chartArea.right - 150), 
+              Math.floor(yPixelMezclado - 15), 
+              150, 
+              20
+            );
+            
+            ctx.fillStyle = 'rgb(255, 165, 0)';
+            ctx.textAlign = 'right';
+            ctx.fillText(`Mezclado: ${componentLimitValueMezclado}`, Math.floor(chartArea.right - 10), yPixelMezclado);
             
             ctx.restore();
           }
@@ -368,10 +449,7 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
   private mapDataToFixedHours(dataField: string): (number | null)[] {
     return this.fixedHours.map(hour => {
       const dataItem = this.findDataItemByHour(hour);
-      if (!dataItem || dataItem[dataField] === null || dataItem[dataField] === undefined) {
-        return null;
-      }
-      return parseFloat(dataItem[dataField]);
+      return dataItem ? dataItem[dataField] : null;
     });
   }
 
@@ -396,15 +474,25 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToFixedHours('IMBIBICION');
+    this.chart.data.datasets[0].data = this.mapDataToFixedHours('DESMENUZADO');
+    this.chart.data.datasets[1].data = this.mapDataToFixedHours('MEZCLADO');
   
     const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-    if (annotations?.['limitLine']) {
-      annotations['limitLine'].yMin = this.limitValue;
-      annotations['limitLine'].yMax = this.limitValue;
+    if (annotations?.['limitLineDesmenuzado']) {
+      annotations['limitLineDesmenuzado'].yMin = this.limitValueDesmenuzado;
+      annotations['limitLineDesmenuzado'].yMax = this.limitValueDesmenuzado;
       
-      if (annotations['limitLine'].label) {
-        annotations['limitLine'].label.content = `Límite: ${this.limitValue}`;
+      if (annotations['limitLineDesmenuzado'].label) {
+        annotations['limitLineDesmenuzado'].label.content = `Límite Desmenuzado: ${this.limitValueDesmenuzado}`;
+      }
+    }
+    
+    if (annotations?.['limitLineMezclado']) {
+      annotations['limitLineMezclado'].yMin = this.limitValueMezclado;
+      annotations['limitLineMezclado'].yMax = this.limitValueMezclado;
+      
+      if (annotations['limitLineMezclado'].label) {
+        annotations['limitLineMezclado'].label.content = `Límite Mezclado: ${this.limitValueMezclado}`;
       }
     }
   
@@ -416,5 +504,13 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
       this.chart.destroy();
       this.chart = null;
     }
+  }
+
+  refreshData(): void {
+    this.apiConnectionStatus = 'Verificando conexión...';
+    this.errorMessage = '';
+    this.dataLoaded = false;
+    this.limitsLoaded = false;
+    this.loadInitialData();
   }
 }

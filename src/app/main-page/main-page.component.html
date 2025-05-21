@@ -45,6 +45,11 @@
           <li (click)="showChart('molienda')">molienda</li>
           <li (click)="showChart('bagazo')">bagazo</li>
           <li (click)="showChart('imbibicion')">imbibicion</li>
+          <li (click)="showChart('reductores')">reductores</li>
+          <li (click)="showChart('ph-claro-filtrado')">ph-claro-filtrado</li>
+          <li (click)="showChart('ph-desmenuzado-mezclado')">ph-desmenuzado-mezclado</li>
+          <li (click)="showChart('ph-promedio')">ph-promedio</li>
+          <li (click)="showChart('reductores-claro-meladura')">reductores-claro-meladura</li>
         </ul>
       </li>
     </ul>
@@ -69,6 +74,12 @@
       <app-molienda *ngIf="currentChart === 'molienda'"></app-molienda>
       <app-bagazo *ngIf="currentChart === 'bagazo'"></app-bagazo>
       <app-imbibicion *ngIf="currentChart === 'imbibicion'"></app-imbibicion>
+      <app-reductores *ngIf="currentChart === 'reductores'"></app-reductores>
+      <app-ph-claro-filtrado *ngIf="currentChart === 'ph-claro-filtrado'"></app-ph-claro-filtrado>
+      <app-ph-desmenuzado-mezclado *ngIf="currentChart === 'ph-desmenuzado-mezclado'"></app-ph-desmenuzado-mezclado>
+      <app-ph-promedio *ngIf="currentChart === 'ph-promedio'"></app-ph-promedio>
+      <app-reductores-claro-meladura *ngIf="currentChart === 'reductores-claro-meladura'"></app-reductores-claro-meladura>
+
     </div>
   </div>
 </div>

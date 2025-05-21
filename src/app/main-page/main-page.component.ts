@@ -17,6 +17,12 @@ import { RendimientoCristalesComponent } from '../components/rendimiento-cristal
 import { MoliendaComponent } from '../components/molienda/molienda.component';
 import { BagazoComponent } from '../components/bagazo/bagazo.component';
 import { ImbibicionComponent } from '../components/imbibicion/imbibicion.component';
+import { ReductoresComponent } from '../components/reductores/reductores.component';
+import { PhClaroFiltradoComponent } from '../components/ph-claro-filtrado/ph-claro-filtrado.component';
+import { PhDesmenuzadoMezcladoComponent } from '../components/ph-desmenuzado-mezclado/ph-desmenuzado-mezclado.component';
+import { PhPromedioComponent } from '../components/ph-promedio/ph-promedio.component';
+import { ReductoresClaroMeladuraComponent } from '../components/reductores-claro-meladura/reductores-claro-meladura.component';
+
 @Component({
   selector: 'app-main-page',
   standalone: true,
@@ -38,7 +44,12 @@ import { ImbibicionComponent } from '../components/imbibicion/imbibicion.compone
     RendimientoCristalesComponent,
     MoliendaComponent,
     BagazoComponent,
-    ImbibicionComponent
+    ImbibicionComponent,
+    ReductoresComponent,
+    PhClaroFiltradoComponent,
+    PhDesmenuzadoMezcladoComponent,
+    PhPromedioComponent,
+    ReductoresClaroMeladuraComponent,
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

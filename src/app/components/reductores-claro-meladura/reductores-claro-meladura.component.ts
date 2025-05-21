@@ -20,18 +20,19 @@ interface LimitLineAnnotation {
 }
 
 interface ChartAnnotations {
-  ['limitLine']?: LimitLineAnnotation;
+  ['limitLineClarificado']?: LimitLineAnnotation;
+  ['limitLineMeladura']?: LimitLineAnnotation;
   [key: string]: any;
 }
 
 @Component({
-  selector: 'app-imbibicion',
+  selector: 'app-reductores-claro-meladura',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './imbibicion.component.html',
-  styleUrls: ['./imbibicion.component.css']
+  templateUrl: './reductores-claro-meladura.component.html',
+  styleUrls: ['./reductores-claro-meladura.component.css']
 })
-export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
@@ -41,7 +42,10 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public limitValue: number = 300; 
+  public limitValueClarificado: number = 50; 
+  public limitValueMeladura: number = 50; 
+  public dataLoaded: boolean = false;
+  public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
@@ -61,14 +65,18 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.isBrowser) {
-      this.checkApiConnection();
-      this.loadLimitValue();
+      this.loadInitialData();
     }
   }
 
+  private loadInitialData(): void {
+    this.checkApiConnection();
+    this.loadLimitValues();
+  }
+
   ngAfterViewInit(): void {
-    if (this.isBrowser && this.filteredData.length > 0) {
-      this.initChart();
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
+      this.initChartIfReady();
     }
   }
 
@@ -76,22 +84,47 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroyChart();
   }
 
-  private loadLimitValue(): void {
-    this.http.get('http://localhost:3000/api/limites/4').subscribe({
-      next: (response: any) => {
-        if (response && response.LIMITE !== undefined) {
-          this.limitValue = response.LIMITE;
-          if (this.chart) {
-            this.updateChartData();
-          }
+  private loadLimitValues(): void {
+    this.limitsLoaded = false;
+    
+    // Load clarificado limit (ID 13)
+    const clarificadoRequest = this.http.get('http://localhost:3000/api/limites/13').toPromise();
+    
+    // Load meladura limit (ID 14)
+    const meladuraRequest = this.http.get('http://localhost:3000/api/limites/14').toPromise();
+
+    Promise.all([clarificadoRequest, meladuraRequest])
+      .then(([clarificadoResponse, meladuraResponse]: [any, any]) => {
+        if (clarificadoResponse && clarificadoResponse.LIMITE !== undefined) {
+          this.limitValueClarificado = clarificadoResponse.LIMITE;
         } else {
-          console.warn('No se encontró LIMITE en los datos, usando valor por defecto');
+          console.warn('No se encontró LIMITE para clarificado, usando valor por defecto');
         }
-      },
-      error: (error) => {
-        console.error('Error al obtener el valor límite:', error);
-      }
-    });
+        
+        if (meladuraResponse && meladuraResponse.LIMITE !== undefined) {
+          this.limitValueMeladura = meladuraResponse.LIMITE;
+        } else {
+          console.warn('No se encontró LIMITE para meladura, usando valor por defecto');
+        }
+        
+        this.limitsLoaded = true;
+        if (this.dataLoaded) {
+          this.initChartIfReady();
+        }
+      })
+      .catch((error) => {
+        console.error('Error al obtener los valores límite:', error);
+        this.limitsLoaded = true;
+        if (this.dataLoaded) {
+          this.initChartIfReady();
+        }
+      });
+  }
+
+  private initChartIfReady(): void {
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded && this.filteredData.length > 0) {
+      this.initChart();
+    }
   }
 
   private formatTimeToHHMM(timeString: string | Date): string {
@@ -113,7 +146,8 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   checkApiConnection(): void {
-    this.http.get('http://localhost:3000/api/imbibicion').subscribe({
+    this.dataLoaded = false;
+    this.http.get('http://localhost:3000/api/reductores4h').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
@@ -122,14 +156,19 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
         }
-        if (this.isBrowser) {
-          setTimeout(() => this.initChart(), 0);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
         }
       },
       error: (error) => {
         this.apiConnectionStatus = 'Error al conectar con la API';
         this.errorMessage = error.message;
         console.error('Error:', error);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
+        }
       }
     });
   }
@@ -172,7 +211,7 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.chart) {
       this.updateChartData();
-    } else if (this.isBrowser) {
+    } else if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
       this.initChart();
     }
   }
@@ -192,8 +231,10 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
       return {
         ...item,
         HORA_ORIGINAL: horaOriginal || '00:00',
-        IMBIBICION: item.IMBIBICION || null,
-        JUSTIFICACION: item.JUSTIFICACION || ''
+        CLARIFICADO: item.CLARIFICADO || null,
+        MELADURA: item.MELADURA || null,
+        JUSTIFICACION_CLARIFICADO: item.JUSTIFICACION_CLARIFICADO || '',
+        JUSTIFICACION_MELADURA: item.JUSTIFICACION_MELADURA || ''
       };
     });
   }
@@ -221,24 +262,41 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const imbibicionData = this.mapDataToFixedHours('IMBIBICION');
+      const clarificadoData = this.mapDataToFixedHours('CLARIFICADO');
+      const meladuraData = this.mapDataToFixedHours('MELADURA');
 
-      const limitLine: LimitLineAnnotation = {
+      const limitLineClarificado: LimitLineAnnotation = {
         type: 'line',
-        yMin: this.limitValue,
-        yMax: this.limitValue,
+        yMin: this.limitValueClarificado,
+        yMax: this.limitValueClarificado,
         borderColor: 'rgb(255, 0, 0)',
         borderWidth: 2,
         borderDash: [6, 6],
         label: {
-          content: `Límite: ${this.limitValue}`,
+          content: `Límite Clarificado: ${this.limitValueClarificado}`,
           enabled: true,
           position: 'end',
           backgroundColor: 'rgba(255,255,255,0.8)'
         }
       };
 
-      const componentLimitValue = this.limitValue;
+      const limitLineMeladura: LimitLineAnnotation = {
+        type: 'line',
+        yMin: this.limitValueMeladura,
+        yMax: this.limitValueMeladura,
+        borderColor: 'rgb(255, 165, 0)',
+        borderWidth: 2,
+        borderDash: [6, 6],
+        label: {
+          content: `Límite Meladura: ${this.limitValueMeladura}`,
+          enabled: true,
+          position: 'end',
+          backgroundColor: 'rgba(255,255,255,0.8)'
+        }
+      };
+
+      const componentLimitValueClarificado = this.limitValueClarificado;
+      const componentLimitValueMeladura = this.limitValueMeladura;
 
       this.chart = new Chart(ctx, {
         type: 'bar',
@@ -246,10 +304,18 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
           labels: labels,
           datasets: [
             {
-              label: 'Imbibición',
-              data: imbibicionData,
+              label: 'Clarificado',
+              data: clarificadoData,
               backgroundColor: 'rgba(54, 162, 235, 0.7)',
               borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Meladura',
+              data: meladuraData,
+              backgroundColor: 'rgba(75, 192, 192, 0.7)',
+              borderColor: 'rgba(75, 192, 192, 1)',
               borderWidth: 1,
               yAxisID: 'y'
             }
@@ -263,7 +329,7 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
               beginAtZero: false,
               title: {
                 display: true,
-                text: 'Porcentaje de Imbibición'
+                text: 'Porcentaje de Reducción'
               }
             },
             x: {
@@ -292,11 +358,15 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
                   
                   if (!dataItem) return 'No hay datos para esta hora';
                   
+                  const justificationField = context.dataset.label === 'Clarificado' 
+                    ? 'JUSTIFICACION_CLARIFICADO' 
+                    : 'JUSTIFICACION_MELADURA';
+                  
                   return [
                     `─────────────────────`,
                     `Hora: ${hour}`,
                     `Justificación:`,
-                    `${dataItem.JUSTIFICACION || 'No hay justificación registrada'}`
+                    `${dataItem[justificationField] || 'No hay justificación registrada'}`
                   ];
                 }
               },
@@ -312,7 +382,8 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             annotation: {
               annotations: {
-                ['limitLine']: limitLine
+                ['limitLineClarificado']: limitLineClarificado,
+                ['limitLineMeladura']: limitLineMeladura
               }
             }
           }
@@ -327,31 +398,49 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            const annotations = chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-            const limitValue = Number(annotations?.['limitLine']?.yMin ?? componentLimitValue);
-          
-            const yScale = scales['y'] as Scale;
-            const yPixel = Math.floor(yScale.getPixelForValue(limitValue));
-            
+            // Draw clarificado limit line
+            const yPixelClarificado = Math.floor(scales['y'].getPixelForValue(componentLimitValueClarificado));
             ctx.beginPath();
             ctx.strokeStyle = 'rgb(255, 0, 0)';
             ctx.lineWidth = 2;
             ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixel);
-            ctx.lineTo(Math.floor(chartArea.right), yPixel);
+            ctx.moveTo(Math.floor(chartArea.left), yPixelClarificado);
+            ctx.lineTo(Math.floor(chartArea.right), yPixelClarificado);
             ctx.stroke();
             
             ctx.fillStyle = 'rgba(255,255,255,0.8)';
             ctx.fillRect(
-              Math.floor(chartArea.right - 100), 
-              Math.floor(yPixel - 15), 
-              100, 
+              Math.floor(chartArea.right - 120), 
+              Math.floor(yPixelClarificado - 15), 
+              120, 
               20
             );
             
             ctx.fillStyle = 'rgb(255, 0, 0)';
             ctx.textAlign = 'right';
-            ctx.fillText(` ${limitValue}`, Math.floor(chartArea.right - 10), yPixel);
+            ctx.fillText(`Clarificado: ${componentLimitValueClarificado}`, Math.floor(chartArea.right - 10), yPixelClarificado);
+            
+            // Draw meladura limit line
+            const yPixelMeladura = Math.floor(scales['y'].getPixelForValue(componentLimitValueMeladura));
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgb(255, 165, 0)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 6]);
+            ctx.moveTo(Math.floor(chartArea.left), yPixelMeladura);
+            ctx.lineTo(Math.floor(chartArea.right), yPixelMeladura);
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.fillRect(
+              Math.floor(chartArea.right - 120), 
+              Math.floor(yPixelMeladura - 15), 
+              120, 
+              20
+            );
+            
+            ctx.fillStyle = 'rgb(255, 165, 0)';
+            ctx.textAlign = 'right';
+            ctx.fillText(`Meladura: ${componentLimitValueMeladura}`, Math.floor(chartArea.right - 10), yPixelMeladura);
             
             ctx.restore();
           }
@@ -396,15 +485,25 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToFixedHours('IMBIBICION');
+    this.chart.data.datasets[0].data = this.mapDataToFixedHours('CLARIFICADO');
+    this.chart.data.datasets[1].data = this.mapDataToFixedHours('MELADURA');
   
     const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-    if (annotations?.['limitLine']) {
-      annotations['limitLine'].yMin = this.limitValue;
-      annotations['limitLine'].yMax = this.limitValue;
+    if (annotations?.['limitLineClarificado']) {
+      annotations['limitLineClarificado'].yMin = this.limitValueClarificado;
+      annotations['limitLineClarificado'].yMax = this.limitValueClarificado;
       
-      if (annotations['limitLine'].label) {
-        annotations['limitLine'].label.content = `Límite: ${this.limitValue}`;
+      if (annotations['limitLineClarificado'].label) {
+        annotations['limitLineClarificado'].label.content = `Límite Clarificado: ${this.limitValueClarificado}`;
+      }
+    }
+    
+    if (annotations?.['limitLineMeladura']) {
+      annotations['limitLineMeladura'].yMin = this.limitValueMeladura;
+      annotations['limitLineMeladura'].yMax = this.limitValueMeladura;
+      
+      if (annotations['limitLineMeladura'].label) {
+        annotations['limitLineMeladura'].label.content = `Límite Meladura: ${this.limitValueMeladura}`;
       }
     }
   
@@ -416,5 +515,13 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
       this.chart.destroy();
       this.chart = null;
     }
+  }
+
+  refreshData(): void {
+    this.apiConnectionStatus = 'Verificando conexión...';
+    this.errorMessage = '';
+    this.dataLoaded = false;
+    this.limitsLoaded = false;
+    this.loadInitialData();
   }
 }

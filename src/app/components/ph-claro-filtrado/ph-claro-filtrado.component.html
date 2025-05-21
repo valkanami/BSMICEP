@@ -1,0 +1,36 @@
+<div class="chart-container">
+  <div class="chart-header">
+    <h2>Monitoreo de PH (Claro y Filtrado)</h2>
+    <div class="chart-controls">
+      <div class="date-selector">
+        <label for="dateFilter">Filtrar por fecha:</label>
+        <select id="dateFilter" [(ngModel)]="selectedDate" (change)="filterDataByDate()">
+          <option *ngFor="let date of availableDates" [value]="date">{{ date }}</option>
+        </select>
+      </div>
+      <div class="api-status" [ngClass]="{
+        'status-success': apiConnectionStatus.includes('exitoso'),
+        'status-error': apiConnectionStatus.includes('Error')
+      }">
+        {{ apiConnectionStatus }}
+      </div>
+      <button class="refresh-btn" (click)="refreshData()">Actualizar</button>
+    </div>
+  </div>
+
+  <div class="chart-wrapper">
+    <canvas #chartCanvas></canvas>
+  </div>
+
+  <div class="chart-footer">
+    <div class="data-info">
+      <p>Datos:</p>
+      <ul>
+        <li><span class="bar1-color"></span> PH Claro</li>
+        <li><span class="bar2-color"></span> PH Filtrado</li>
+        <li><span class="limit-line-claro-color"></span> Límite PH Claro</li>
+        <li><span class="limit-line-filtrado-color"></span> Límite PH Filtrado</li>
+      </ul>
+    </div>
+  </div>
+</div>

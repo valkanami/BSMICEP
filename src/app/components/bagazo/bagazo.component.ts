@@ -40,8 +40,10 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public limitHumValue: number = 50; // Valor por defecto humedad
-  public limitPolValue: number = 3; // Valor por defecto pol
+  public limitHumValue: number = 50; 
+  public limitPolValue: number = 3; 
+  public dataLoaded: boolean = false;
+  public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
@@ -61,14 +63,18 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.isBrowser) {
-      this.checkApiConnection();
-      this.loadLimitValues();
+      this.loadInitialData();
     }
   }
 
+  private loadInitialData(): void {
+    this.checkApiConnection();
+    this.loadLimitValues();
+  }
+
   ngAfterViewInit(): void {
-    if (this.isBrowser && this.filteredData.length > 0) {
-      this.initChart();
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
+      this.initChartIfReady();
     }
   }
 
@@ -76,39 +82,43 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroyChart();
   }
 
- private loadLimitValues(): void {
-  // Obtener límite de humedad (ID 1)
-  this.http.get('http://localhost:3000/api/limites/1').subscribe({
-    next: (response: any) => {
-      if (response && response.LIMITE !== undefined) {
-        this.limitHumValue = response.LIMITE;
-        if (this.chart) {
-          this.updateChartData();
-        }
-      }
-    },
-    error: (error) => {
-      console.error('Error al obtener el valor límite de humedad:', error);
-      this.limitHumValue = 50; // Valor por defecto en caso de error
-    }
-  });
+  private loadLimitValues(): void {
+    this.limitsLoaded = false;
+    
+    // Obtener límite de humedad (ID 1)
+    const humRequest = this.http.get('http://localhost:3000/api/limites/1').toPromise();
+    
+    // Obtener límite de pol (ID 2)
+    const polRequest = this.http.get('http://localhost:3000/api/limites/2').toPromise();
 
-  // Obtener límite de pol (ID 2)
-  this.http.get('http://localhost:3000/api/limites/2').subscribe({
-    next: (response: any) => {
-      if (response && response.LIMITE !== undefined) {
-        this.limitPolValue = response.LIMITE;
-        if (this.chart) {
-          this.updateChartData();
+    Promise.all([humRequest, polRequest])
+      .then(([humResponse, polResponse]: [any, any]) => {
+        if (humResponse && humResponse.LIMITE !== undefined) {
+          this.limitHumValue = humResponse.LIMITE;
         }
-      }
-    },
-    error: (error) => {
-      console.error('Error al obtener el valor límite de pol:', error);
-      this.limitPolValue = 3; // Valor por defecto en caso de error
+        if (polResponse && polResponse.LIMITE !== undefined) {
+          this.limitPolValue = polResponse.LIMITE;
+        }
+        
+        this.limitsLoaded = true;
+        if (this.dataLoaded) {
+          this.initChartIfReady();
+        }
+      })
+      .catch((error) => {
+        console.error('Error al obtener los valores límite:', error);
+        this.limitsLoaded = true;
+        if (this.dataLoaded) {
+          this.initChartIfReady();
+        }
+      });
+  }
+
+  private initChartIfReady(): void {
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded && this.filteredData.length > 0) {
+      this.initChart();
     }
-  });
-}
+  }
 
   private formatTimeToHHMM(timeString: string | Date): string {
     if (typeof timeString === 'string') {
@@ -129,6 +139,7 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   checkApiConnection(): void {
+    this.dataLoaded = false;
     this.http.get('http://localhost:3000/api/bagazo').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
@@ -138,14 +149,19 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
         }
-        if (this.isBrowser) {
-          setTimeout(() => this.initChart(), 0);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
         }
       },
       error: (error) => {
         this.apiConnectionStatus = 'Error al conectar con la API ';
         this.errorMessage = error.message;
         console.error('Error:', error);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
+        }
       }
     });
   }
@@ -188,7 +204,7 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.chart) {
       this.updateChartData();
-    } else if (this.isBrowser) {
+    } else if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
       this.initChart();
     }
   }
@@ -395,7 +411,7 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            // Dibujar línea de límite de humedad
+            // Dibujar línea límite para humedad
             const yPixelHum = Math.floor(scales['y'].getPixelForValue(componentHumLimitValue));
             
             ctx.beginPath();
@@ -418,7 +434,7 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
             ctx.textAlign = 'right';
             ctx.fillText(` Humedad: ${componentHumLimitValue}`, Math.floor(chartArea.right - 10), yPixelHum);
             
-            // Dibujar línea de límite de pol
+            // Dibujar línea límite para pol
             const yPixelPol = Math.floor(scales['y1'].getPixelForValue(componentPolLimitValue));
             
             ctx.beginPath();
@@ -516,7 +532,8 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
   refreshData(): void {
     this.apiConnectionStatus = 'Verificando conexión...';
     this.errorMessage = '';
-    this.checkApiConnection();
-    this.loadLimitValues();
+    this.dataLoaded = false;
+    this.limitsLoaded = false;
+    this.loadInitialData();
   }
 }

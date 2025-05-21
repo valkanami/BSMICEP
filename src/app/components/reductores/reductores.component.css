@@ -87,7 +87,7 @@
     margin-bottom: 5px;
 }
 
-.hum-line-color {
+.desmenuzado-line-color {
     display: inline-block;
     width: 15px;
     height: 3px;
@@ -95,7 +95,7 @@
     margin-right: 8px;
 }
 
-.pol-line-color {
+.mezclado-line-color {
     display: inline-block;
     width: 15px;
     height: 3px;
@@ -103,7 +103,7 @@
     margin-right: 8px;
 }
 
-.hum-limit-color {
+.desmenuzado-limit-color {
     display: inline-block;
     width: 15px;
     height: 2px;
@@ -112,7 +112,7 @@
     border: 1px dashed rgb(255, 0, 0);
 }
 
-.pol-limit-color {
+.mezclado-limit-color {
     display: inline-block;
     width: 15px;
     height: 2px;
@@ -148,7 +148,7 @@
     
     .chart-footer {
         flex-direction: column;
-        gap: 15px; 
+        gap: 15px;
     }
     
     .refresh-btn {

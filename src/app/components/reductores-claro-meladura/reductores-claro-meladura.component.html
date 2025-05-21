@@ -1,0 +1,35 @@
+<div class="chart-container">
+  <div class="chart-header">
+    <h2>Monitoreo de Reductores 4h</h2>
+    <div class="chart-controls">
+      <div class="date-selector">
+        <label for="dateFilter">Filtrar por fecha:</label>
+        <select id="dateFilter" [(ngModel)]="selectedDate" (change)="filterDataByDate()">
+          <option *ngFor="let date of availableDates" [value]="date">{{ date }}</option>
+        </select>
+      </div>
+      <div class="api-status" [ngClass]="{
+        'status-success': apiConnectionStatus.includes('exitoso'),
+        'status-error': apiConnectionStatus.includes('Error')
+      }">
+        {{ apiConnectionStatus }}
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-wrapper">
+    <canvas #chartCanvas></canvas>
+  </div>
+
+  <div class="chart-footer">
+    <div class="data-info">
+      <p>Datos:</p>
+      <ul>
+        <li><span class="clarificado-color"></span> Clarificado</li>
+        <li><span class="meladura-color"></span> Meladura</li>
+        <li><span class="limit-line-clarificado-color"></span> Límite Clarificado</li>
+        <li><span class="limit-line-meladura-color"></span> Límite Meladura</li>
+      </ul>
+    </div>
+  </div>
+</div>
