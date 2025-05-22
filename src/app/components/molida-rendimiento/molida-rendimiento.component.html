@@ -1,1 +1,34 @@
-<p>molida-rendimiento works!</p>
+<div class="chart-container">
+  <div class="chart-header">
+    <h2>Monitoreo de Caña Molida y Rendimiento</h2>
+    <div class="chart-controls">
+      <div class="date-selector">
+        <label for="dateFilter">Filtrar por fecha:</label>
+        <select id="dateFilter" [(ngModel)]="selectedDate" (change)="filterDataByDate()">
+          <option *ngFor="let date of availableDates" [value]="date">{{ date }}</option>
+        </select>
+      </div>
+      <div class="api-status" [ngClass]="{
+        'status-success': apiConnectionStatus.includes('exitoso'),
+        'status-error': apiConnectionStatus.includes('Error')
+      }">
+        {{ apiConnectionStatus }}
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-wrapper">
+    <canvas #chartCanvas></canvas>
+  </div>
+
+  <div class="chart-footer">
+    <div class="data-info">
+      <p>Datos:</p>
+      <ul>
+        <li><span class="cana-molida-color"></span> Caña Molida por Hora</li>
+        <li><span class="rendimiento-color"></span> Rendimiento</li>
+      </ul>
+    </div>
+    <button class="refresh-btn" (click)="refreshData()">Actualizar Datos</button>
+  </div>
+</div>

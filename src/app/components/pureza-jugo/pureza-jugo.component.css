@@ -87,16 +87,23 @@
     margin-bottom: 5px;
 }
 
-.cana-molida-color {
+.mezclado-color {
     display: inline-block;
     width: 15px;
-    height: 15px;
-    background-color: rgba(54, 162, 235, 0.7);
+    height: 3px;
+    background-color: rgba(255, 99, 132, 1);
     margin-right: 8px;
-    border: 1px solid rgba(54, 162, 235, 1);
 }
 
-.rendimiento-color {
+.alcalizado-color {
+    display: inline-block;
+    width: 15px;
+    height: 3px;
+    background-color: rgba(54, 162, 235, 1);
+    margin-right: 8px;
+}
+
+.filtrado-color {
     display: inline-block;
     width: 15px;
     height: 3px;

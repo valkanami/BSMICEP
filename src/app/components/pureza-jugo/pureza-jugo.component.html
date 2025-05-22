@@ -1,6 +1,6 @@
 <div class="chart-container">
   <div class="chart-header">
-    <h2>Monitoreo de Pureza Miel Final</h2>
+    <h2>Monitoreo de Pureza</h2>
     <div class="chart-controls">
       <div class="date-selector">
         <label for="dateFilter">Filtrar por fecha:</label>
@@ -25,9 +25,11 @@
     <div class="data-info">
       <p>Datos:</p>
       <ul>
-        <li><span class="limit-line-pureza-color"></span> Límite Pureza</li>
+        <li><span class="mezclado-color"></span> Jugo Mezclado</li>
+        <li><span class="alcalizado-color"></span> Alcalizado</li>
+        <li><span class="filtrado-color"></span> Filtrado</li>
       </ul>
     </div>
-    
+    <button class="refresh-btn" (click)="refreshData()">Actualizar Datos</button>
   </div>
 </div>

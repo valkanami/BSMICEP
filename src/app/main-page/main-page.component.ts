@@ -27,6 +27,9 @@ import { BrixMeladuraComponent } from '../components/brix-meladura/brix-meladura
 import { PurezaMielFinalComponent } from '../components/pureza-miel-final/pureza-miel-final.component';
 import { MolidaProduccionComponent } from '../components/molida-produccion/molida-produccion.component';
 import { MolidaRendimientoComponent } from '../components/molida-rendimiento/molida-rendimiento.component';
+import { SedimentosComponent } from '../components/sedimentos/sedimentos.component';
+import { PurezaJugoComponent } from '../components/pureza-jugo/pureza-jugo.component';
+import { RendimientoCristalesDiaComponent } from '../components/rendimiento-cristales-dia/rendimiento-cristales-dia.component';
 
 @Component({
   selector: 'app-main-page',
@@ -60,6 +63,9 @@ import { MolidaRendimientoComponent } from '../components/molida-rendimiento/mol
     PurezaMielFinalComponent,
     MolidaProduccionComponent,
     MolidaRendimientoComponent,
+    SedimentosComponent,
+    PurezaJugoComponent,
+    RendimientoCristalesDiaComponent
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

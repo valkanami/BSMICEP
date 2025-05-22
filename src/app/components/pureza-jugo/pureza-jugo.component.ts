@@ -5,13 +5,13 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-molida-produccion',
+  selector: 'app-pureza-jugo',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './molida-produccion.component.html',
-  styleUrls: ['./molida-produccion.component.css']
+  templateUrl: './pureza-jugo.component.html',
+  styleUrls: ['./pureza-jugo.component.css']
 })
-export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PurezaJugoComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
@@ -24,9 +24,7 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
   public dataLoaded: boolean = false;
   public fixedHours: string[] = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
-    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
-    '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
-    '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
+    '13:00'
   ];
 
   constructor(
@@ -41,12 +39,8 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
 
   ngOnInit(): void {
     if (this.isBrowser) {
-      this.loadInitialData();
+      this.loadData();
     }
-  }
-
-  private loadInitialData(): void {
-    this.checkApiConnection();
   }
 
   ngAfterViewInit(): void {
@@ -83,9 +77,9 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
     return '00:00';
   }
 
-  checkApiConnection(): void {
+  private loadData(): void {
     this.dataLoaded = false;
-    this.http.get('http://localhost:3000/api/canamolidaproduccion').subscribe({
+    this.http.get('http://localhost:3000/api/pureza').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
@@ -165,10 +159,12 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
       return {
         ...item,
         HORA_ORIGINAL: horaOriginal || '00:00',
-        CANA_MOLIDA_HORA: item.CANA_MOLIDA_HORA || null,
-        PRODUCCION: item.PRODUCCION || null,
-        JUSTIFICACION_HORA: item.JUSTIFICACION_HORA || '',
-        JUSTIFICACION_PRODUCCION: item.JUSTIFICACION_PRODUCCION || ''
+        PUREZA_JUGO_MEZCLADO: item.PUREZA_JUGO_MEZCLADO || null,
+        PZA_ALCALIZADO: item.PZA_ALCALIZADO || null,
+        PZA_FILTRADO: item.PZA_FILTRADO || null,
+        JUSTIFICACION_MEZCLADO: item.JUSTIFICACION_MEZCLADO || '',
+        JUSTIFICACION_ALCALIZADO: item.JUSTIFICACION_ALCALIZADO || '',
+        JUSTIFICACION_FILTRADO: item.JUSTIFICACION_FILTRADO || ''
       };
     });
   }
@@ -196,31 +192,41 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const canaMolidaData = this.mapDataToFixedHours('CANA_MOLIDA_HORA');
-      const produccionData = this.mapDataToFixedHours('PRODUCCION');
+      const mezcladoData = this.mapDataToFixedHours('PUREZA_JUGO_MEZCLADO');
+      const alcalizadoData = this.mapDataToFixedHours('PZA_ALCALIZADO');
+      const filtradoData = this.mapDataToFixedHours('PZA_FILTRADO');
 
       this.chart = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
           labels: labels,
           datasets: [
             {
-              label: 'Caña Molida por Hora (ton)',
-              data: canaMolidaData,
-              backgroundColor: 'rgba(54, 162, 235, 0.7)',
-              borderColor: 'rgba(54, 162, 235, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            },
-            {
-              label: 'Producción',
-              data: produccionData,
-              type: 'line',
+              label: 'Jugo Mezclado',
+              data: mezcladoData,
               borderColor: 'rgba(255, 99, 132, 1)',
               backgroundColor: 'rgba(255, 99, 132, 0.2)',
               borderWidth: 2,
               tension: 0.1,
-              yAxisID: 'y1'
+              yAxisID: 'y'
+            },
+            {
+              label: 'Alcalizado',
+              data: alcalizadoData,
+              borderColor: 'rgba(54, 162, 235, 1)',
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              borderWidth: 2,
+              tension: 0.1,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Filtrado',
+              data: filtradoData,
+              borderColor: 'rgba(75, 192, 192, 1)',
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              borderWidth: 2,
+              tension: 0.1,
+              yAxisID: 'y'
             }
           ]
         },
@@ -234,22 +240,10 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
               position: 'left',
               title: {
                 display: true,
-                text: 'Caña Molida (ton)'
+                text: 'Pureza (%)'
               },
-              beginAtZero: true
-            },
-            y1: {
-              type: 'linear',
-              display: true,
-              position: 'right',
-              title: {
-                display: true,
-                text: 'Producción'
-              },
-              beginAtZero: true,
-              grid: {
-                drawOnChartArea: false
-              }
+              min: 70,
+              max: 100
             },
             x: {
               title: {
@@ -269,7 +263,7 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
                 label: (context: any) => {
                   const label = context.dataset.label || '';
                   const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/D';
-                  return `${label}: ${value}`;
+                  return `${label}: ${value}%`;
                 },
                 afterLabel: (context: any) => {
                   const hour = labels[context.dataIndex];
@@ -277,9 +271,14 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
                   
                   if (!dataItem) return 'No hay datos para esta hora';
                   
-                  const justificacion = context.datasetIndex === 0 
-                    ? dataItem.JUSTIFICACION_HORA || 'No hay justificación registrada'
-                    : dataItem.JUSTIFICACION_PRODUCCION || 'No hay justificación registrada';
+                  let justificacion = '';
+                  if (context.datasetIndex === 0) {
+                    justificacion = dataItem.JUSTIFICACION_MEZCLADO || 'No hay justificación registrada';
+                  } else if (context.datasetIndex === 1) {
+                    justificacion = dataItem.JUSTIFICACION_ALCALIZADO || 'No hay justificación registrada';
+                  } else {
+                    justificacion = dataItem.JUSTIFICACION_FILTRADO || 'No hay justificación registrada';
+                  }
                   
                   return [
                     `─────────────────────`,
@@ -338,8 +337,9 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToFixedHours('CANA_MOLIDA_HORA');
-    this.chart.data.datasets[1].data = this.mapDataToFixedHours('PRODUCCION');
+    this.chart.data.datasets[0].data = this.mapDataToFixedHours('PUREZA_JUGO_MEZCLADO');
+    this.chart.data.datasets[1].data = this.mapDataToFixedHours('PZA_ALCALIZADO');
+    this.chart.data.datasets[2].data = this.mapDataToFixedHours('PZA_FILTRADO');
   
     this.chart.update();
   }
@@ -355,6 +355,6 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
     this.apiConnectionStatus = 'Verificando conexión...';
     this.errorMessage = '';
     this.dataLoaded = false;
-    this.loadInitialData();
+    this.loadData();
   }
 }

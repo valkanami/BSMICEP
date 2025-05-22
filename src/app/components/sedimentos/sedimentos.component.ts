@@ -1,17 +1,37 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Chart, registerables } from 'chart.js';
+import { Chart, registerables, Scale } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+interface LimitLineAnnotation {
+  type: 'line';
+  yMin: number;
+  yMax: number;
+  borderColor: string;
+  borderWidth: number;
+  borderDash: number[];
+  label?: {
+    content: string;
+    enabled: boolean;
+    position: 'start' | 'center' | 'end';
+    backgroundColor: string;
+  };
+}
+
+interface ChartAnnotations {
+  ['limitLine']?: LimitLineAnnotation;
+  [key: string]: any;
+}
+
 @Component({
-  selector: 'app-molida-produccion',
+  selector: 'app-sedimentos',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './molida-produccion.component.html',
-  styleUrls: ['./molida-produccion.component.css']
+  templateUrl: './sedimentos.component.html',
+  styleUrls: ['./sedimentos.component.css']
 })
-export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestroy {
+export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
@@ -21,7 +41,7 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public dataLoaded: boolean = false;
+  public limitValue: number = 300; 
   public fixedHours: string[] = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
@@ -41,17 +61,14 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
 
   ngOnInit(): void {
     if (this.isBrowser) {
-      this.loadInitialData();
+      this.checkApiConnection();
+      this.loadLimitValue();
     }
   }
 
-  private loadInitialData(): void {
-    this.checkApiConnection();
-  }
-
   ngAfterViewInit(): void {
-    if (this.isBrowser && this.dataLoaded) {
-      this.initChartIfReady();
+    if (this.isBrowser && this.filteredData.length > 0) {
+      this.initChart();
     }
   }
 
@@ -59,10 +76,22 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
     this.destroyChart();
   }
 
-  private initChartIfReady(): void {
-    if (this.isBrowser && this.dataLoaded && this.filteredData.length > 0) {
-      this.initChart();
-    }
+  private loadLimitValue(): void {
+    this.http.get('http://localhost:3000/api/limites/17').subscribe({
+      next: (response: any) => {
+        if (response && response.LIMITE !== undefined) {
+          this.limitValue = response.LIMITE;
+          if (this.chart) {
+            this.updateChartData();
+          }
+        } else {
+          console.warn('No se encontró LIMITE en los datos, usando valor por defecto');
+        }
+      },
+      error: (error) => {
+        console.error('Error al obtener el valor límite:', error);
+      }
+    });
   }
 
   private formatTimeToHHMM(timeString: string | Date): string {
@@ -84,8 +113,7 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   checkApiConnection(): void {
-    this.dataLoaded = false;
-    this.http.get('http://localhost:3000/api/canamolidaproduccion').subscribe({
+    this.http.get('http://localhost:3000/api/sedimentos').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
@@ -94,15 +122,14 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
         }
-        this.dataLoaded = true;
-        this.initChartIfReady();
+        if (this.isBrowser) {
+          setTimeout(() => this.initChart(), 0);
+        }
       },
       error: (error) => {
-        this.apiConnectionStatus = 'Error al conectar con la API ';
+        this.apiConnectionStatus = 'Error al conectar con la API';
         this.errorMessage = error.message;
         console.error('Error:', error);
-        this.dataLoaded = true;
-        this.initChartIfReady();
       }
     });
   }
@@ -145,7 +172,7 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
 
     if (this.chart) {
       this.updateChartData();
-    } else if (this.isBrowser && this.dataLoaded) {
+    } else if (this.isBrowser) {
       this.initChart();
     }
   }
@@ -165,10 +192,9 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
       return {
         ...item,
         HORA_ORIGINAL: horaOriginal || '00:00',
-        CANA_MOLIDA_HORA: item.CANA_MOLIDA_HORA || null,
-        PRODUCCION: item.PRODUCCION || null,
-        JUSTIFICACION_HORA: item.JUSTIFICACION_HORA || '',
-        JUSTIFICACION_PRODUCCION: item.JUSTIFICACION_PRODUCCION || ''
+        SEDIMENTOS: item.SEDIMENTOS || null,
+        JUSTIFICACION: item.JUSTIFICACION || '',
+        F5: null // Mantenemos F5 como null ya que no viene en los datos
       };
     });
   }
@@ -196,8 +222,24 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const canaMolidaData = this.mapDataToFixedHours('CANA_MOLIDA_HORA');
-      const produccionData = this.mapDataToFixedHours('PRODUCCION');
+      const sedimentosData = this.mapDataToFixedHours('SEDIMENTOS');
+
+      const limitLine: LimitLineAnnotation = {
+        type: 'line',
+        yMin: this.limitValue,
+        yMax: this.limitValue,
+        borderColor: 'rgb(255, 0, 0)',
+        borderWidth: 2,
+        borderDash: [6, 6],
+        label: {
+          content: `Límite: ${this.limitValue}`,
+          enabled: true,
+          position: 'end',
+          backgroundColor: 'rgba(255,255,255,0.8)'
+        }
+      };
+
+      const componentLimitValue = this.limitValue;
 
       this.chart = new Chart(ctx, {
         type: 'bar',
@@ -205,22 +247,12 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
           labels: labels,
           datasets: [
             {
-              label: 'Caña Molida por Hora (ton)',
-              data: canaMolidaData,
+              label: 'Sedimentos',
+              data: sedimentosData,
               backgroundColor: 'rgba(54, 162, 235, 0.7)',
               borderColor: 'rgba(54, 162, 235, 1)',
               borderWidth: 1,
               yAxisID: 'y'
-            },
-            {
-              label: 'Producción',
-              data: produccionData,
-              type: 'line',
-              borderColor: 'rgba(255, 99, 132, 1)',
-              backgroundColor: 'rgba(255, 99, 132, 0.2)',
-              borderWidth: 2,
-              tension: 0.1,
-              yAxisID: 'y1'
             }
           ]
         },
@@ -229,26 +261,10 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
           maintainAspectRatio: false,
           scales: {
             y: {
-              type: 'linear',
-              display: true,
-              position: 'left',
+              beginAtZero: false,
               title: {
                 display: true,
-                text: 'Caña Molida (ton)'
-              },
-              beginAtZero: true
-            },
-            y1: {
-              type: 'linear',
-              display: true,
-              position: 'right',
-              title: {
-                display: true,
-                text: 'Producción'
-              },
-              beginAtZero: true,
-              grid: {
-                drawOnChartArea: false
+                text: 'Nivel de Sedimentos'
               }
             },
             x: {
@@ -277,15 +293,11 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
                   
                   if (!dataItem) return 'No hay datos para esta hora';
                   
-                  const justificacion = context.datasetIndex === 0 
-                    ? dataItem.JUSTIFICACION_HORA || 'No hay justificación registrada'
-                    : dataItem.JUSTIFICACION_PRODUCCION || 'No hay justificación registrada';
-                  
                   return [
                     `─────────────────────`,
                     `Hora: ${hour}`,
                     `Justificación:`,
-                    `${justificacion}`
+                    `${dataItem.JUSTIFICACION || 'No hay justificación registrada'}`
                   ];
                 }
               },
@@ -298,9 +310,53 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
             },
             legend: {
               position: 'top'
+            },
+            annotation: {
+              annotations: {
+                ['limitLine']: limitLine
+              }
             }
           }
-        }
+        },
+        plugins: [{
+          id: 'limitLine',
+          beforeDraw: (chart: any) => {
+            const {ctx, chartArea, scales} = chart;
+            
+            if (!ctx || !chartArea || !scales?.['y']) return;
+            
+            ctx.save();
+            ctx.translate(0.5, 0.5);
+            
+            const annotations = chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
+            const limitValue = Number(annotations?.['limitLine']?.yMin ?? componentLimitValue);
+          
+            const yScale = scales['y'] as Scale;
+            const yPixel = Math.floor(yScale.getPixelForValue(limitValue));
+            
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgb(255, 0, 0)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 6]);
+            ctx.moveTo(Math.floor(chartArea.left), yPixel);
+            ctx.lineTo(Math.floor(chartArea.right), yPixel);
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.fillRect(
+              Math.floor(chartArea.right - 100), 
+              Math.floor(yPixel - 15), 
+              100, 
+              20
+            );
+            
+            ctx.fillStyle = 'rgb(255, 0, 0)';
+            ctx.textAlign = 'right';
+            ctx.fillText(` ${limitValue}`, Math.floor(chartArea.right - 10), yPixel);
+            
+            ctx.restore();
+          }
+        }]
       });
 
     } catch (error) {
@@ -313,7 +369,10 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
   private mapDataToFixedHours(dataField: string): (number | null)[] {
     return this.fixedHours.map(hour => {
       const dataItem = this.findDataItemByHour(hour);
-      return dataItem ? dataItem[dataField] : null;
+      if (!dataItem || dataItem[dataField] === null || dataItem[dataField] === undefined) {
+        return null;
+      }
+      return parseFloat(dataItem[dataField]);
     });
   }
 
@@ -338,8 +397,17 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToFixedHours('CANA_MOLIDA_HORA');
-    this.chart.data.datasets[1].data = this.mapDataToFixedHours('PRODUCCION');
+    this.chart.data.datasets[0].data = this.mapDataToFixedHours('SEDIMENTOS');
+  
+    const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
+    if (annotations?.['limitLine']) {
+      annotations['limitLine'].yMin = this.limitValue;
+      annotations['limitLine'].yMax = this.limitValue;
+      
+      if (annotations['limitLine'].label) {
+        annotations['limitLine'].label.content = `Límite: ${this.limitValue}`;
+      }
+    }
   
     this.chart.update();
   }
@@ -349,12 +417,5 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
       this.chart.destroy();
       this.chart = null;
     }
-  }
-
-  refreshData(): void {
-    this.apiConnectionStatus = 'Verificando conexión...';
-    this.errorMessage = '';
-    this.dataLoaded = false;
-    this.loadInitialData();
   }
 }

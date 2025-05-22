@@ -55,12 +55,15 @@
           <li (click)="showChart('pureza-miel-final')">Pureza Miel Final</li>
           <li (click)="showChart('molida-produccion')">Molida Producción</li>
           <li (click)="showChart('molida-rendimiento')">Molida Rendimiento</li>
+          <li (click)="showChart('sedimentos')">sedimentos</li>
+          <li (click)="showChart('pureza-jugo')">pureza-jugo</li>
+          <li (click)="showChart('rendimiento-cristales-dia')">rendimiento-cristales-dia</li>
         </ul>
       </li>
     </ul>
   </div>
   
-  <!-- Contenido principal -->
+
   <div class="content" [class.full-width]="isSidebarHidden">
     <div class="content-container">
       <app-bar-chart *ngIf="currentChart === 'bar'"></app-bar-chart>
@@ -90,6 +93,10 @@
       <app-pureza-miel-final *ngIf="currentChart === 'pureza-miel-final'"></app-pureza-miel-final>
       <app-molida-produccion *ngIf="currentChart === 'molida-produccion'"></app-molida-produccion>
       <app-molida-rendimiento *ngIf="currentChart === 'molida-rendimiento'"></app-molida-rendimiento>
+      <app-sedimentos *ngIf="currentChart === 'sedimentos'"></app-sedimentos>
+      <app-pureza-jugo *ngIf="currentChart === 'pureza-jugo'"></app-pureza-jugo>
+      <app-rendimiento-cristales-dia *ngIf="currentChart === 'rendimiento-cristales-dia'"></app-rendimiento-cristales-dia>
+
     </div>
   </div>
 </div>
