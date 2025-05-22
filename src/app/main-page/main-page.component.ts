@@ -22,6 +22,11 @@ import { PhClaroFiltradoComponent } from '../components/ph-claro-filtrado/ph-cla
 import { PhDesmenuzadoMezcladoComponent } from '../components/ph-desmenuzado-mezclado/ph-desmenuzado-mezclado.component';
 import { PhPromedioComponent } from '../components/ph-promedio/ph-promedio.component';
 import { ReductoresClaroMeladuraComponent } from '../components/reductores-claro-meladura/reductores-claro-meladura.component';
+import { ReductoresPromedioComponent } from '../components/reductores-promedio/reductores-promedio.component';
+import { BrixMeladuraComponent } from '../components/brix-meladura/brix-meladura.component';
+import { PurezaMielFinalComponent } from '../components/pureza-miel-final/pureza-miel-final.component';
+import { MolidaProduccionComponent } from '../components/molida-produccion/molida-produccion.component';
+import { MolidaRendimientoComponent } from '../components/molida-rendimiento/molida-rendimiento.component';
 
 @Component({
   selector: 'app-main-page',
@@ -50,6 +55,11 @@ import { ReductoresClaroMeladuraComponent } from '../components/reductores-claro
     PhDesmenuzadoMezcladoComponent,
     PhPromedioComponent,
     ReductoresClaroMeladuraComponent,
+    ReductoresPromedioComponent,
+    BrixMeladuraComponent,
+    PurezaMielFinalComponent,
+    MolidaProduccionComponent,
+    MolidaRendimientoComponent,
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']
@@ -63,7 +73,6 @@ export class MainPageComponent {
   isSidebarHidden = false;
   sidebarWidth = 220;
 
-  
   showChart(chartType: string): void {
     this.currentChart = chartType;
     if (window.innerWidth < 768) {
@@ -71,7 +80,6 @@ export class MainPageComponent {
     }
   }
 
-  
   toggleMenu(menuKey: string): void {
     if (!this.openMenus[menuKey]) {
       setTimeout(() => {
@@ -82,12 +90,10 @@ export class MainPageComponent {
     }
   }
 
-  
   isMenuOpen(menuKey: string): boolean {
     return this.openMenus[menuKey] || false;
   }
 
-  
   toggleSidebar(): void {
     if (this.isSidebarHidden) {
       setTimeout(() => {
@@ -98,21 +104,18 @@ export class MainPageComponent {
     }
   }
 
-  
   private toggleSidebarWithDelay(): void {
     setTimeout(() => {
       this.toggleSidebar();
     }, 100);
   }
 
-  
   private closeAllMenus(): void {
     Object.keys(this.openMenus).forEach(key => {
       this.openMenus[key] = false;
     });
   }
 
-  
   private closeOtherMenus(menuKey: string): void {
     Object.keys(this.openMenus).forEach(key => {
       if (key !== menuKey) {

@@ -1,17 +1,17 @@
 <div class="container">
-  
+  <!-- Botón para mostrar/ocultar sidebar -->
   <button class="floating-toggle-btn" (click)="toggleSidebar()">
     {{ isSidebarHidden ? '☰' : '✕' }}
   </button>
 
-  
+  <!-- Sidebar -->
   <div class="sidebar" [class.hidden]="isSidebarHidden">
     <div class="sidebar-header">
       <span class="sidebar-title">Menú</span>
     </div>
     
     <ul class="menu">
-      
+      <!-- Menú Prueba -->
       <li class="menu-item">
         <div class="menu-header" (click)="toggleMenu('prueba')">
           <span>Prueba</span>
@@ -31,7 +31,7 @@
         </ul>
       </li>
       
-      
+      <!-- Menú Clima -->
       <li class="menu-item">
         <div class="menu-header" (click)="toggleMenu('clima')">
           <span>Clima</span>
@@ -39,22 +39,28 @@
         </div>
         <ul class="submenu" [class.open]="isMenuOpen('clima')">
           <li (click)="showChart('clima')">Componente Clima</li>
-          <li (click)="showChart('turbidez-jugo-claro')">turbidez-jugo-claro</li>
-          <li (click)="showChart('rsd')">rsd</li>
-          <li (click)="showChart('rendimiento-cristales')">rendimiento-cristales</li>
-          <li (click)="showChart('molienda')">molienda</li>
-          <li (click)="showChart('bagazo')">bagazo</li>
-          <li (click)="showChart('imbibicion')">imbibicion</li>
-          <li (click)="showChart('reductores')">reductores</li>
-          <li (click)="showChart('ph-claro-filtrado')">ph-claro-filtrado</li>
-          <li (click)="showChart('ph-desmenuzado-mezclado')">ph-desmenuzado-mezclado</li>
-          <li (click)="showChart('ph-promedio')">ph-promedio</li>
-          <li (click)="showChart('reductores-claro-meladura')">reductores-claro-meladura</li>
+          <li (click)="showChart('turbidez-jugo-claro')">Turbidez Jugo Claro</li>
+          <li (click)="showChart('rsd')">RSD</li>
+          <li (click)="showChart('rendimiento-cristales')">Rendimiento Cristales</li>
+          <li (click)="showChart('molienda')">Molienda</li>
+          <li (click)="showChart('bagazo')">Bagazo</li>
+          <li (click)="showChart('imbibicion')">Imbibición</li>
+          <li (click)="showChart('reductores')">Reductores</li>
+          <li (click)="showChart('ph-claro-filtrado')">PH Claro Filtrado</li>
+          <li (click)="showChart('ph-desmenuzado-mezclado')">PH Desmenuzado Mezclado</li>
+          <li (click)="showChart('ph-promedio')">PH Promedio</li>
+          <li (click)="showChart('reductores-claro-meladura')">Reductores Claro Meladura</li>
+          <li (click)="showChart('reductores-promedio')">Reductores Promedio</li>
+          <li (click)="showChart('brix-meladura')">Brix Meladura</li>
+          <li (click)="showChart('pureza-miel-final')">Pureza Miel Final</li>
+          <li (click)="showChart('molida-produccion')">Molida Producción</li>
+          <li (click)="showChart('molida-rendimiento')">Molida Rendimiento</li>
         </ul>
       </li>
     </ul>
   </div>
   
+  <!-- Contenido principal -->
   <div class="content" [class.full-width]="isSidebarHidden">
     <div class="content-container">
       <app-bar-chart *ngIf="currentChart === 'bar'"></app-bar-chart>
@@ -79,7 +85,11 @@
       <app-ph-desmenuzado-mezclado *ngIf="currentChart === 'ph-desmenuzado-mezclado'"></app-ph-desmenuzado-mezclado>
       <app-ph-promedio *ngIf="currentChart === 'ph-promedio'"></app-ph-promedio>
       <app-reductores-claro-meladura *ngIf="currentChart === 'reductores-claro-meladura'"></app-reductores-claro-meladura>
-
+      <app-reductores-promedio *ngIf="currentChart === 'reductores-promedio'"></app-reductores-promedio>
+      <app-brix-meladura *ngIf="currentChart === 'brix-meladura'"></app-brix-meladura>
+      <app-pureza-miel-final *ngIf="currentChart === 'pureza-miel-final'"></app-pureza-miel-final>
+      <app-molida-produccion *ngIf="currentChart === 'molida-produccion'"></app-molida-produccion>
+      <app-molida-rendimiento *ngIf="currentChart === 'molida-rendimiento'"></app-molida-rendimiento>
     </div>
   </div>
 </div>
