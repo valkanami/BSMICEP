@@ -58,6 +58,7 @@
           <li (click)="showChart('sedimentos')">sedimentos</li>
           <li (click)="showChart('pureza-jugo')">pureza-jugo</li>
           <li (click)="showChart('rendimiento-cristales-dia')">rendimiento-cristales-dia</li>
+          <li (click)="showChart('color')">Color</li>
         </ul>
       </li>
     </ul>
@@ -96,6 +97,7 @@
       <app-sedimentos *ngIf="currentChart === 'sedimentos'"></app-sedimentos>
       <app-pureza-jugo *ngIf="currentChart === 'pureza-jugo'"></app-pureza-jugo>
       <app-rendimiento-cristales-dia *ngIf="currentChart === 'rendimiento-cristales-dia'"></app-rendimiento-cristales-dia>
+      <app-color *ngIf="currentChart === 'color'"></app-color>
 
     </div>
   </div>

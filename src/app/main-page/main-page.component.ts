@@ -30,6 +30,7 @@ import { MolidaRendimientoComponent } from '../components/molida-rendimiento/mol
 import { SedimentosComponent } from '../components/sedimentos/sedimentos.component';
 import { PurezaJugoComponent } from '../components/pureza-jugo/pureza-jugo.component';
 import { RendimientoCristalesDiaComponent } from '../components/rendimiento-cristales-dia/rendimiento-cristales-dia.component';
+import { ColorComponent } from '../components/color/color.component';
 
 @Component({
   selector: 'app-main-page',
@@ -65,7 +66,8 @@ import { RendimientoCristalesDiaComponent } from '../components/rendimiento-cris
     MolidaRendimientoComponent,
     SedimentosComponent,
     PurezaJugoComponent,
-    RendimientoCristalesDiaComponent
+    RendimientoCristalesDiaComponent,
+    ColorComponent,
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']
