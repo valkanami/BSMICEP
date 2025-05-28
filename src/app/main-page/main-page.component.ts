@@ -31,6 +31,7 @@ import { SedimentosComponent } from '../components/sedimentos/sedimentos.compone
 import { PurezaJugoComponent } from '../components/pureza-jugo/pureza-jugo.component';
 import { RendimientoCristalesDiaComponent } from '../components/rendimiento-cristales-dia/rendimiento-cristales-dia.component';
 import { ColorComponent } from '../components/color/color.component';
+import { BxPzaMielFinalComponent } from '../components/bx-pza-miel-final/bx-pza-miel-final.component';
 
 @Component({
   selector: 'app-main-page',
@@ -68,6 +69,7 @@ import { ColorComponent } from '../components/color/color.component';
     PurezaJugoComponent,
     RendimientoCristalesDiaComponent,
     ColorComponent,
+    BxPzaMielFinalComponent,
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

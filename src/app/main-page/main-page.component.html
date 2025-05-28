@@ -59,6 +59,7 @@
           <li (click)="showChart('pureza-jugo')">pureza-jugo</li>
           <li (click)="showChart('rendimiento-cristales-dia')">rendimiento-cristales-dia</li>
           <li (click)="showChart('color')">Color</li>
+          <li (click)="showChart('bx-pza-miel-final')">bx-pza-miel-final</li>
         </ul>
       </li>
     </ul>
@@ -98,6 +99,7 @@
       <app-pureza-jugo *ngIf="currentChart === 'pureza-jugo'"></app-pureza-jugo>
       <app-rendimiento-cristales-dia *ngIf="currentChart === 'rendimiento-cristales-dia'"></app-rendimiento-cristales-dia>
       <app-color *ngIf="currentChart === 'color'"></app-color>
+      <app-bx-pza-miel-final *ngIf="currentChart === 'bx-pza-miel-final'"></app-bx-pza-miel-final>
 
     </div>
   </div>
