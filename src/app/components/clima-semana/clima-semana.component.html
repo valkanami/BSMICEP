@@ -1,0 +1,42 @@
+<div class="weather-container">
+  <h1>Pronóstico del Tiempo en Veracruz</h1>
+  
+  <div class="location-selector">
+    <label for="location">Selecciona una localidad:</label>
+    <select id="location" (change)="onLocationChange($event)" [value]="selectedLocation">
+      <option *ngFor="let loc of locations" [value]="loc.id">{{loc.name}}</option>
+    </select>
+  </div>
+
+  <div *ngIf="loading" class="loading">Cargando datos...</div>
+  
+  <div *ngIf="error" class="error">{{error}}</div>
+
+  <div *ngIf="forecastData && !loading" class="weather-content">
+    <h2>{{forecastData.city}}, {{forecastData.country}}</h2>
+    
+    <div class="forecast-grid">
+      <div *ngFor="let day of getSortedDailyForecasts()" class="forecast-card">
+        <h3>{{getDayName(day.date) | titlecase}} <small>{{day.date}}</small></h3>
+        <div class="weather-icon">
+          <img [src]="getWeatherIconUrl(day.mainIcon)" [alt]="day.mainDescription">
+          <span>{{day.mainDescription | titlecase}}</span>
+        </div>
+        <div class="weather-details">
+          <div class="detail">
+            <span class="label">Temperatura:</span>
+            <span class="value">{{day.avgTemperature}}°C</span>
+          </div>
+          <div class="detail">
+            <span class="label">Humedad:</span>
+            <span class="value">{{day.avgHumidity}}%</span>
+          </div>
+          <div class="detail">
+            <span class="label">Viento:</span>
+            <span class="value">{{day.avgWindSpeed}} m/s</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

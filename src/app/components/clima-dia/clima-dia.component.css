@@ -1,0 +1,147 @@
+/* clima-dia.component.css */
+.locations-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.weather-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  font-size: 1.2rem;
+}
+
+.error-message {
+  color: #d32f2f;
+  background-color: #fde8e8;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.current-weather {
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.data-date {
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+.weather-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.weather-icon {
+  text-align: center;
+  flex: 1;
+  min-width: 100px;
+}
+
+.weather-icon img {
+  width: 60px;
+  height: 60px;
+}
+
+.weather-temp {
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+}
+
+.weather-temp h1 {
+  font-size: 2.2rem;
+  margin: 0;
+  color: #333;
+}
+
+.weather-details {
+  flex: 2;
+  min-width: 150px;
+}
+
+.weather-details p {
+  margin: 6px 0;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.forecast {
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.forecast h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+.periods {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.period {
+  background-color: rgba(255, 255, 255, 0.6);
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.period h4 {
+  margin: 0 0 5px 0;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+.period img {
+  width: 40px;
+  height: 40px;
+}
+
+.period p {
+  margin: 3px 0;
+  font-weight: bold;
+  color: #222;
+  font-size: 1rem;
+}
+
+.period small {
+  display: block;
+  font-size: 0.7rem;
+  color: #555;
+  margin: 2px 0;
+}
+
+@media (max-width: 768px) {
+  .locations-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .periods {
+    grid-template-columns: 1fr;
+  }
+}

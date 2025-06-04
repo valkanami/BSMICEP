@@ -85,7 +85,6 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
   private loadLimitValues(): void {
     this.limitsLoaded = false;
     
-    // Load pureza limit (ID 16)
     this.http.get('http://localhost:3000/api/limites/16').subscribe({
       next: (response: any) => {
         if (response && response.LIMITE !== undefined) {
@@ -353,7 +352,7 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            // Draw pureza limit line
+           
             const yPixelPureza = Math.floor(scales['y'].getPixelForValue(componentLimitValuePureza));
             ctx.beginPath();
             ctx.strokeStyle = 'rgb(255, 0, 0)';

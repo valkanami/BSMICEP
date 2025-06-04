@@ -12,10 +12,8 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./bx-pza-miel-final.component.css']
 })
 export class BxPzaMielFinalComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('chartCanvasBrix', { static: false }) chartCanvasBrix!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('chartCanvasPureza', { static: false }) chartCanvasPureza!: ElementRef<HTMLCanvasElement>;
-  public chartBrix: Chart | null = null;
-  public chartPureza: Chart | null = null;
+  @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
+  public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
   public originalData: any[] = [];
   public filteredData: any[] = [];
@@ -25,14 +23,14 @@ export class BxPzaMielFinalComponent implements OnInit, AfterViewInit, OnDestroy
   public availableDates: string[] = [];
   public dataLoaded: boolean = false;
   public fixedHours: string[] = [
-    '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
-    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
-    '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
-    '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
+    '07:00',  '11:00', '15:00',
+    '19:00', '23:00', '03:00',
+    'Promedios'
   ];
-  public promedioBrix: number = 0;
-  public promedioPureza: number = 0;
-  public purezaEsperada: number = 0;
+
+  public promedioBrix: number | null = null;
+  public promedioPureza: number | null = null;
+  public purezaEsperada: number | null = null;
 
   constructor(
     private http: HttpClient,
@@ -46,18 +44,28 @@ export class BxPzaMielFinalComponent implements OnInit, AfterViewInit, OnDestroy
 
   ngOnInit(): void {
     if (this.isBrowser) {
-      this.checkApiConnection();
+      this.loadInitialData();
     }
   }
 
+  private loadInitialData(): void {
+    this.checkApiConnection();
+  }
+
   ngAfterViewInit(): void {
-    if (this.isBrowser && this.dataLoaded && this.filteredData.length > 0) {
-      this.initCharts();
+    if (this.isBrowser && this.dataLoaded) {
+      this.initChartIfReady();
     }
   }
 
   ngOnDestroy(): void {
-    this.destroyCharts();
+    this.destroyChart();
+  }
+
+  private initChartIfReady(): void {
+    if (this.isBrowser && this.dataLoaded && this.filteredData.length > 0) {
+      this.initChart();
+    }
   }
 
   private formatTimeToHHMM(timeString: string | Date): string {
@@ -66,14 +74,10 @@ export class BxPzaMielFinalComponent implements OnInit, AfterViewInit, OnDestroy
         const timePart = timeString.split('T')[1].split('.')[0];
         const [hours, minutes] = timePart.split(':');
         return `${hours}:${minutes}`;
-      } else {
-        const parts = timeString.split(':');
-        return `${parts[0]}:${parts[1]}`;
       }
+      return timeString.length >= 5 ? timeString.substring(0, 5) : '00:00';
     } else if (timeString instanceof Date) {
-      const hours = timeString.getHours().toString().padStart(2, '0');
-      const minutes = timeString.getMinutes().toString().padStart(2, '0');
-      return `${hours}:${minutes}`;
+      return timeString.toTimeString().substring(0, 5);
     }
     return '00:00';
   }
@@ -90,9 +94,7 @@ export class BxPzaMielFinalComponent implements OnInit, AfterViewInit, OnDestroy
           this.filterDataByDate();
         }
         this.dataLoaded = true;
-        if (this.isBrowser) {
-          this.initCharts();
-        }
+        this.initChartIfReady();
       },
       error: (error) => {
         this.apiConnectionStatus = 'Error al conectar con la API';
@@ -109,14 +111,11 @@ export class BxPzaMielFinalComponent implements OnInit, AfterViewInit, OnDestroy
       if (item.FECHA) {
         const date = new Date(item.FECHA);
         if (!isNaN(date.getTime())) {
-          const dateStr = date.toISOString().split('T')[0];
-          uniqueDates.add(dateStr);
+          uniqueDates.add(date.toISOString().split('T')[0]);
         }
       }
     });
-    this.availableDates = Array.from(uniqueDates).sort((a, b) => {
-      return new Date(a).getTime() - new Date(b).getTime();
-    });
+    this.availableDates = Array.from(uniqueDates).sort();
   }
 
   filterDataByDate(): void {
@@ -128,105 +127,72 @@ export class BxPzaMielFinalComponent implements OnInit, AfterViewInit, OnDestroy
     this.filteredData = this.originalData.filter(item => {
       if (!item.FECHA) return false;
       const itemDate = new Date(item.FECHA);
-      if (isNaN(itemDate.getTime())) return false;
-      const itemDateStr = itemDate.toISOString().split('T')[0];
-      return itemDateStr === this.selectedDate;
+      return itemDate.toISOString().split('T')[0] === this.selectedDate;
     });
 
-    this.filteredData.sort((a, b) => {
-      const timeA = this.timeToMinutes(a.HORA_ORIGINAL);
-      const timeB = this.timeToMinutes(b.HORA_ORIGINAL);
-      return timeA - timeB;
-    });
+    this.filteredData.sort((a, b) => this.timeToMinutes(a.HORA_ORIGINAL) - this.timeToMinutes(b.HORA_ORIGINAL));
 
-    this.calculateAverages();
+    if (this.filteredData.length > 0) {
+      this.promedioBrix = this.filteredData[0].PROMEDIO_BRIX ? parseFloat(this.filteredData[0].PROMEDIO_BRIX) : null;
+      this.promedioPureza = this.filteredData[0].PROMEDIO_PZA ? parseFloat(this.filteredData[0].PROMEDIO_PZA) : null;
+      this.purezaEsperada = this.filteredData[0].PZA_ESPERADA ? parseFloat(this.filteredData[0].PZA_ESPERADA) : null;
+    }
 
-    if (this.chartBrix && this.chartPureza) {
-      this.updateCharts();
-    } else if (this.isBrowser && this.dataLoaded) {
-      this.initCharts();
+    if (this.chart) {
+      this.updateChartData();
+    } else if (this.isBrowser) {
+      this.initChart();
     }
   }
 
-  private calculateAverages(): void {
-    let sumBrix = 0;
-    let sumPureza = 0;
-    let count = 0;
-
-    this.filteredData.forEach(item => {
-      if (item['BRIX MIEL FINAL'] !== null && item['BRIX MIEL FINAL'] !== undefined) {
-        sumBrix += parseFloat(item['BRIX MIEL FINAL']);
-        count++;
-      }
-      if (item['PZA MIEL FINAL'] !== null && item['PZA MIEL FINAL'] !== undefined) {
-        sumPureza += parseFloat(item['PZA MIEL FINAL']);
-      }
-    });
-
-    this.promedioBrix = count > 0 ? sumBrix / count : 0;
-    this.promedioPureza = count > 0 ? sumPureza / count : 0;
-
-    // Tomar el primer valor de PZA_ESPERADA que encontremos
-    const firstItemWithPurezaEsperada = this.filteredData.find(item => 
-      item['PZA_ESPERADA'] !== null && item['PZA_ESPERADA'] !== undefined
-    );
-    this.purezaEsperada = firstItemWithPurezaEsperada ? 
-      parseFloat(firstItemWithPurezaEsperada['PZA_ESPERADA']) : 0;
-  }
-
   private timeToMinutes(timeStr: string): number {
+    if (timeStr === 'Promedios') return 24 * 60;
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours * 60 + minutes;
   }
 
   private preserveOriginalTimes(rawData: any[]): any[] {
-    return rawData.map(item => {
-      let horaOriginal = '';
-      if (item.TURNO) {
-        horaOriginal = this.formatTimeToHHMM(item.TURNO);
-      }
-
-      return {
-        ...item,
-        HORA_ORIGINAL: horaOriginal || '00:00',
-        'BRIX MIEL FINAL': item['BRIX MIEL FINAL'] || null,
-        'PZA MIEL FINAL': item['PZA MIEL FINAL'] || null,
-        JUSTIFICACION_BRIX: item.JUSTIFICACION_BRIX || '',
-        JUSTIFICACION_MIEL: item.JUSTIFICACION_MIEL || '',
-        PROMEDIO_BRIX: item.PROMEDIO_BRIX || null,
-        PROMEDIO_PZA: item.PROMEDIO_PZA || null,
-        PZA_ESPERADA: item.PZA_ESPERADA || null
-      };
-    });
+    return rawData.map(item => ({
+      ...item,
+      HORA_ORIGINAL: this.formatTimeToHHMM(item.TURNO || '00:00'),
+      BRIX_MIEL_FINAL: item['BRIX MIEL FINAL'] || null,
+      PZA_MIEL_FINAL: item['PZA MIEL FINAL'] || null,
+      JUSTIFICACION_BRIX: item.JUSTIFICACION_BRIX || '',
+      JUSTIFICACION_MIEL: item.JUSTIFICACION_MIEL || '',
+      PROMEDIO_BRIX: item.PROMEDIO_BRIX || null,
+      PROMEDIO_PZA: item.PROMEDIO_PZA || null,
+      PZA_ESPERADA: item.PZA_ESPERADA || null
+    }));
   }
 
-  private initCharts(): void {
-    if (!this.isBrowser || !this.chartCanvasBrix?.nativeElement || !this.chartCanvasPureza?.nativeElement) return;
+  private initChart(): void {
+    if (!this.isBrowser || !this.chartCanvas?.nativeElement) return;
 
-    this.destroyCharts();
+    this.destroyChart();
 
     try {
-      // Gráfico de Brix
-      const canvasBrix = this.chartCanvasBrix.nativeElement;
-      const ctxBrix = canvasBrix.getContext('2d');
+      const canvas = this.chartCanvas.nativeElement;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('No se pudo obtener el contexto del canvas');
       
-      if (!ctxBrix) {
-        throw new Error('No se pudo obtener el contexto del canvas para Brix');
-      }
-      
-      const dprBrix = window.devicePixelRatio || 1;
-      const rectBrix = canvasBrix.getBoundingClientRect();
-      
-      canvasBrix.width = rectBrix.width * dprBrix;
-      canvasBrix.height = rectBrix.height * dprBrix;
-      canvasBrix.style.width = `${rectBrix.width}px`;
-      canvasBrix.style.height = `${rectBrix.height}px`;
-      ctxBrix.scale(dprBrix, dprBrix);
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const brixData = this.mapDataToFixedHours('BRIX MIEL FINAL');
+      const brixData = this.mapDataToFixedHours('BRIX_MIEL_FINAL');
+      const purezaData = this.mapDataToFixedHours('PZA_MIEL_FINAL');
 
-      this.chartBrix = new Chart(ctxBrix, {
+      brixData.push(this.promedioBrix);
+      purezaData.push(this.promedioPureza);
+
+      const purezaEsperadaData = labels.map((_, i) => 
+        i === labels.length - 1 ? this.purezaEsperada : null
+      );
+
+      this.chart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
@@ -234,6 +200,22 @@ export class BxPzaMielFinalComponent implements OnInit, AfterViewInit, OnDestroy
             {
               label: 'Brix Miel Final',
               data: brixData,
+              backgroundColor: 'rgba(54, 162, 235, 0.7)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Pureza Miel Final',
+              data: purezaData,
+              backgroundColor: 'rgba(255, 99, 132, 0.7)',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              borderWidth: 1,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Pureza Esperada',
+              data: purezaEsperadaData,
               backgroundColor: 'rgba(75, 192, 192, 0.7)',
               borderColor: 'rgba(75, 192, 192, 1)',
               borderWidth: 1,
@@ -247,16 +229,10 @@ export class BxPzaMielFinalComponent implements OnInit, AfterViewInit, OnDestroy
           scales: {
             y: {
               beginAtZero: false,
-              title: {
-                display: true,
-                text: 'Brix (%)'
-              }
+              title: { display: true, text: 'Valores (%)' }
             },
             x: {
-              title: {
-                display: true,
-                text: 'Hora del turno'
-              },
+              title: { display: true, text: 'Hora del turno' },
               ticks: {
                 autoSkip: false,
                 maxRotation: 45,
@@ -267,22 +243,31 @@ export class BxPzaMielFinalComponent implements OnInit, AfterViewInit, OnDestroy
           plugins: {
             tooltip: {
               callbacks: {
-                label: (context: any) => {
+                label: (context) => {
                   const label = context.dataset.label || '';
                   const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/D';
                   return `${label}: ${value}%`;
                 },
-                afterLabel: (context: any) => {
+                afterLabel: (context) => {
                   const hour = labels[context.dataIndex];
-                  const dataItem = this.findDataItemByHour(hour);
+                  if (hour === 'Promedios') {
+                    return context.dataset.label === 'Pureza Esperada' 
+                      ? 'Valor objetivo de pureza' 
+                      : `Promedio diario`;
+                  }
                   
+                  const dataItem = this.findDataItemByHour(hour);
                   if (!dataItem) return 'No hay datos para esta hora';
                   
+                  const justification = context.datasetIndex === 0 
+                    ? dataItem.JUSTIFICACION_BRIX 
+                    : dataItem.JUSTIFICACION_MIEL;
+                  
                   return [
-                    `─────────────────────`,
+                    '─────────────────────',
                     `Hora: ${hour}`,
                     `Justificación:`,
-                    `${dataItem.JUSTIFICACION_BRIX || 'No hay justificación registrada'}`
+                    justification || 'No hay justificación registrada'
                   ];
                 }
               },
@@ -290,171 +275,77 @@ export class BxPzaMielFinalComponent implements OnInit, AfterViewInit, OnDestroy
               backgroundColor: 'rgba(0, 0, 0, 0.8)',
               titleFont: { size: 14, weight: 'bold' },
               bodyFont: { size: 12 },
-              padding: 12,
-              bodySpacing: 4
+              padding: 12
             },
             legend: {
-              position: 'top'
-            }
-          }
-        }
-      });
-
-      // Gráfico de Pureza
-      const canvasPureza = this.chartCanvasPureza.nativeElement;
-      const ctxPureza = canvasPureza.getContext('2d');
-      
-      if (!ctxPureza) {
-        throw new Error('No se pudo obtener el contexto del canvas para Pureza');
-      }
-      
-      const dprPureza = window.devicePixelRatio || 1;
-      const rectPureza = canvasPureza.getBoundingClientRect();
-      
-      canvasPureza.width = rectPureza.width * dprPureza;
-      canvasPureza.height = rectPureza.height * dprPureza;
-      canvasPureza.style.width = `${rectPureza.width}px`;
-      canvasPureza.style.height = `${rectPureza.height}px`;
-      ctxPureza.scale(dprPureza, dprPureza);
-
-      const purezaData = this.mapDataToFixedHours('PZA MIEL FINAL');
-
-      this.chartPureza = new Chart(ctxPureza, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Pureza Miel Final',
-              data: purezaData,
-              backgroundColor: 'rgba(153, 102, 255, 0.7)',
-              borderColor: 'rgba(153, 102, 255, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: false,
-              title: {
-                display: true,
-                text: 'Pureza (%)'
+              position: 'top',
+              labels: {
+                boxWidth: 12,
+                padding: 20
               }
-            },
-            x: {
-              title: {
-                display: true,
-                text: 'Hora del turno'
-              },
-              ticks: {
-                autoSkip: false,
-                maxRotation: 45,
-                minRotation: 45
-              }
-            }
-          },
-          plugins: {
-            tooltip: {
-              callbacks: {
-                label: (context: any) => {
-                  const label = context.dataset.label || '';
-                  const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/D';
-                  return `${label}: ${value}%`;
-                },
-                afterLabel: (context: any) => {
-                  const hour = labels[context.dataIndex];
-                  const dataItem = this.findDataItemByHour(hour);
-                  
-                  if (!dataItem) return 'No hay datos para esta hora';
-                  
-                  return [
-                    `─────────────────────`,
-                    `Hora: ${hour}`,
-                    `Justificación:`,
-                    `${dataItem.JUSTIFICACION_MIEL || 'No hay justificación registrada'}`
-                  ];
-                }
-              },
-              displayColors: false,
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-              titleFont: { size: 14, weight: 'bold' },
-              bodyFont: { size: 12 },
-              padding: 12,
-              bodySpacing: 4
-            },
-            legend: {
-              position: 'top'
             }
           }
         }
       });
 
     } catch (error) {
-      console.error('Error al crear los gráficos:', error);
-      this.apiConnectionStatus = 'Error al renderizar los gráficos';
+      console.error('Error al crear el gráfico:', error);
+      this.apiConnectionStatus = 'Error al renderizar el gráfico';
       this.errorMessage = error instanceof Error ? error.message : 'Error desconocido';
     }
   }
 
   private mapDataToFixedHours(dataField: string): (number | null)[] {
-    return this.fixedHours.map(hour => {
+    return this.fixedHours.slice(0, -1).map(hour => {
       const dataItem = this.findDataItemByHour(hour);
-      if (!dataItem || dataItem[dataField] === null || dataItem[dataField] === undefined) {
-        return null;
-      }
-      return parseFloat(dataItem[dataField]);
+      return dataItem?.[dataField] !== null && dataItem?.[dataField] !== undefined 
+        ? parseFloat(dataItem[dataField]) 
+        : null;
     });
   }
 
   private findDataItemByHour(hour: string): any | null {
+    if (hour === 'Promedios') return null;
     const targetMinutes = this.timeToMinutes(hour);
-    let closestItem = null;
-    let smallestDiff = Infinity;
-
-    for (const item of this.filteredData) {
+    
+    return this.filteredData.reduce((closest, item) => {
       const itemMinutes = this.timeToMinutes(item.HORA_ORIGINAL);
       const diff = Math.abs(itemMinutes - targetMinutes);
-      
-      if (diff < 30 && diff < smallestDiff) {
-        smallestDiff = diff;
-        closestItem = item;
-      }
-    }
-
-    return closestItem;
+      return diff < 30 && (!closest || diff < this.timeToMinutes(closest.HORA_ORIGINAL) - targetMinutes) 
+        ? item 
+        : closest;
+    }, null);
   }
 
-  public updateCharts(): void {
-    if (!this.chartBrix || !this.chartPureza) return;
-  
-    this.chartBrix.data.datasets[0].data = this.mapDataToFixedHours('BRIX MIEL FINAL');
-    this.chartPureza.data.datasets[0].data = this.mapDataToFixedHours('PZA MIEL FINAL');
-  
-    this.chartBrix.update();
-    this.chartPureza.update();
+  public updateChartData(): void {
+    if (!this.chart) return;
+    
+    const brixData = this.mapDataToFixedHours('BRIX_MIEL_FINAL');
+    const purezaData = this.mapDataToFixedHours('PZA_MIEL_FINAL');
+    const purezaEsperadaData = this.fixedHours.map((_, i) => 
+      i === this.fixedHours.length - 1 ? this.purezaEsperada : null
+    );
 
-    this.calculateAverages();
+    brixData.push(this.promedioBrix);
+    purezaData.push(this.promedioPureza);
+
+    this.chart.data.datasets[0].data = brixData;
+    this.chart.data.datasets[1].data = purezaData;
+    this.chart.data.datasets[2].data = purezaEsperadaData;
+    
+    this.chart.update();
   }
 
-  private destroyCharts(): void {
-    if (this.chartBrix) {
-      this.chartBrix.destroy();
-      this.chartBrix = null;
-    }
-    if (this.chartPureza) {
-      this.chartPureza.destroy();
-      this.chartPureza = null;
+  private destroyChart(): void {
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
     }
   }
 
   refreshData(): void {
-    this.apiConnectionStatus = 'Verificando conexión...';
+    this.apiConnectionStatus = 'Actualizando datos...';
     this.errorMessage = '';
-    this.dataLoaded = false;
-    this.checkApiConnection();
+    this.loadInitialData();
   }
 }

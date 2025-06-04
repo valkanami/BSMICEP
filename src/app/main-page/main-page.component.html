@@ -60,6 +60,13 @@
           <li (click)="showChart('rendimiento-cristales-dia')">rendimiento-cristales-dia</li>
           <li (click)="showChart('color')">Color</li>
           <li (click)="showChart('bx-pza-miel-final')">bx-pza-miel-final</li>
+          <li (click)="showChart('color-fcr')">color-fcr</li>
+          <li (click)="showChart('dextranas-solidos')">dextranas-solidos</li>
+          <li (click)="showChart('ph-fcr')">ph-fcr</li>
+          <li (click)="showChart('ton-vapor-cana')">ton-vapor-cana</li>
+          <li (click)="showChart('turbidez-azucar')">turbidez-azucar</li>
+          <li (click)="showChart('clima-dia')">clima-dia</li>
+          <li (click)="showChart('clima-semana')">clima-semana</li>
         </ul>
       </li>
     </ul>
@@ -100,7 +107,13 @@
       <app-rendimiento-cristales-dia *ngIf="currentChart === 'rendimiento-cristales-dia'"></app-rendimiento-cristales-dia>
       <app-color *ngIf="currentChart === 'color'"></app-color>
       <app-bx-pza-miel-final *ngIf="currentChart === 'bx-pza-miel-final'"></app-bx-pza-miel-final>
-
+      <app-color-fcr *ngIf="currentChart === 'color-fcr'"></app-color-fcr>
+      <app-dextranas-solidos *ngIf="currentChart === 'dextranas-solidos'"></app-dextranas-solidos>
+      <app-ph-fcr *ngIf="currentChart === 'ph-fcr'"></app-ph-fcr>
+      <app-ton-vapor-cana *ngIf="currentChart === 'ton-vapor-cana'"></app-ton-vapor-cana>
+      <app-turbidez-azucar *ngIf="currentChart ==='turbidez-azucar'"></app-turbidez-azucar>
+      <app-clima-dia *ngIf="currentChart === 'clima-dia'"></app-clima-dia>
+      <app-clima-semana *ngIf="currentChart === 'clima-semana'"></app-clima-semana>
     </div>
   </div>
 </div>

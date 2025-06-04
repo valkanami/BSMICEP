@@ -32,6 +32,13 @@ import { PurezaJugoComponent } from '../components/pureza-jugo/pureza-jugo.compo
 import { RendimientoCristalesDiaComponent } from '../components/rendimiento-cristales-dia/rendimiento-cristales-dia.component';
 import { ColorComponent } from '../components/color/color.component';
 import { BxPzaMielFinalComponent } from '../components/bx-pza-miel-final/bx-pza-miel-final.component';
+import { ColorFcrComponent } from '../components/color-fcr/color-fcr.component';
+import { DextranasSolidosComponent } from '../components/dextranas-solidos/dextranas-solidos.component';
+import { PhFcrComponent } from '../components/ph-fcr/ph-fcr.component';
+import { TonVaporCanaComponent } from '../components/ton-vapor-cana/ton-vapor-cana.component';
+import { TurbidezAzucarComponent } from '../components/turbidez-azucar/turbidez-azucar.component';
+import { ClimaDiaComponent } from '../components/clima-dia/clima-dia.component';
+import { ClimaSemanaComponent } from '../components/clima-semana/clima-semana.component';
 
 @Component({
   selector: 'app-main-page',
@@ -70,6 +77,13 @@ import { BxPzaMielFinalComponent } from '../components/bx-pza-miel-final/bx-pza-
     RendimientoCristalesDiaComponent,
     ColorComponent,
     BxPzaMielFinalComponent,
+    ColorFcrComponent,
+    DextranasSolidosComponent,
+    PhFcrComponent,
+    TonVaporCanaComponent,
+    TurbidezAzucarComponent,
+    ClimaDiaComponent,
+    ClimaSemanaComponent,
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

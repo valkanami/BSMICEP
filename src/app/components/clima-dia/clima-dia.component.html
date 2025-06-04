@@ -1,0 +1,47 @@
+<!-- clima-dia.component.html -->
+<div class="loading" *ngIf="isLoading">
+  <p>Cargando datos meteorológicos...</p>
+</div>
+
+<div class="locations-container">
+  <div class="weather-container" *ngFor="let item of weatherDataList">
+    <div *ngIf="item.error" class="error-message">
+      {{ item.error }}
+    </div>
+
+    <div *ngIf="item.data" class="current-weather">
+      <h2>{{ item.data.city }}, Veracruz</h2>
+      <p class="data-date"> {{ formatDate(item.data.timestamp) }} a las {{ formatTime(item.data.timestamp) }}</p>
+      <div class="weather-main">
+        <div class="weather-icon">
+          <img [src]="getWeatherIconUrl(item.data.icon)" [alt]="item.data.description">
+          <p>{{ capitalize(item.data.description) }}</p>
+        </div>
+        <div class="weather-temp">
+          <h1>{{ item.data.temperature | number:'1.0-0' }}°C</h1>
+          <p>Sensación: {{ item.data.feelsLike | number:'1.0-0' }}°C</p>
+        </div>
+        <div class="weather-details">
+          <p><i class="fas fa-tint"></i> Humedad: {{ item.data.humidity }}%</p>
+          <p><i class="fas fa-wind"></i> Viento: {{ item.data.windSpeed }} m/s</p>
+          <p><i class="fas fa-tachometer-alt"></i> Presión: {{ item.data.pressure }} hPa</p>
+        </div>
+      </div>
+
+      <div class="forecast">
+        <h3>Pronóstico para el {{ formatDate(item.data.periodos.madrugada.timestamp) }}</h3>
+        <div class="periods">
+          <div class="period" *ngFor="let period of periods">
+            <h4>{{ capitalize(period) }} ({{ formatTime(item.data.periodos[period].timestamp) }})</h4>
+            <img [src]="getWeatherIconUrl(item.data.periodos[period].icon)" 
+                 [alt]="item.data.periodos[period].description">
+            <p>{{ item.data.periodos[period].temperature | number:'1.0-0' }}°C</p>
+            <small>Sensación: {{ item.data.periodos[period].feelsLike | number:'1.0-0' }}°C</small>
+            <small>Humedad: {{ item.data.periodos[period].humidity }}%</small>
+            <small>Viento: {{ item.data.periodos[period].windSpeed }} m/s</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,6 @@
 <div class="chart-container">
   <div class="chart-header">
-    <h2>Monitoreo de Brix y Pureza de Miel Final</h2>
+    <h2>Monitoreo de Brix y Pureza Miel Final</h2>
     <div class="chart-controls">
       <div class="date-selector">
         <label for="dateFilter">Filtrar por fecha:</label>
@@ -14,32 +14,22 @@
       }">
         {{ apiConnectionStatus }}
       </div>
+      
     </div>
   </div>
 
   <div class="chart-wrapper">
-    <h3>Brix Miel Final</h3>
-    <canvas #chartCanvasBrix></canvas>
-  </div>
-
-  <div class="chart-wrapper">
-    <h3>Pureza Miel Final</h3>
-    <canvas #chartCanvasPureza></canvas>
-  </div>
-
-  <div class="averages-section">
-    <div class="average-box">
-      <h4>Promedio Brix: {{ promedioBrix | number:'1.2-2' }}%</h4>
-    </div>
-    <div class="average-box">
-      <h4>Promedio Pureza: {{ promedioPureza | number:'1.2-2' }}%</h4>
-    </div>
-    <div class="average-box">
-      <h4>Pureza Esperada: {{ purezaEsperada | number:'1.2-2' }}%</h4>
-    </div>
+    <canvas #chartCanvas></canvas>
   </div>
 
   <div class="chart-footer">
-    <button class="refresh-button" (click)="refreshData()">Actualizar Datos</button>
+    <div class="data-info">
+      <p>Datos:</p>
+      <ul>
+        <li><span class="brix-color"></span> Brix Miel Final</li>
+        <li><span class="pureza-color"></span> Pureza Miel Final</li>
+      </ul>
+    </div>
+    
   </div>
 </div>
