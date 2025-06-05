@@ -1,1 +1,36 @@
-<p>dextranas-solidos works!</p>
+<div class="chart-container">
+  <div class="chart-header">
+    <h2>Dextranas Solidos por Proceso</h2>
+    <div class="chart-controls">
+      <div class="date-selector">
+        <label for="dateFilter">Filtrar por fecha:</label>
+        <select id="dateFilter" [(ngModel)]="selectedDate" (change)="filterDataByDate()">
+          <option *ngFor="let date of availableDates" [value]="date">{{ date }}</option>
+        </select>
+      </div>
+      <div class="api-status" [ngClass]="{
+        'status-success': apiConnectionStatus.includes('exitoso'),
+        'status-error': apiConnectionStatus.includes('Error')
+      }">
+        {{ apiConnectionStatus }}
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-wrapper">
+    <canvas #chartCanvas></canvas>
+  </div>
+
+  <div class="chart-footer">
+    <div class="data-info">
+      <p>Procesos:</p>
+      <ul>
+        <li><span class="desmenuzado-color"></span> Desmenuzado</li>
+        <li><span class="mezclado-color"></span> Mezclado</li>
+        <li><span class="claro-color"></span> Claro</li>
+        <li><span class="meladura-color"></span> Meladura</li>
+        <li><span class="azucar-color"></span> Azúcar</li>
+      </ul>
+    </div>
+  </div>
+</div>

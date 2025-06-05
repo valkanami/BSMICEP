@@ -67,7 +67,6 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
         this.apiConnectionStatus = ' ';
         this.originalData = (response as any[]).map(item => ({
           ...item,
-          // Asegurar que LOM_COLOR tenga un nombre de propiedad consistente
           LOM_COLOR: item[' LOM_COLOR '] || item['LOM_COLOR'] || item.LOM_COLOR
         }));
         this.extractAvailableDates();
@@ -141,26 +140,23 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
       canvas.style.height = `${rect.height}px`;
       ctx.scale(dpr, dpr);
 
-      // Ordenar los datos por hora si es necesario
       const sortedData = [...this.filteredData].sort((a, b) => {
         return new Date(a.FECHA).getTime() - new Date(b.FECHA).getTime();
       });
 
-      // Tomar solo los primeros 3 registros para mostrar del 1 al 3
       const displayData = sortedData.slice(0, 3);
-      const labels = ['1', '2', '3'];
-
+      
       const colorAzucarData = displayData.map(item => item.COLOR_AZUCAR_A ? parseFloat(item.COLOR_AZUCAR_A) : null);
       const lomColorData = displayData.map(item => item.LOM_COLOR ? parseFloat(item.LOM_COLOR) : null);
 
       this.chart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: labels,
+          labels: ['', '1', '2', '3', ''], // Espacios vacíos al inicio y final
           datasets: [
             {
               label: 'Color Azúcar A',
-              data: colorAzucarData,
+              data: [null, ...colorAzucarData, null], // Null al inicio y final
               borderColor: 'rgba(255, 99, 132, 1)',
               backgroundColor: 'rgba(255, 99, 132, 0.2)',
               borderWidth: 2,
@@ -169,7 +165,7 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             {
               label: 'LOM Color',
-              data: lomColorData,
+              data: [null, ...lomColorData, null], // Null al inicio y final
               borderColor: 'rgba(54, 162, 235, 1)',
               backgroundColor: 'rgba(54, 162, 235, 0.2)',
               borderWidth: 2,
@@ -196,7 +192,9 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
               },
               ticks: {
                 autoSkip: false
-              }
+              },
+              offset: true,       // Agregado para espacio adicional
+              bounds: 'ticks'    // Agregado para espacio adicional
             }
           },
           plugins: {
@@ -236,19 +234,19 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
   public updateChartData(): void {
     if (!this.chart || this.filteredData.length === 0) return;
   
-    // Ordenar los datos por hora si es necesario
     const sortedData = [...this.filteredData].sort((a, b) => {
       return new Date(a.FECHA).getTime() - new Date(b.FECHA).getTime();
     });
 
-    // Tomar solo los primeros 3 registros para mostrar del 1 al 3
     const displayData = sortedData.slice(0, 3);
     
     const colorAzucarData = displayData.map(item => item.COLOR_AZUCAR_A ? parseFloat(item.COLOR_AZUCAR_A) : null);
     const lomColorData = displayData.map(item => item.LOM_COLOR ? parseFloat(item.LOM_COLOR) : null);
   
-    this.chart.data.datasets[0].data = colorAzucarData;
-    this.chart.data.datasets[1].data = lomColorData;
+    this.chart.data.labels = ['', '1', '2', '3', ''];
+    this.chart.data.datasets[0].data = [null, ...colorAzucarData, null];
+    this.chart.data.datasets[1].data = [null, ...lomColorData, null];
+    
     this.chart.update();
   }
 
