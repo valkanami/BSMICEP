@@ -185,8 +185,8 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData.map(item => {
       let horaOriginal = '';
-      if (item.TURNO) {
-        horaOriginal = this.formatTimeToHHMM(item.TURNO);
+      if (item.HORA) {
+        horaOriginal = this.formatTimeToHHMM(item.HORA);
       }
 
       return {
@@ -194,7 +194,7 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
         HORA_ORIGINAL: horaOriginal || '00:00',
         SEDIMENTOS: item.SEDIMENTOS || null,
         JUSTIFICACION: item.JUSTIFICACION || '',
-        F5: null // Mantenemos F5 como null ya que no viene en los datos
+        F5: null
       };
     });
   }
@@ -270,7 +270,7 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
             x: {
               title: {
                 display: true,
-                text: 'Hora del turno'
+                text: 'Hora del día'
               },
               ticks: {
                 autoSkip: false,

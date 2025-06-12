@@ -210,8 +210,8 @@ export class ReductoresPromedioComponent implements OnInit, AfterViewInit, OnDes
 
     } catch (error) {
       console.error('Error al crear el gráfico:', error);
-      this.apiConnectionStatus = 'Error al renderizar el gráfico';
-      this.errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      this.apiConnectionStatus = 'Error al renderizar el gráfico ';
+      this.errorMessage = error instanceof Error ? error.message : 'Error desconocido ';
     }
   }
 

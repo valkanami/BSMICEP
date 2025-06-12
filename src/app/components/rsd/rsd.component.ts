@@ -147,7 +147,7 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData.map(item => ({
       ...item,
-      HORA_ORIGINAL: this.formatTimeToHHMM(item.TURNO) || '00:00',
+      HORA_ORIGINAL: this.formatTimeToHHMM(item.HORA) || '00:00', // Cambiado de TURNO a HORA
       RDS_FUNDIDO: item.RDS_FUNDIDO || null,
       RDS_CLARIF: item.RDS_CLARIF || null,
       RDS_PULIDO: item.RDS_PULIDO || null,
@@ -164,7 +164,7 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       const canvas = this.chartCanvas.nativeElement;
       const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('No se pudo obtener el contexto del canvas');
+      if (!ctx) throw new Error('No se pudo obtener el contexto del canvas ');
 
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
@@ -176,9 +176,6 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
 
       // Usamos las etiquetas de tiempo fijas
       const labels = this.fixedTimeLabels;
-      
-      // Creamos datasets vacíos inicialmente
-      const initialData = Array(labels.length).fill(null);
       
       // Mapeamos los datos reales a las etiquetas fijas
       const fundidoData = this.mapDataToFixedTimes('RDS_FUNDIDO');
@@ -299,7 +296,7 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
                   } else if (datasetIndex === 1) {
                     justificacion = dataItem.JUSTIFICACION_CLARIF || 'No hay justificación registrada';
                   } else if (datasetIndex === 2) {
-                    justificacion = dataItem.JUSTIFICACION_PULIDO || 'No hay justificación registrada';
+                    justificacion = dataItem.JUSTIFICACION_PULIDO || 'No hay justificación registrada ';
                   }
                   
                   return [

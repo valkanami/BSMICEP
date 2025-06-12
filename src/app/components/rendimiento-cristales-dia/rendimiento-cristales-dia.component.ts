@@ -143,7 +143,7 @@ export class RendimientoCristalesDiaComponent implements OnInit, AfterViewInit, 
       this.chart = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['Masa A', 'Masa B', 'Masa C'],
+          labels: ['Masa A', 'Masa B', 'Masa C que '],
           datasets: [
             {
               label: 'Rendimiento de Cristales (kg)',
@@ -208,7 +208,7 @@ export class RendimientoCristalesDiaComponent implements OnInit, AfterViewInit, 
 
     } catch (error) {
       console.error('Error al crear el gráfico:', error);
-      this.apiConnectionStatus = 'Error al renderizar el gráfico';
+      this.apiConnectionStatus = 'Error al renderizar el gráfico  ';
       this.errorMessage = error instanceof Error ? error.message : 'Error desconocido';
     }
   }

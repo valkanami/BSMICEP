@@ -214,8 +214,8 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData.map(item => {
       let horaOriginal = '';
-      if (item.TURNO) {
-        horaOriginal = this.formatTimeToHHMM(item.TURNO);
+      if (item.HORA) {  // Cambiado de item.TURNO a item.HORA
+        horaOriginal = this.formatTimeToHHMM(item.HORA);  // Cambiado de item.TURNO a item.HORA
       }
 
       return {
@@ -322,7 +322,7 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
                 text: 'Valor de PH'
               },
               min: 5.0,
-              max: 6.0  // Cambio clave: máximo establecido en 6.5
+              max: 6.0
             },
             x: {
               title: {

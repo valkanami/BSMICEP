@@ -210,8 +210,8 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData.map(item => {
       let horaOriginal = '';
-      if (item.TURNO) {
-        horaOriginal = this.formatTimeToHHMM(item.TURNO);
+      if (item.HORA) {
+        horaOriginal = this.formatTimeToHHMM(item.HORA);
       }
 
       return {
@@ -352,7 +352,6 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-           
             const yPixelPureza = Math.floor(scales['y'].getPixelForValue(componentLimitValuePureza));
             ctx.beginPath();
             ctx.strokeStyle = 'rgb(255, 0, 0)';

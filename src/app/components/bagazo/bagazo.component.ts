@@ -217,8 +217,8 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData.map(item => {
       let horaOriginal = '';
-      if (item.TURNO) {
-        horaOriginal = this.formatTimeToHHMM(item.TURNO);
+      if (item.HORA) {  // Cambiado de item.TURNO a item.HORA
+        horaOriginal = this.formatTimeToHHMM(item.HORA);  // Cambiado de item.TURNO a item.HORA
       }
 
       return {

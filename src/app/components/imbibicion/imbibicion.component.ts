@@ -185,8 +185,8 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData.map(item => {
       let horaOriginal = '';
-      if (item.TURNO) {
-        horaOriginal = this.formatTimeToHHMM(item.TURNO);
+      if (item.HORA) {  // Cambiado de item.TURNO a item.HORA
+        horaOriginal = this.formatTimeToHHMM(item.HORA);  // Cambiado de item.TURNO a item.HORA
       }
 
       return {
@@ -296,7 +296,7 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
                     `─────────────────────`,
                     `Hora: ${hour}`,
                     `Justificación:`,
-                    `${dataItem.JUSTIFICACION || 'No hay justificación registrada'}`
+                    `${dataItem.JUSTIFICACION || 'No hay justificación registrada '}`
                   ];
                 }
               },
@@ -416,5 +416,12 @@ export class ImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
       this.chart.destroy();
       this.chart = null;
     }
+  }
+
+  refreshData(): void {
+    this.apiConnectionStatus = 'Verificando conexión...';
+    this.errorMessage = '';
+    this.checkApiConnection();
+    this.loadLimitValue();
   }
 }

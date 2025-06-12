@@ -154,7 +154,7 @@ export class BxPzaMielFinalComponent implements OnInit, AfterViewInit, OnDestroy
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData.map(item => ({
       ...item,
-      HORA_ORIGINAL: this.formatTimeToHHMM(item.TURNO || '00:00'),
+      HORA_ORIGINAL: this.formatTimeToHHMM(item.HORA || '00:00'), // Cambiado de TURNO a HORA
       BRIX_MIEL_FINAL: item['BRIX MIEL FINAL'] || null,
       PZA_MIEL_FINAL: item['PZA MIEL FINAL'] || null,
       JUSTIFICACION_BRIX: item.JUSTIFICACION_BRIX || '',
