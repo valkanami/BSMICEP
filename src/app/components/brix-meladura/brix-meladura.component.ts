@@ -24,6 +24,15 @@ interface ChartAnnotations {
   [key: string]: any;
 }
 
+interface ChartDataItem {
+  apartado: string;
+  dato: string;
+  valor: number;
+  FECHA: string;
+  HORA_ORIGINAL: string;
+  JUSTIFICACION: string;
+}
+
 @Component({
   selector: 'app-brix-meladura',
   standalone: true,
@@ -35,13 +44,17 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
-  public originalData: any[] = [];
-  public filteredData: any[] = [];
+  public originalData: ChartDataItem[] = [];
+  public filteredData: ChartDataItem[] = [];
   public isBrowser: boolean;
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public limitValue: number = 60; // Valor por defecto
+  public limitValue: number = 60;
+  public availableDataTypes: string[] = [];
+  public availableApartados: string[] = [];
+  public selectedApartado: string = 'Todos';
+  
   public fixedHours: string[] = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
@@ -74,6 +87,18 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyChart();
+  }
+
+  public getColorForDataType(index: number): string {
+    const colors = [
+      'rgba(54, 162, 235, 1)',
+      'rgba(255, 99, 132, 1)',
+      'rgba(75, 192, 192, 1)',
+      'rgba(153, 102, 255, 1)',
+      'rgba(255, 159, 64, 1)',
+      'rgba(255, 206, 86, 1)'
+    ];
+    return colors[index % colors.length];
   }
 
   private loadLimitValue(): void {
@@ -111,21 +136,23 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   checkApiConnection(): void {
-    this.http.get('http://localhost:3000/api/brixmeladura').subscribe({
+    this.http.get('http://localhost:3000/api/registrozafra').subscribe({
       next: (response) => {
-        this.apiConnectionStatus = ' ';
+        this.apiConnectionStatus = 'Conexión exitosa';
         this.originalData = this.preserveOriginalTimes(response as any[]);
         this.extractAvailableDates();
+        this.extractAvailableDataTypes();
+        this.extractAvailableApartados();
         if (this.availableDates.length > 0) {
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
-          this.filterDataByDate();
+          this.filterData();
         }
         if (this.isBrowser) {
           setTimeout(() => this.initChart(), 0);
         }
       },
       error: (error) => {
-        this.apiConnectionStatus = 'Error al conectar con la API ';
+        this.apiConnectionStatus = 'Error al conectar con la API';
         this.errorMessage = error.message;
         console.error('Error:', error);
       }
@@ -148,21 +175,47 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  filterDataByDate(): void {
-    if (!this.selectedDate) {
-      this.filteredData = [...this.originalData];
-      return;
+  private extractAvailableDataTypes(): void {
+    const uniqueDataTypes = new Set<string>();
+    this.originalData.forEach(item => {
+      if (item.dato) {
+        uniqueDataTypes.add(item.dato);
+      }
+    });
+    this.availableDataTypes = Array.from(uniqueDataTypes);
+  }
+
+  private extractAvailableApartados(): void {
+    const uniqueApartados = new Set<string>();
+    this.originalData.forEach(item => {
+      if (item.apartado) {
+        uniqueApartados.add(item.apartado);
+      }
+    });
+    this.availableApartados = ['Todos', ...Array.from(uniqueApartados).sort()];
+  }
+
+  filterData(): void {
+    // Primero filtramos por fecha
+    let filtered = [...this.originalData];
+    
+    if (this.selectedDate) {
+      filtered = filtered.filter(item => {
+        if (!item.FECHA) return false;
+        const itemDate = new Date(item.FECHA);
+        if (isNaN(itemDate.getTime())) return false;
+        const itemDateStr = itemDate.toISOString().split('T')[0];
+        return itemDateStr === this.selectedDate;
+      });
     }
 
-    this.filteredData = this.originalData.filter(item => {
-      if (!item.FECHA) return false;
-      const itemDate = new Date(item.FECHA);
-      if (isNaN(itemDate.getTime())) return false;
-      const itemDateStr = itemDate.toISOString().split('T')[0];
-      return itemDateStr === this.selectedDate;
-    });
+    // Luego filtramos por apartado si no es 'Todos'
+    if (this.selectedApartado && this.selectedApartado !== 'Todos') {
+      filtered = filtered.filter(item => item.apartado === this.selectedApartado);
+    }
 
-    this.filteredData.sort((a, b) => {
+    // Ordenamos por hora
+    this.filteredData = filtered.sort((a, b) => {
       const timeA = this.timeToMinutes(a.HORA_ORIGINAL);
       const timeB = this.timeToMinutes(b.HORA_ORIGINAL);
       return timeA - timeB;
@@ -175,23 +228,33 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  onApartadoChange(): void {
+    this.filterData();
+  }
+
+  onDateChange(): void {
+    this.filterData();
+  }
+
   private timeToMinutes(timeStr: string): number {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours * 60 + minutes;
   }
 
-  private preserveOriginalTimes(rawData: any[]): any[] {
+  private preserveOriginalTimes(rawData: any[]): ChartDataItem[] {
     return rawData.map(item => {
       let horaOriginal = '';
-      if (item.HORA) {
-        horaOriginal = this.formatTimeToHHMM(item.HORA);
+      if (item.hora) {
+        horaOriginal = this.formatTimeToHHMM(item.hora);
       }
 
       return {
-        ...item,
+        apartado: item.apartado,
+        dato: item.dato,
+        valor: item.valor,
+        FECHA: item.fecha,
         HORA_ORIGINAL: horaOriginal || '00:00',
-        BRIX_MELADURA: item.BRIX_MELADURA || null,
-        JUSTIFICACION: item.JUSTIFICACION || ''
+        JUSTIFICACION: item.justificacion || ''
       };
     });
   }
@@ -219,7 +282,7 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const brixMeladuraData = this.mapDataToFixedHours('BRIX_MELADURA');
+      const datasetsData = this.mapDataToFixedHours();
 
       const limitLine: LimitLineAnnotation = {
         type: 'line',
@@ -236,23 +299,23 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       };
 
-      const componentLimitValue = this.limitValue;
+      const datasets = this.availableDataTypes.map((dato, index) => {
+        return {
+          label: dato,
+          data: datasetsData[dato] || [],
+          borderColor: this.getColorForDataType(index),
+          backgroundColor: this.getColorForDataType(index).replace('1)', '0.2)'),
+          borderWidth: 2,
+          tension: 0.1,
+          yAxisID: 'y'
+        };
+      });
 
       this.chart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
-          datasets: [
-            {
-              label: 'Brix Meladura',
-              data: brixMeladuraData,
-              borderColor: 'rgba(54, 162, 235, 1)',
-              backgroundColor: 'rgba(54, 162, 235, 0.2)',
-              borderWidth: 2,
-              tension: 0.1,
-              yAxisID: 'y'
-            }
-          ]
+          datasets: datasets
         },
         options: {
           responsive: true,
@@ -262,7 +325,7 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
               beginAtZero: false,
               title: {
                 display: true,
-                text: 'Nivel de Brix'
+                text: 'Valores'
               }
             },
             x: {
@@ -287,7 +350,8 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
                 },
                 afterLabel: (context: any) => {
                   const hour = labels[context.dataIndex];
-                  const dataItem = this.findDataItemByHour(hour);
+                  const dataType = context.dataset.label;
+                  const dataItem = this.findDataItemByHour(hour, dataType);
                   
                   if (!dataItem) return 'No hay datos para esta hora';
                   
@@ -329,7 +393,7 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
             ctx.translate(0.5, 0.5);
             
             const annotations = chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-            const limitValue = Number(annotations?.['limitLine']?.yMin ?? componentLimitValue);
+            const limitValue = Number(annotations?.['limitLine']?.yMin ?? this.limitValue);
           
             const yScale = scales['y'] as Scale;
             const yPixel = Math.floor(yScale.getPixelForValue(limitValue));
@@ -366,19 +430,39 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private mapDataToFixedHours(dataField: string): (number | null)[] {
-    return this.fixedHours.map(hour => {
-      const dataItem = this.findDataItemByHour(hour);
-      return dataItem ? dataItem[dataField] : null;
+  private mapDataToFixedHours(): { [key: string]: (number | null)[] } {
+    const datasets: { [key: string]: (number | null)[] } = {};
+
+    this.availableDataTypes.forEach(dato => {
+      datasets[dato] = this.fixedHours.map(() => null);
     });
+
+    this.fixedHours.forEach((hour, hourIndex) => {
+      const targetMinutes = this.timeToMinutes(hour);
+      
+      this.filteredData.forEach(item => {
+        const itemMinutes = this.timeToMinutes(item.HORA_ORIGINAL);
+        const diff = Math.abs(itemMinutes - targetMinutes);
+        
+        if (diff < 30) {
+          if (!datasets[item.dato][hourIndex] || diff < this.timeToMinutes(hour) - this.timeToMinutes(this.fixedHours[hourIndex - 1] || '00:00')) {
+            datasets[item.dato][hourIndex] = item.valor;
+          }
+        }
+      });
+    });
+
+    return datasets;
   }
 
-  private findDataItemByHour(hour: string): any | null {
+  private findDataItemByHour(hour: string, dataType: string): ChartDataItem | null {
     const targetMinutes = this.timeToMinutes(hour);
     let closestItem = null;
     let smallestDiff = Infinity;
 
     for (const item of this.filteredData) {
+      if (item.dato !== dataType) continue;
+      
       const itemMinutes = this.timeToMinutes(item.HORA_ORIGINAL);
       const diff = Math.abs(itemMinutes - targetMinutes);
       
@@ -394,7 +478,13 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToFixedHours('BRIX_MELADURA');
+    const datasetsData = this.mapDataToFixedHours();
+    
+    this.availableDataTypes.forEach((dato, index) => {
+      if (this.chart && this.chart.data.datasets[index]) {
+        this.chart.data.datasets[index].data = datasetsData[dato] || [];
+      }
+    });
   
     const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
     if (annotations?.['limitLine']) {
@@ -417,7 +507,7 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   refreshData(): void {
-    this.apiConnectionStatus = 'Verificando conexión...';
+    this.apiConnectionStatus = 'Actualizando datos...';
     this.errorMessage = '';
     this.checkApiConnection();
     this.loadLimitValue();
