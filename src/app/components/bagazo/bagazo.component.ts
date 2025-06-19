@@ -23,6 +23,15 @@ interface ChartAnnotations {
   [key: string]: any;
 }
 
+interface Limit {
+  id: number;
+  name: string;
+  value: number | null;
+  color: string;
+  axis: string;
+  unit: string;
+}
+
 @Component({
   selector: 'app-bagazo',
   standalone: true,
@@ -41,8 +50,10 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
   public selectedDate: string = '';
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
-  public limitHumValue: number = 50; 
-  public limitPolValue: number = 3; 
+  public limits: Limit[] = [
+    { id: 15, name: 'Hume', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 2, name: 'Pol', value: null, color: 'rgb(0, 0, 255)', axis: 'y1', unit: '' }
+  ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
@@ -95,17 +106,15 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadLimitValues(): void {
     this.limitsLoaded = false;
     
-    const humRequest = this.http.get('http://localhost:3000/api/limites/1').toPromise();
-    const polRequest = this.http.get('http://localhost:3000/api/limites/2').toPromise();
+    const limitRequests = this.limits.map(limit => 
+      this.http.get(`http://localhost:3000/api/limites/${limit.id}`).toPromise()
+    );
 
-    Promise.all([humRequest, polRequest])
-      .then(([humResponse, polResponse]: [any, any]) => {
-        if (humResponse && humResponse.LIMITE !== undefined) {
-          this.limitHumValue = humResponse.LIMITE;
-        }
-        if (polResponse && polResponse.LIMITE !== undefined) {
-          this.limitPolValue = polResponse.LIMITE;
-        }
+    Promise.all(limitRequests)
+      .then((responses: any[]) => {
+        responses.forEach((response, index) => {
+          this.limits[index].value = response?.LIMITE ?? null;
+        });
         
         this.limitsLoaded = true;
         if (this.dataLoaded) {
@@ -114,6 +123,7 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
       })
       .catch((error) => {
         console.error('Error al obtener los valores límite:', error);
+        this.limits.forEach(limit => limit.value = null);
         this.limitsLoaded = true;
         if (this.dataLoaded) {
           this.initChartIfReady();
@@ -287,37 +297,28 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
         };
       });
 
-      const annotations: ChartAnnotations = {
-        humLimitLine: {
-          type: 'line',
-          yMin: this.limitHumValue,
-          yMax: this.limitHumValue,
-          borderColor: 'rgb(255, 0, 0)',
-          borderWidth: 2,
-          borderDash: [6, 6],
-          label: {
-            content: `Límite Humedad: ${this.limitHumValue}`,
-            enabled: true,
-            position: 'end',
-            backgroundColor: 'rgba(255,255,255,0.8)'
-          }
-        },
-        polLimitLine: {
-          type: 'line',
-          yMin: this.limitPolValue,
-          yMax: this.limitPolValue,
-          borderColor: 'rgb(0, 0, 255)',
-          borderWidth: 2,
-          borderDash: [6, 6],
-          label: {
-            content: `Límite Pol: ${this.limitPolValue}`,
-            enabled: true,
-            position: 'end',
-            backgroundColor: 'rgba(255,255,255,0.8)'
-          },
-          yAxisID: 'y1'
+      const annotations: ChartAnnotations = {};
+      
+      // Agregar anotaciones para cada límite definido
+      this.limits.forEach(limit => {
+        if (limit.value !== null) {
+          annotations[`${limit.name}LimitLine`] = {
+            type: 'line',
+            yMin: limit.value,
+            yMax: limit.value,
+            borderColor: limit.color,
+            borderWidth: 2,
+            borderDash: [6, 6],
+            label: {
+              content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'rgba(255,255,255,0.8)'
+            },
+            yAxisID: limit.axis
+          };
         }
-      };
+      });
 
       this.chart = new Chart(ctx, {
         type: 'line',
@@ -415,49 +416,32 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            const yPixelHum = Math.floor(scales['y'].getPixelForValue(this.limitHumValue));
-            
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgb(255, 0, 0)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixelHum);
-            ctx.lineTo(Math.floor(chartArea.right), yPixelHum);
-            ctx.stroke();
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillRect(
-              Math.floor(chartArea.right - 120), 
-              Math.floor(yPixelHum - 15), 
-              120, 
-              20
-            );
-            
-            ctx.fillStyle = 'rgb(255, 0, 0)';
-            ctx.textAlign = 'right';
-            ctx.fillText(` Humedad: ${this.limitHumValue}`, Math.floor(chartArea.right - 10), yPixelHum);
-            
-            const yPixelPol = Math.floor(scales['y1'].getPixelForValue(this.limitPolValue));
-            
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgb(0, 0, 255)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixelPol);
-            ctx.lineTo(Math.floor(chartArea.right), yPixelPol);
-            ctx.stroke();
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillRect(
-              Math.floor(chartArea.right - 100), 
-              Math.floor(yPixelPol - 15), 
-              100, 
-              20
-            );
-            
-            ctx.fillStyle = 'rgb(0, 0, 255)';
-            ctx.textAlign = 'right';
-            ctx.fillText(` Pol: ${this.limitPolValue}`, Math.floor(chartArea.right - 10), yPixelPol);
+            // Dibujar líneas de límite para cada límite definido
+            this.limits.forEach(limit => {
+              if (limit.value !== null && scales[limit.axis]) {
+                const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
+                
+                ctx.beginPath();
+                ctx.strokeStyle = limit.color;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.moveTo(Math.floor(chartArea.left), yPixel);
+                ctx.lineTo(Math.floor(chartArea.right), yPixel);
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fillRect(
+                  Math.floor(chartArea.right - 150), 
+                  Math.floor(yPixel - 15), 
+                  150, 
+                  20
+                );
+                
+                ctx.fillStyle = limit.color;
+                ctx.textAlign = 'right';
+                ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
+              }
+            });
             
             ctx.restore();
           }
@@ -514,37 +498,27 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
       };
     });
 
-    const annotations: ChartAnnotations = {
-      humLimitLine: {
-        type: 'line',
-        yMin: this.limitHumValue,
-        yMax: this.limitHumValue,
-        borderColor: 'rgb(255, 0, 0)',
-        borderWidth: 2,
-        borderDash: [6, 6],
-        label: {
-          content: `Límite Humedad: ${this.limitHumValue}`,
-          enabled: true,
-          position: 'end',
-          backgroundColor: 'rgba(255,255,255,0.8)'
-        }
-      },
-      polLimitLine: {
-        type: 'line',
-        yMin: this.limitPolValue,
-        yMax: this.limitPolValue,
-        borderColor: 'rgb(0, 0, 255)',
-        borderWidth: 2,
-        borderDash: [6, 6],
-        label: {
-          content: `Límite Pol: ${this.limitPolValue}`,
-          enabled: true,
-          position: 'end',
-          backgroundColor: 'rgba(255,255,255,0.8)'
-        },
-        yAxisID: 'y1'
+    const annotations: ChartAnnotations = {};
+    
+    this.limits.forEach(limit => {
+      if (limit.value !== null) {
+        annotations[`${limit.name}LimitLine`] = {
+          type: 'line',
+          yMin: limit.value,
+          yMax: limit.value,
+          borderColor: limit.color,
+          borderWidth: 2,
+          borderDash: [6, 6],
+          label: {
+            content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+            enabled: true,
+            position: 'end',
+            backgroundColor: 'rgba(255,255,255,0.8)'
+          },
+          yAxisID: limit.axis
+        };
       }
-    };
+    });
 
     if (this.chart.options?.plugins?.annotation) {
       this.chart.options.plugins.annotation.annotations = annotations;
