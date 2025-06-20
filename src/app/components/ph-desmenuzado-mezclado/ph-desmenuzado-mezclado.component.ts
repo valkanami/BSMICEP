@@ -23,6 +23,15 @@ interface ChartAnnotations {
   [key: string]: any;
 }
 
+interface Limit {
+  id: number;
+  name: string;
+  value: number | null;
+  color: string;
+  axis: string;
+  unit: string;
+}
+
 @Component({
   selector: 'app-ph-desmenuzado-mezclado',
   standalone: true,
@@ -40,8 +49,11 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public limitValueDesmenuzado: number = 7.0;
-  public limitValueMezclado: number = 6.8;
+  public dataTypes: string[] = ['Desmenuzado', 'Mezclado']; 
+  public limits: Limit[] = [
+    { id: 11, name: 'Desmenuzado', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 12, name: 'Mezclado', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
+  ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
@@ -49,6 +61,15 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
     '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
     '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
+  ];
+
+  private colorPalette = [
+    'rgba(255, 99, 132, 0.7)', 
+    'rgba(54, 162, 235, 0.7)',     
+    'rgba(75, 192, 192, 0.7)',
+    'rgb(86, 255, 213)',     
+    'rgba(153, 102, 255, 1)',
+    'rgba(255, 159, 64, 1)'
   ];
 
   constructor(
@@ -85,17 +106,15 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
   private loadLimitValues(): void {
     this.limitsLoaded = false;
     
-    const desmenuzadoRequest = this.http.get('http://localhost:3000/api/limites/11').toPromise();
-    const mezcladoRequest = this.http.get('http://localhost:3000/api/limites/12').toPromise();
+    const limitRequests = this.limits.map(limit => 
+      this.http.get(`http://localhost:3000/api/limites/${limit.id}`).toPromise()
+    );
 
-    Promise.all([desmenuzadoRequest, mezcladoRequest])
-      .then(([desmenuzadoResponse, mezcladoResponse]: [any, any]) => {
-        if (desmenuzadoResponse && desmenuzadoResponse.LIMITE !== undefined) {
-          this.limitValueDesmenuzado = desmenuzadoResponse.LIMITE;
-        }
-        if (mezcladoResponse && mezcladoResponse.LIMITE !== undefined) {
-          this.limitValueMezclado = mezcladoResponse.LIMITE;
-        }
+    Promise.all(limitRequests)
+      .then((responses: any[]) => {
+        responses.forEach((response, index) => {
+          this.limits[index].value = response?.LIMITE ?? null;
+        });
         
         this.limitsLoaded = true;
         if (this.dataLoaded) {
@@ -104,6 +123,7 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
       })
       .catch((error) => {
         console.error('Error al obtener los valores límite:', error);
+        this.limits.forEach(limit => limit.value = null);
         this.limitsLoaded = true;
         if (this.dataLoaded) {
           this.initChartIfReady();
@@ -137,11 +157,12 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
 
   checkApiConnection(): void {
     this.dataLoaded = false;
-    this.http.get('http://localhost:3000/api/ph').subscribe({
+    this.http.get('http://localhost:3000/api/registrozafra').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
         this.extractAvailableDates();
+        
         if (this.availableDates.length > 0) {
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
@@ -152,7 +173,7 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
         }
       },
       error: (error) => {
-        this.apiConnectionStatus = 'Error al conectar con la API';
+        this.apiConnectionStatus = 'Error al conectar con la API ';
         this.errorMessage = error.message;
         console.error('Error:', error);
         this.dataLoaded = true;
@@ -166,8 +187,8 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
   private extractAvailableDates(): void {
     const uniqueDates = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.FECHA) {
-        const date = new Date(item.FECHA);
+      if (item.fecha) {
+        const date = new Date(item.fecha);
         if (!isNaN(date.getTime())) {
           const dateStr = date.toISOString().split('T')[0];
           uniqueDates.add(dateStr);
@@ -185,12 +206,14 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
       return;
     }
 
+    
     this.filteredData = this.originalData.filter(item => {
-      if (!item.FECHA) return false;
-      const itemDate = new Date(item.FECHA);
+      if (!item.fecha) return false;
+      const itemDate = new Date(item.fecha);
       if (isNaN(itemDate.getTime())) return false;
       const itemDateStr = itemDate.toISOString().split('T')[0];
-      return itemDateStr === this.selectedDate;
+      return itemDateStr === this.selectedDate && 
+             (item.dato === 'Desmenuzado' || item.dato === 'Mezclado');
     });
 
     this.filteredData.sort((a, b) => {
@@ -212,21 +235,22 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
   }
 
   private preserveOriginalTimes(rawData: any[]): any[] {
-    return rawData.map(item => {
-      let horaOriginal = '';
-      if (item.HORA) {  
-        horaOriginal = this.formatTimeToHHMM(item.HORA);  
-      }
+    return rawData
+      .filter(item => item.apartado === 'pH' && 
+             (item.dato === 'Desmenuzado' || item.dato === 'Mezclado')) 
+      .map(item => {
+        let horaOriginal = '';
+        if (item.hora) {
+          horaOriginal = this.formatTimeToHHMM(item.hora);
+        }
 
-      return {
-        ...item,
-        HORA_ORIGINAL: horaOriginal || '00:00',
-        DESMENUZADO: item.DEZMENUZADO || null,
-        JUSTIFICACION_DESMENUZADO: item.JUSTIFICACION_DESMENUZADO || '',
-        MEZCLADO: item.MEZCLADO || null,
-        JUSTIFICACION_MEZCLADO: item.JUSTIFICACION_MEZCLADO || ''
-      };
-    });
+        return {
+          ...item,
+          HORA_ORIGINAL: horaOriginal || '00:00',
+          valor: item.valor !== null ? Number(item.valor) : null,
+          justificacion: item.justificacion || ''
+        };
+      });
   }
 
   private initChart(): void {
@@ -252,77 +276,61 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const desmenuzadoData = this.mapDataToFixedHours('DESMENUZADO');
-      const mezcladoData = this.mapDataToFixedHours('MEZCLADO');
+      
+      const datasets = this.dataTypes.map((type, index) => {
+        const color = this.colorPalette[index % this.colorPalette.length];
+        return {
+          label: type,
+          data: this.mapDataToFixedHours(type),
+          borderColor: color,
+          backgroundColor: color.replace('1)', '0.2)'),
+          borderWidth: 2,
+          tension: 0.1,
+          yAxisID: 'y'
+        };
+      });
 
-      const limitLineDesmenuzado: LimitLineAnnotation = {
-        type: 'line',
-        yMin: this.limitValueDesmenuzado,
-        yMax: this.limitValueDesmenuzado,
-        borderColor: 'rgb(255, 0, 0)',
-        borderWidth: 2,
-        borderDash: [6, 6],
-        label: {
-          content: `Límite Desmenuzado: ${this.limitValueDesmenuzado}`,
-          enabled: true,
-          position: 'end',
-          backgroundColor: 'rgba(255,255,255,0.8)'
+      const annotations: ChartAnnotations = {};
+      
+      this.limits.forEach(limit => {
+        if (limit.value !== null) {
+          annotations[`${limit.name}LimitLine`] = {
+            type: 'line',
+            yMin: limit.value,
+            yMax: limit.value,
+            borderColor: limit.color,
+            borderWidth: 2,
+            borderDash: [6, 6],
+            label: {
+              content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'rgba(255,255,255,0.8)'
+            },
+            yAxisID: limit.axis
+          };
         }
-      };
-
-      const limitLineMezclado: LimitLineAnnotation = {
-        type: 'line',
-        yMin: this.limitValueMezclado,
-        yMax: this.limitValueMezclado,
-        borderColor: 'rgb(255, 165, 0)',
-        borderWidth: 2,
-        borderDash: [6, 6],
-        label: {
-          content: `Límite Mezclado: ${this.limitValueMezclado}`,
-          enabled: true,
-          position: 'end',
-          backgroundColor: 'rgba(255,255,255,0.8)'
-        }
-      };
-
-      const componentLimitValueDesmenuzado = this.limitValueDesmenuzado;
-      const componentLimitValueMezclado = this.limitValueMezclado;
+      });
 
       this.chart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
-          datasets: [
-            {
-              label: 'PH Desmenuzado',
-              data: desmenuzadoData,
-              backgroundColor: 'rgba(54, 162, 235, 0.7)',
-              borderColor: 'rgba(54, 162, 235, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            },
-            {
-              label: 'PH Mezclado',
-              data: mezcladoData,
-              backgroundColor: 'rgba(75, 192, 192, 0.7)',
-              borderColor: 'rgba(75, 192, 192, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            }
-          ]
+          datasets: datasets
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
             y: {
-              beginAtZero: false,
+              type: 'linear',
+              display: true,
+              position: 'left',
               title: {
                 display: true,
-                text: 'Valor de PH'
+                text: 'pH'
               },
-              min: 5.0,
-              max: 6.0
+              min: 0
             },
             x: {
               title: {
@@ -346,13 +354,11 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
                 },
                 afterLabel: (context: any) => {
                   const hour = labels[context.dataIndex];
-                  const dataItem = this.findDataItemByHour(hour);
+                  const dataItem = this.findDataItemByHour(hour, context.dataset.label);
                   
                   if (!dataItem) return 'No hay datos para esta hora';
                   
-                  const justificacion = context.datasetIndex === 0 
-                    ? dataItem.JUSTIFICACION_DESMENUZADO || 'No hay justificación registrada'
-                    : dataItem.JUSTIFICACION_MEZCLADO || 'No hay justificación registrada';
+                  const justificacion = dataItem.justificacion || 'No hay justificación registrada';
                   
                   return [
                     `─────────────────────`,
@@ -373,10 +379,7 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
               position: 'top'
             },
             annotation: {
-              annotations: {
-                limitLineDesmenuzado: limitLineDesmenuzado,
-                limitLineMezclado: limitLineMezclado
-              }
+              annotations: annotations
             }
           }
         },
@@ -390,49 +393,31 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            
-            const yPixelDesmenuzado = Math.floor(scales['y'].getPixelForValue(componentLimitValueDesmenuzado));
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgb(255, 0, 0)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixelDesmenuzado);
-            ctx.lineTo(Math.floor(chartArea.right), yPixelDesmenuzado);
-            ctx.stroke();
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillRect(
-              Math.floor(chartArea.right - 150), 
-              Math.floor(yPixelDesmenuzado - 15), 
-              150, 
-              20
-            );
-            
-            ctx.fillStyle = 'rgb(255, 0, 0)';
-            ctx.textAlign = 'right';
-            ctx.fillText(`Desmenuzado: ${componentLimitValueDesmenuzado}`, Math.floor(chartArea.right - 10), yPixelDesmenuzado);
-            
-            
-            const yPixelMezclado = Math.floor(scales['y'].getPixelForValue(componentLimitValueMezclado));
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgb(255, 165, 0)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixelMezclado);
-            ctx.lineTo(Math.floor(chartArea.right), yPixelMezclado);
-            ctx.stroke();
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillRect(
-              Math.floor(chartArea.right - 150), 
-              Math.floor(yPixelMezclado - 15), 
-              150, 
-              20
-            );
-            
-            ctx.fillStyle = 'rgb(255, 165, 0)';
-            ctx.textAlign = 'right';
-            ctx.fillText(`Mezclado: ${componentLimitValueMezclado}`, Math.floor(chartArea.right - 10), yPixelMezclado);
+            this.limits.forEach(limit => {
+              if (limit.value !== null && scales[limit.axis]) {
+                const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
+                
+                ctx.beginPath();
+                ctx.strokeStyle = limit.color;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.moveTo(Math.floor(chartArea.left), yPixel);
+                ctx.lineTo(Math.floor(chartArea.right), yPixel);
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fillRect(
+                  Math.floor(chartArea.right - 150), 
+                  Math.floor(yPixel - 15), 
+                  150, 
+                  20
+                );
+                
+                ctx.fillStyle = limit.color;
+                ctx.textAlign = 'right';
+                ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
+              }
+            });
             
             ctx.restore();
           }
@@ -446,19 +431,21 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
     }
   }
 
-  private mapDataToFixedHours(dataField: string): (number | null)[] {
+  private mapDataToFixedHours(dataType: string): (number | null)[] {
     return this.fixedHours.map(hour => {
-      const dataItem = this.findDataItemByHour(hour);
-      return dataItem ? dataItem[dataField] : null;
+      const dataItem = this.findDataItemByHour(hour, dataType);
+      return dataItem ? dataItem.valor : null;
     });
   }
 
-  private findDataItemByHour(hour: string): any | null {
+  private findDataItemByHour(hour: string, dataType?: string): any | null {
     const targetMinutes = this.timeToMinutes(hour);
     let closestItem = null;
     let smallestDiff = Infinity;
 
     for (const item of this.filteredData) {
+      if (dataType && item.dato !== dataType) continue;
+      
       const itemMinutes = this.timeToMinutes(item.HORA_ORIGINAL);
       const diff = Math.abs(itemMinutes - targetMinutes);
       
@@ -474,26 +461,43 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToFixedHours('DESMENUZADO');
-    this.chart.data.datasets[1].data = this.mapDataToFixedHours('MEZCLADO');
-  
-    const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-    if (annotations?.['limitLineDesmenuzado']) {
-      annotations['limitLineDesmenuzado'].yMin = this.limitValueDesmenuzado;
-      annotations['limitLineDesmenuzado'].yMax = this.limitValueDesmenuzado;
-      
-      if (annotations['limitLineDesmenuzado'].label) {
-        annotations['limitLineDesmenuzado'].label.content = `Límite Desmenuzado: ${this.limitValueDesmenuzado}`;
-      }
-    }
+    this.chart.data.datasets = this.dataTypes.map((type, index) => {
+      const color = this.colorPalette[index % this.colorPalette.length];
+      return {
+        label: type,
+        data: this.mapDataToFixedHours(type),
+        borderColor: color,
+        backgroundColor: color.replace('1)', '0.2)'),
+        borderWidth: 2,
+        tension: 0.1,
+        yAxisID: 'y'
+      };
+    });
+
+    const annotations: ChartAnnotations = {};
     
-    if (annotations?.['limitLineMezclado']) {
-      annotations['limitLineMezclado'].yMin = this.limitValueMezclado;
-      annotations['limitLineMezclado'].yMax = this.limitValueMezclado;
-      
-      if (annotations['limitLineMezclado'].label) {
-        annotations['limitLineMezclado'].label.content = `Límite Mezclado: ${this.limitValueMezclado}`;
+    this.limits.forEach(limit => {
+      if (limit.value !== null) {
+        annotations[`${limit.name}LimitLine`] = {
+          type: 'line',
+          yMin: limit.value,
+          yMax: limit.value,
+          borderColor: limit.color,
+          borderWidth: 2,
+          borderDash: [6, 6],
+          label: {
+            content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+            enabled: true,
+            position: 'end',
+            backgroundColor: 'rgba(255,255,255,0.8)'
+          },
+          yAxisID: limit.axis
+        };
       }
+    });
+
+    if (this.chart.options?.plugins?.annotation) {
+      this.chart.options.plugins.annotation.annotations = annotations;
     }
   
     this.chart.update();

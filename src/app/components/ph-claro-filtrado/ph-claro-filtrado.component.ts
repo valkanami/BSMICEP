@@ -23,6 +23,15 @@ interface ChartAnnotations {
   [key: string]: any;
 }
 
+interface Limit {
+  id: number;
+  name: string;
+  value: number | null;
+  color: string;
+  axis: string;
+  unit: string;
+}
+
 @Component({
   selector: 'app-ph-claro-filtrado',
   standalone: true,
@@ -40,8 +49,11 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public limitValueClaro: number = 7.0;
-  public limitValueFiltrado: number = 6.8;
+  public dataTypes: string[] = ['Claro', 'Filtrado']; 
+  public limits: Limit[] = [
+    { id: 7, name: 'Claro', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 8, name: 'Filtrado', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
+  ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
@@ -49,6 +61,15 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
     '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
     '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
+  ];
+
+  private colorPalette = [
+    'rgba(255, 99, 132, 0.7)', 
+    'rgba(54, 162, 235, 0.7)',     
+    'rgba(75, 192, 192, 0.7)',
+    'rgb(86, 255, 213)',     
+    'rgba(153, 102, 255, 1)',
+    'rgba(255, 159, 64, 1)'
   ];
 
   constructor(
@@ -85,20 +106,15 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
   private loadLimitValues(): void {
     this.limitsLoaded = false;
     
-    
-    const claroRequest = this.http.get('http://localhost:3000/api/limites/7').toPromise();
-    
-    
-    const filtradoRequest = this.http.get('http://localhost:3000/api/limites/8').toPromise();
+    const limitRequests = this.limits.map(limit => 
+      this.http.get(`http://localhost:3000/api/limites/${limit.id}`).toPromise()
+    );
 
-    Promise.all([claroRequest, filtradoRequest])
-      .then(([claroResponse, filtradoResponse]: [any, any]) => {
-        if (claroResponse && claroResponse.LIMITE !== undefined) {
-          this.limitValueClaro = claroResponse.LIMITE;
-        }
-        if (filtradoResponse && filtradoResponse.LIMITE !== undefined) {
-          this.limitValueFiltrado = filtradoResponse.LIMITE;
-        }
+    Promise.all(limitRequests)
+      .then((responses: any[]) => {
+        responses.forEach((response, index) => {
+          this.limits[index].value = response?.LIMITE ?? null;
+        });
         
         this.limitsLoaded = true;
         if (this.dataLoaded) {
@@ -107,6 +123,7 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
       })
       .catch((error) => {
         console.error('Error al obtener los valores límite:', error);
+        this.limits.forEach(limit => limit.value = null);
         this.limitsLoaded = true;
         if (this.dataLoaded) {
           this.initChartIfReady();
@@ -140,11 +157,12 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
 
   checkApiConnection(): void {
     this.dataLoaded = false;
-    this.http.get('http://localhost:3000/api/ph').subscribe({
+    this.http.get('http://localhost:3000/api/registrozafra').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
         this.extractAvailableDates();
+        
         if (this.availableDates.length > 0) {
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
@@ -155,7 +173,7 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
         }
       },
       error: (error) => {
-        this.apiConnectionStatus = 'Error al conectar con la API';
+        this.apiConnectionStatus = 'Error al conectar con la API ';
         this.errorMessage = error.message;
         console.error('Error:', error);
         this.dataLoaded = true;
@@ -169,8 +187,8 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
   private extractAvailableDates(): void {
     const uniqueDates = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.FECHA) {
-        const date = new Date(item.FECHA);
+      if (item.fecha) {
+        const date = new Date(item.fecha);
         if (!isNaN(date.getTime())) {
           const dateStr = date.toISOString().split('T')[0];
           uniqueDates.add(dateStr);
@@ -188,12 +206,14 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
       return;
     }
 
+    
     this.filteredData = this.originalData.filter(item => {
-      if (!item.FECHA) return false;
-      const itemDate = new Date(item.FECHA);
+      if (!item.fecha) return false;
+      const itemDate = new Date(item.fecha);
       if (isNaN(itemDate.getTime())) return false;
       const itemDateStr = itemDate.toISOString().split('T')[0];
-      return itemDateStr === this.selectedDate;
+      return itemDateStr === this.selectedDate && 
+             (item.dato === 'Claro' || item.dato === 'Filtrado');
     });
 
     this.filteredData.sort((a, b) => {
@@ -215,21 +235,22 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   private preserveOriginalTimes(rawData: any[]): any[] {
-    return rawData.map(item => {
-      let horaOriginal = '';
-      if (item.HORA) {  
-        horaOriginal = this.formatTimeToHHMM(item.HORA);  
-      }
+    return rawData
+      .filter(item => item.apartado === 'pH' && 
+             (item.dato === 'Claro' || item.dato === 'Filtrado')) 
+      .map(item => {
+        let horaOriginal = '';
+        if (item.hora) {
+          horaOriginal = this.formatTimeToHHMM(item.hora);
+        }
 
-      return {
-        ...item,
-        HORA_ORIGINAL: horaOriginal || '00:00',
-        CLARO: item.CLARO || null,
-        JUSTIFICACION_CLARO: item.JUSTIFICACION_CLARO || '',
-        FILTRADO: item.FILTRADO || null,
-        JUSTIFICACION_FILTRADO: item.JUSTIFICACION_FILTRADO || ''
-      };
-    });
+        return {
+          ...item,
+          HORA_ORIGINAL: horaOriginal || '00:00',
+          valor: item.valor !== null ? Number(item.valor) : null,
+          justificacion: item.justificacion || ''
+        };
+      });
   }
 
   private initChart(): void {
@@ -255,77 +276,61 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const claroData = this.mapDataToFixedHours('CLARO');
-      const filtradoData = this.mapDataToFixedHours('FILTRADO');
+      
+      const datasets = this.dataTypes.map((type, index) => {
+        const color = this.colorPalette[index % this.colorPalette.length];
+        return {
+          label: type,
+          data: this.mapDataToFixedHours(type),
+          borderColor: color,
+          backgroundColor: color.replace('1)', '0.2)'),
+          borderWidth: 2,
+          tension: 0.1,
+          yAxisID: 'y'
+        };
+      });
 
-      const limitLineClaro: LimitLineAnnotation = {
-        type: 'line',
-        yMin: this.limitValueClaro,
-        yMax: this.limitValueClaro,
-        borderColor: 'rgb(255, 0, 0)',
-        borderWidth: 2,
-        borderDash: [6, 6],
-        label: {
-          content: `Límite Claro: ${this.limitValueClaro}`,
-          enabled: true,
-          position: 'end',
-          backgroundColor: 'rgba(255,255,255,0.8)'
+      const annotations: ChartAnnotations = {};
+      
+      this.limits.forEach(limit => {
+        if (limit.value !== null) {
+          annotations[`${limit.name}LimitLine`] = {
+            type: 'line',
+            yMin: limit.value,
+            yMax: limit.value,
+            borderColor: limit.color,
+            borderWidth: 2,
+            borderDash: [6, 6],
+            label: {
+              content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'rgba(255,255,255,0.8)'
+            },
+            yAxisID: limit.axis
+          };
         }
-      };
-
-      const limitLineFiltrado: LimitLineAnnotation = {
-        type: 'line',
-        yMin: this.limitValueFiltrado,
-        yMax: this.limitValueFiltrado,
-        borderColor: 'rgb(255, 165, 0)',
-        borderWidth: 2,
-        borderDash: [6, 6],
-        label: {
-          content: `Límite Filtrado: ${this.limitValueFiltrado}`,
-          enabled: true,
-          position: 'end',
-          backgroundColor: 'rgba(255,255,255,0.8)'
-        }
-      };
-
-      const componentLimitValueClaro = this.limitValueClaro;
-      const componentLimitValueFiltrado = this.limitValueFiltrado;
+      });
 
       this.chart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
-          datasets: [
-            {
-              label: 'PH Claro',
-              data: claroData,
-              backgroundColor: 'rgba(54, 162, 235, 0.7)',
-              borderColor: 'rgba(54, 162, 235, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            },
-            {
-              label: 'PH Filtrado',
-              data: filtradoData,
-              backgroundColor: 'rgba(75, 192, 192, 0.7)',
-              borderColor: 'rgba(75, 192, 192, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            }
-          ]
+          datasets: datasets
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
             y: {
-              beginAtZero: false,
+              type: 'linear',
+              display: true,
+              position: 'left',
               title: {
                 display: true,
-                text: 'Valor de PH'
+                text: 'Turbidez (NTU)'
               },
-              min: 5.0,
-              max: 9.0
+              min: 0
             },
             x: {
               title: {
@@ -349,13 +354,11 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
                 },
                 afterLabel: (context: any) => {
                   const hour = labels[context.dataIndex];
-                  const dataItem = this.findDataItemByHour(hour);
+                  const dataItem = this.findDataItemByHour(hour, context.dataset.label);
                   
                   if (!dataItem) return 'No hay datos para esta hora';
                   
-                  const justificacion = context.datasetIndex === 0 
-                    ? dataItem.JUSTIFICACION_CLARO || 'No hay justificación registrada'
-                    : dataItem.JUSTIFICACION_FILTRADO || 'No hay justificación registrada';
+                  const justificacion = dataItem.justificacion || 'No hay justificación registrada';
                   
                   return [
                     `─────────────────────`,
@@ -376,10 +379,7 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
               position: 'top'
             },
             annotation: {
-              annotations: {
-                limitLineClaro: limitLineClaro,
-                limitLineFiltrado: limitLineFiltrado
-              }
+              annotations: annotations
             }
           }
         },
@@ -393,49 +393,31 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            // Dibujar línea para PH Claro
-            const yPixelClaro = Math.floor(scales['y'].getPixelForValue(componentLimitValueClaro));
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgb(255, 0, 0)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixelClaro);
-            ctx.lineTo(Math.floor(chartArea.right), yPixelClaro);
-            ctx.stroke();
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillRect(
-              Math.floor(chartArea.right - 120), 
-              Math.floor(yPixelClaro - 15), 
-              120, 
-              20
-            );
-            
-            ctx.fillStyle = 'rgb(255, 0, 0)';
-            ctx.textAlign = 'right';
-            ctx.fillText(`Claro: ${componentLimitValueClaro}`, Math.floor(chartArea.right - 10), yPixelClaro);
-            
-            // Dibujar línea para PH Filtrado
-            const yPixelFiltrado = Math.floor(scales['y'].getPixelForValue(componentLimitValueFiltrado));
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgb(255, 165, 0)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixelFiltrado);
-            ctx.lineTo(Math.floor(chartArea.right), yPixelFiltrado);
-            ctx.stroke();
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillRect(
-              Math.floor(chartArea.right - 120), 
-              Math.floor(yPixelFiltrado - 15), 
-              120, 
-              20
-            );
-            
-            ctx.fillStyle = 'rgb(255, 165, 0)';
-            ctx.textAlign = 'right';
-            ctx.fillText(`Filtrado: ${componentLimitValueFiltrado}`, Math.floor(chartArea.right - 10), yPixelFiltrado);
+            this.limits.forEach(limit => {
+              if (limit.value !== null && scales[limit.axis]) {
+                const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
+                
+                ctx.beginPath();
+                ctx.strokeStyle = limit.color;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.moveTo(Math.floor(chartArea.left), yPixel);
+                ctx.lineTo(Math.floor(chartArea.right), yPixel);
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fillRect(
+                  Math.floor(chartArea.right - 150), 
+                  Math.floor(yPixel - 15), 
+                  150, 
+                  20
+                );
+                
+                ctx.fillStyle = limit.color;
+                ctx.textAlign = 'right';
+                ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
+              }
+            });
             
             ctx.restore();
           }
@@ -449,19 +431,21 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
     }
   }
 
-  private mapDataToFixedHours(dataField: string): (number | null)[] {
+  private mapDataToFixedHours(dataType: string): (number | null)[] {
     return this.fixedHours.map(hour => {
-      const dataItem = this.findDataItemByHour(hour);
-      return dataItem ? dataItem[dataField] : null;
+      const dataItem = this.findDataItemByHour(hour, dataType);
+      return dataItem ? dataItem.valor : null;
     });
   }
 
-  private findDataItemByHour(hour: string): any | null {
+  private findDataItemByHour(hour: string, dataType?: string): any | null {
     const targetMinutes = this.timeToMinutes(hour);
     let closestItem = null;
     let smallestDiff = Infinity;
 
     for (const item of this.filteredData) {
+      if (dataType && item.dato !== dataType) continue;
+      
       const itemMinutes = this.timeToMinutes(item.HORA_ORIGINAL);
       const diff = Math.abs(itemMinutes - targetMinutes);
       
@@ -477,26 +461,43 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToFixedHours('CLARO');
-    this.chart.data.datasets[1].data = this.mapDataToFixedHours('FILTRADO');
-  
-    const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-    if (annotations?.['limitLineClaro']) {
-      annotations['limitLineClaro'].yMin = this.limitValueClaro;
-      annotations['limitLineClaro'].yMax = this.limitValueClaro;
-      
-      if (annotations['limitLineClaro'].label) {
-        annotations['limitLineClaro'].label.content = `Límite Claro: ${this.limitValueClaro}`;
-      }
-    }
+    this.chart.data.datasets = this.dataTypes.map((type, index) => {
+      const color = this.colorPalette[index % this.colorPalette.length];
+      return {
+        label: type,
+        data: this.mapDataToFixedHours(type),
+        borderColor: color,
+        backgroundColor: color.replace('1)', '0.2)'),
+        borderWidth: 2,
+        tension: 0.1,
+        yAxisID: 'y'
+      };
+    });
+
+    const annotations: ChartAnnotations = {};
     
-    if (annotations?.['limitLineFiltrado']) {
-      annotations['limitLineFiltrado'].yMin = this.limitValueFiltrado;
-      annotations['limitLineFiltrado'].yMax = this.limitValueFiltrado;
-      
-      if (annotations['limitLineFiltrado'].label) {
-        annotations['limitLineFiltrado'].label.content = `Límite Filtrado: ${this.limitValueFiltrado}`;
+    this.limits.forEach(limit => {
+      if (limit.value !== null) {
+        annotations[`${limit.name}LimitLine`] = {
+          type: 'line',
+          yMin: limit.value,
+          yMax: limit.value,
+          borderColor: limit.color,
+          borderWidth: 2,
+          borderDash: [6, 6],
+          label: {
+            content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+            enabled: true,
+            position: 'end',
+            backgroundColor: 'rgba(255,255,255,0.8)'
+          },
+          yAxisID: limit.axis
+        };
       }
+    });
+
+    if (this.chart.options?.plugins?.annotation) {
+      this.chart.options.plugins.annotation.annotations = annotations;
     }
   
     this.chart.update();

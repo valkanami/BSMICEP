@@ -1,6 +1,7 @@
+
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Chart, registerables, Scale } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -20,8 +21,16 @@ interface LimitLineAnnotation {
 }
 
 interface ChartAnnotations {
-  ['limitLine']?: LimitLineAnnotation;
   [key: string]: any;
+}
+
+interface Limit {
+  id: number;
+  name: string;
+  value: number | null;
+  color: string;
+  axis: string;
+  unit: string;
 }
 
 @Component({
@@ -41,12 +50,26 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public limitValue: number = 300; 
+  public dataTypes: string[] = [];
+  public limits: Limit[] = [
+    { id: 17, name: 'Sedimentos', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+  ];
+  public dataLoaded: boolean = false;
+  public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
     '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
     '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
+  ];
+
+  private colorPalette = [
+    'rgba(255, 99, 132, 0.7)', 
+    'rgba(54, 162, 235, 0.7)',     
+    'rgba(75, 192, 192, 0.7)',
+    'rgb(86, 255, 213)',     
+    'rgba(153, 102, 255, 1)',
+    'rgba(255, 159, 64, 1)'
   ];
 
   constructor(
@@ -61,14 +84,18 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.isBrowser) {
-      this.checkApiConnection();
-      this.loadLimitValue();
+      this.loadInitialData();
     }
   }
 
+  private loadInitialData(): void {
+    this.checkApiConnection();
+    this.loadLimitValues();
+  }
+
   ngAfterViewInit(): void {
-    if (this.isBrowser && this.filteredData.length > 0) {
-      this.initChart();
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
+      this.initChartIfReady();
     }
   }
 
@@ -76,22 +103,38 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroyChart();
   }
 
-  private loadLimitValue(): void {
-    this.http.get('http://localhost:3000/api/limites/17').subscribe({
-      next: (response: any) => {
-        if (response && response.LIMITE !== undefined) {
-          this.limitValue = response.LIMITE;
-          if (this.chart) {
-            this.updateChartData();
-          }
-        } else {
-          console.warn('No se encontró LIMITE en los datos, usando valor por defecto');
+  private loadLimitValues(): void {
+    this.limitsLoaded = false;
+    
+    const limitRequests = this.limits.map(limit => 
+      this.http.get(`http://localhost:3000/api/limites/${limit.id}`).toPromise()
+    );
+
+    Promise.all(limitRequests)
+      .then((responses: any[]) => {
+        responses.forEach((response, index) => {
+          this.limits[index].value = response?.LIMITE ?? null;
+        });
+        
+        this.limitsLoaded = true;
+        if (this.dataLoaded) {
+          this.initChartIfReady();
         }
-      },
-      error: (error) => {
-        console.error('Error al obtener el valor límite:', error);
-      }
-    });
+      })
+      .catch((error) => {
+        console.error('Error al obtener los valores límite:', error);
+        this.limits.forEach(limit => limit.value = null);
+        this.limitsLoaded = true;
+        if (this.dataLoaded) {
+          this.initChartIfReady();
+        }
+      });
+  }
+
+  private initChartIfReady(): void {
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded && this.filteredData.length > 0) {
+      this.initChart();
+    }
   }
 
   private formatTimeToHHMM(timeString: string | Date): string {
@@ -113,23 +156,30 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   checkApiConnection(): void {
-    this.http.get('http://localhost:3000/api/sedimentos').subscribe({
+    this.dataLoaded = false;
+    this.http.get('http://localhost:3000/api/registrozafra').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
         this.extractAvailableDates();
+        this.extractDataTypes();
         if (this.availableDates.length > 0) {
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
         }
-        if (this.isBrowser) {
-          setTimeout(() => this.initChart(), 0);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
         }
       },
       error: (error) => {
-        this.apiConnectionStatus = 'Error al conectar con la API';
+        this.apiConnectionStatus = 'Error al conectar con la API ';
         this.errorMessage = error.message;
         console.error('Error:', error);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
+        }
       }
     });
   }
@@ -137,8 +187,8 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
   private extractAvailableDates(): void {
     const uniqueDates = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.FECHA) {
-        const date = new Date(item.FECHA);
+      if (item.fecha) {
+        const date = new Date(item.fecha);
         if (!isNaN(date.getTime())) {
           const dateStr = date.toISOString().split('T')[0];
           uniqueDates.add(dateStr);
@@ -150,6 +200,16 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private extractDataTypes(): void {
+    const uniqueTypes = new Set<string>();
+    this.originalData.forEach(item => {
+      if (item.dato && item.apartado === 'Sedimentos') {
+        uniqueTypes.add(item.dato);
+      }
+    });
+    this.dataTypes = Array.from(uniqueTypes);
+  }
+
   filterDataByDate(): void {
     if (!this.selectedDate) {
       this.filteredData = [...this.originalData];
@@ -157,8 +217,8 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.filteredData = this.originalData.filter(item => {
-      if (!item.FECHA) return false;
-      const itemDate = new Date(item.FECHA);
+      if (!item.fecha) return false;
+      const itemDate = new Date(item.fecha);
       if (isNaN(itemDate.getTime())) return false;
       const itemDateStr = itemDate.toISOString().split('T')[0];
       return itemDateStr === this.selectedDate;
@@ -172,7 +232,7 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.chart) {
       this.updateChartData();
-    } else if (this.isBrowser) {
+    } else if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
       this.initChart();
     }
   }
@@ -183,20 +243,21 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private preserveOriginalTimes(rawData: any[]): any[] {
-    return rawData.map(item => {
-      let horaOriginal = '';
-      if (item.HORA) {
-        horaOriginal = this.formatTimeToHHMM(item.HORA);
-      }
+    return rawData
+      .filter(item => item.apartado === 'Sedimentos')
+      .map(item => {
+        let horaOriginal = '';
+        if (item.hora) {
+          horaOriginal = this.formatTimeToHHMM(item.hora);
+        }
 
-      return {
-        ...item,
-        HORA_ORIGINAL: horaOriginal || '00:00',
-        SEDIMENTOS: item.SEDIMENTOS || null,
-        JUSTIFICACION: item.JUSTIFICACION || '',
-        F5: null
-      };
-    });
+        return {
+          ...item,
+          HORA_ORIGINAL: horaOriginal || '00:00',
+          valor: item.valor !== null ? Number(item.valor) : null,
+          justificacion: item.justificacion || ''
+        };
+      });
   }
 
   private initChart(): void {
@@ -222,55 +283,66 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const sedimentosData = this.mapDataToFixedHours('SEDIMENTOS');
+      
+      const datasets = this.dataTypes.map((type, index) => {
+        const color = this.colorPalette[index % this.colorPalette.length];
+        return {
+          label: type,
+          data: this.mapDataToFixedHours(type),
+          borderColor: color,
+          backgroundColor: color.replace('1)', '0.2)'),
+          borderWidth: 2,
+          tension: 0.1,
+          yAxisID: 'y'
+        };
+      });
 
-      const limitLine: LimitLineAnnotation = {
-        type: 'line',
-        yMin: this.limitValue,
-        yMax: this.limitValue,
-        borderColor: 'rgb(255, 0, 0)',
-        borderWidth: 2,
-        borderDash: [6, 6],
-        label: {
-          content: `Límite: ${this.limitValue}`,
-          enabled: true,
-          position: 'end',
-          backgroundColor: 'rgba(255,255,255,0.8)'
+      const annotations: ChartAnnotations = {};
+      
+      this.limits.forEach(limit => {
+        if (limit.value !== null) {
+          annotations[`${limit.name}LimitLine`] = {
+            type: 'line',
+            yMin: limit.value,
+            yMax: limit.value,
+            borderColor: limit.color,
+            borderWidth: 2,
+            borderDash: [6, 6],
+            label: {
+              content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'rgba(255,255,255,0.8)'
+            },
+            yAxisID: limit.axis
+          };
         }
-      };
-
-      const componentLimitValue = this.limitValue;
+      });
 
       this.chart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
-          datasets: [
-            {
-              label: 'Sedimentos',
-              data: sedimentosData,
-              backgroundColor: 'rgba(54, 162, 235, 0.7)',
-              borderColor: 'rgba(54, 162, 235, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            }
-          ]
+          datasets: datasets
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
             y: {
-              beginAtZero: false,
+              type: 'linear',
+              display: true,
+              position: 'left',
               title: {
                 display: true,
-                text: 'Nivel de Sedimentos'
-              }
+                text: 'Molienda'
+              },
+              min: 0
             },
             x: {
               title: {
                 display: true,
-                text: 'Hora del día'
+                text: 'Hora del turno'
               },
               ticks: {
                 autoSkip: false,
@@ -289,15 +361,17 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
                 },
                 afterLabel: (context: any) => {
                   const hour = labels[context.dataIndex];
-                  const dataItem = this.findDataItemByHour(hour);
+                  const dataItem = this.findDataItemByHour(hour, context.dataset.label);
                   
                   if (!dataItem) return 'No hay datos para esta hora';
+                  
+                  const justificacion = dataItem.justificacion || 'No hay justificación registrada';
                   
                   return [
                     `─────────────────────`,
                     `Hora: ${hour}`,
                     `Justificación:`,
-                    `${dataItem.JUSTIFICACION || 'No hay justificación registrada'}`
+                    `${justificacion}`
                   ];
                 }
               },
@@ -312,9 +386,7 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'top'
             },
             annotation: {
-              annotations: {
-                ['limitLine']: limitLine
-              }
+              annotations: annotations
             }
           }
         },
@@ -328,31 +400,31 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            const annotations = chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-            const limitValue = Number(annotations?.['limitLine']?.yMin ?? componentLimitValue);
-          
-            const yScale = scales['y'] as Scale;
-            const yPixel = Math.floor(yScale.getPixelForValue(limitValue));
-            
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgb(255, 0, 0)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixel);
-            ctx.lineTo(Math.floor(chartArea.right), yPixel);
-            ctx.stroke();
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillRect(
-              Math.floor(chartArea.right - 100), 
-              Math.floor(yPixel - 15), 
-              100, 
-              20
-            );
-            
-            ctx.fillStyle = 'rgb(255, 0, 0)';
-            ctx.textAlign = 'right';
-            ctx.fillText(` ${limitValue}`, Math.floor(chartArea.right - 10), yPixel);
+            this.limits.forEach(limit => {
+              if (limit.value !== null && scales[limit.axis]) {
+                const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
+                
+                ctx.beginPath();
+                ctx.strokeStyle = limit.color;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.moveTo(Math.floor(chartArea.left), yPixel);
+                ctx.lineTo(Math.floor(chartArea.right), yPixel);
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fillRect(
+                  Math.floor(chartArea.right - 150), 
+                  Math.floor(yPixel - 15), 
+                  150, 
+                  20
+                );
+                
+                ctx.fillStyle = limit.color;
+                ctx.textAlign = 'right';
+                ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
+              }
+            });
             
             ctx.restore();
           }
@@ -366,22 +438,21 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private mapDataToFixedHours(dataField: string): (number | null)[] {
+  private mapDataToFixedHours(dataType: string): (number | null)[] {
     return this.fixedHours.map(hour => {
-      const dataItem = this.findDataItemByHour(hour);
-      if (!dataItem || dataItem[dataField] === null || dataItem[dataField] === undefined) {
-        return null;
-      }
-      return parseFloat(dataItem[dataField]);
+      const dataItem = this.findDataItemByHour(hour, dataType);
+      return dataItem ? dataItem.valor : null;
     });
   }
 
-  private findDataItemByHour(hour: string): any | null {
+  private findDataItemByHour(hour: string, dataType?: string): any | null {
     const targetMinutes = this.timeToMinutes(hour);
     let closestItem = null;
     let smallestDiff = Infinity;
 
     for (const item of this.filteredData) {
+      if (dataType && item.dato !== dataType) continue;
+      
       const itemMinutes = this.timeToMinutes(item.HORA_ORIGINAL);
       const diff = Math.abs(itemMinutes - targetMinutes);
       
@@ -397,16 +468,43 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToFixedHours('SEDIMENTOS');
-  
-    const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-    if (annotations?.['limitLine']) {
-      annotations['limitLine'].yMin = this.limitValue;
-      annotations['limitLine'].yMax = this.limitValue;
-      
-      if (annotations['limitLine'].label) {
-        annotations['limitLine'].label.content = `Límite: ${this.limitValue}`;
+    this.chart.data.datasets = this.dataTypes.map((type, index) => {
+      const color = this.colorPalette[index % this.colorPalette.length];
+      return {
+        label: type,
+        data: this.mapDataToFixedHours(type),
+        borderColor: color,
+        backgroundColor: color.replace('1)', '0.2)'),
+        borderWidth: 2,
+        tension: 0.1,
+        yAxisID: 'y'
+      };
+    });
+
+    const annotations: ChartAnnotations = {};
+    
+    this.limits.forEach(limit => {
+      if (limit.value !== null) {
+        annotations[`${limit.name}LimitLine`] = {
+          type: 'line',
+          yMin: limit.value,
+          yMax: limit.value,
+          borderColor: limit.color,
+          borderWidth: 2,
+          borderDash: [6, 6],
+          label: {
+            content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+            enabled: true,
+            position: 'end',
+            backgroundColor: 'rgba(255,255,255,0.8)'
+          },
+          yAxisID: limit.axis
+        };
       }
+    });
+
+    if (this.chart.options?.plugins?.annotation) {
+      this.chart.options.plugins.annotation.annotations = annotations;
     }
   
     this.chart.update();
@@ -417,5 +515,13 @@ export class SedimentosComponent implements OnInit, AfterViewInit, OnDestroy {
       this.chart.destroy();
       this.chart = null;
     }
+  }
+
+  refreshData(): void {
+    this.apiConnectionStatus = 'Verificando conexión...';
+    this.errorMessage = '';
+    this.dataLoaded = false;
+    this.limitsLoaded = false;
+    this.loadInitialData();
   }
 }

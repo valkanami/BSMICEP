@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Chart, registerables, Scale } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -20,9 +20,16 @@ interface LimitLineAnnotation {
 }
 
 interface ChartAnnotations {
-  ['limitLineClarificado']?: LimitLineAnnotation;
-  ['limitLineMeladura']?: LimitLineAnnotation;
   [key: string]: any;
+}
+
+interface Limit {
+  id: number;
+  name: string;
+  value: number | null;
+  color: string;
+  axis: string;
+  unit: string;
 }
 
 @Component({
@@ -42,8 +49,11 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public limitValueClarificado: number = 50; 
-  public limitValueMeladura: number = 50; 
+  public dataTypes: string[] = ['Clarificado', 'Meladura']; 
+  public limits: Limit[] = [
+    { id: 13, name: 'Clarificado', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 14, name: 'Meladura', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
+  ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
@@ -51,6 +61,15 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
     '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
     '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
+  ];
+
+  private colorPalette = [
+    'rgba(255, 99, 132, 0.7)', 
+    'rgba(54, 162, 235, 0.7)',     
+    'rgba(75, 192, 192, 0.7)',
+    'rgb(86, 255, 213)',     
+    'rgba(153, 102, 255, 1)',
+    'rgba(255, 159, 64, 1)'
   ];
 
   constructor(
@@ -87,25 +106,15 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
   private loadLimitValues(): void {
     this.limitsLoaded = false;
     
-    
-    const clarificadoRequest = this.http.get('http://localhost:3000/api/limites/13').toPromise();
-    
-    
-    const meladuraRequest = this.http.get('http://localhost:3000/api/limites/14').toPromise();
+    const limitRequests = this.limits.map(limit => 
+      this.http.get(`http://localhost:3000/api/limites/${limit.id}`).toPromise()
+    );
 
-    Promise.all([clarificadoRequest, meladuraRequest])
-      .then(([clarificadoResponse, meladuraResponse]: [any, any]) => {
-        if (clarificadoResponse && clarificadoResponse.LIMITE !== undefined) {
-          this.limitValueClarificado = clarificadoResponse.LIMITE;
-        } else {
-          console.warn('No se encontró LIMITE para clarificado, usando valor por defecto');
-        }
-        
-        if (meladuraResponse && meladuraResponse.LIMITE !== undefined) {
-          this.limitValueMeladura = meladuraResponse.LIMITE;
-        } else {
-          console.warn('No se encontró LIMITE para meladura, usando valor por defecto');
-        }
+    Promise.all(limitRequests)
+      .then((responses: any[]) => {
+        responses.forEach((response, index) => {
+          this.limits[index].value = response?.LIMITE ?? null;
+        });
         
         this.limitsLoaded = true;
         if (this.dataLoaded) {
@@ -114,6 +123,7 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
       })
       .catch((error) => {
         console.error('Error al obtener los valores límite:', error);
+        this.limits.forEach(limit => limit.value = null);
         this.limitsLoaded = true;
         if (this.dataLoaded) {
           this.initChartIfReady();
@@ -147,11 +157,12 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
 
   checkApiConnection(): void {
     this.dataLoaded = false;
-    this.http.get('http://localhost:3000/api/reductores4h').subscribe({
+    this.http.get('http://localhost:3000/api/registrozafra').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
         this.extractAvailableDates();
+        
         if (this.availableDates.length > 0) {
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
@@ -162,7 +173,7 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
         }
       },
       error: (error) => {
-        this.apiConnectionStatus = 'Error al conectar con la API';
+        this.apiConnectionStatus = 'Error al conectar con la API ';
         this.errorMessage = error.message;
         console.error('Error:', error);
         this.dataLoaded = true;
@@ -176,8 +187,8 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
   private extractAvailableDates(): void {
     const uniqueDates = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.FECHA) {
-        const date = new Date(item.FECHA);
+      if (item.fecha) {
+        const date = new Date(item.fecha);
         if (!isNaN(date.getTime())) {
           const dateStr = date.toISOString().split('T')[0];
           uniqueDates.add(dateStr);
@@ -195,12 +206,14 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
       return;
     }
 
+    
     this.filteredData = this.originalData.filter(item => {
-      if (!item.FECHA) return false;
-      const itemDate = new Date(item.FECHA);
+      if (!item.fecha) return false;
+      const itemDate = new Date(item.fecha);
       if (isNaN(itemDate.getTime())) return false;
       const itemDateStr = itemDate.toISOString().split('T')[0];
-      return itemDateStr === this.selectedDate;
+      return itemDateStr === this.selectedDate && 
+             (item.dato === 'Clarificado' || item.dato === 'Meladura');
     });
 
     this.filteredData.sort((a, b) => {
@@ -222,21 +235,22 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
   }
 
   private preserveOriginalTimes(rawData: any[]): any[] {
-    return rawData.map(item => {
-      let horaOriginal = '';
-      if (item.HORA) {
-        horaOriginal = this.formatTimeToHHMM(item.HORA);
-      }
+    return rawData
+      .filter(item => item.apartado === 'Reductores' && 
+             (item.dato === 'Clarificado' || item.dato === 'Meladura')) 
+      .map(item => {
+        let horaOriginal = '';
+        if (item.hora) {
+          horaOriginal = this.formatTimeToHHMM(item.hora);
+        }
 
-      return {
-        ...item,
-        HORA_ORIGINAL: horaOriginal || '00:00',
-        CLARIFICADO: item.CLARIFICADO || null,
-        MELADURA: item.MELADURA || null,
-        JUSTIFICACION_CLARIFICADO: item.JUSTIFICACION_CLARIFICADO || '',
-        JUSTIFICACION_MELADURA: item.JUSTIFICACION_MELADURA || ''
-      };
-    });
+        return {
+          ...item,
+          HORA_ORIGINAL: horaOriginal || '00:00',
+          valor: item.valor !== null ? Number(item.valor) : null,
+          justificacion: item.justificacion || ''
+        };
+      });
   }
 
   private initChart(): void {
@@ -262,75 +276,61 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const clarificadoData = this.mapDataToFixedHours('CLARIFICADO');
-      const meladuraData = this.mapDataToFixedHours('MELADURA');
+      
+      const datasets = this.dataTypes.map((type, index) => {
+        const color = this.colorPalette[index % this.colorPalette.length];
+        return {
+          label: type,
+          data: this.mapDataToFixedHours(type),
+          borderColor: color,
+          backgroundColor: color.replace('1)', '0.2)'),
+          borderWidth: 2,
+          tension: 0.1,
+          yAxisID: 'y'
+        };
+      });
 
-      const limitLineClarificado: LimitLineAnnotation = {
-        type: 'line',
-        yMin: this.limitValueClarificado,
-        yMax: this.limitValueClarificado,
-        borderColor: 'rgb(255, 0, 0)',
-        borderWidth: 2,
-        borderDash: [6, 6],
-        label: {
-          content: `Límite Clarificado: ${this.limitValueClarificado}`,
-          enabled: true,
-          position: 'end',
-          backgroundColor: 'rgba(255,255,255,0.8)'
+      const annotations: ChartAnnotations = {};
+      
+      this.limits.forEach(limit => {
+        if (limit.value !== null) {
+          annotations[`${limit.name}LimitLine`] = {
+            type: 'line',
+            yMin: limit.value,
+            yMax: limit.value,
+            borderColor: limit.color,
+            borderWidth: 2,
+            borderDash: [6, 6],
+            label: {
+              content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'rgba(255,255,255,0.8)'
+            },
+            yAxisID: limit.axis
+          };
         }
-      };
-
-      const limitLineMeladura: LimitLineAnnotation = {
-        type: 'line',
-        yMin: this.limitValueMeladura,
-        yMax: this.limitValueMeladura,
-        borderColor: 'rgb(255, 165, 0)',
-        borderWidth: 2,
-        borderDash: [6, 6],
-        label: {
-          content: `Límite Meladura: ${this.limitValueMeladura}`,
-          enabled: true,
-          position: 'end',
-          backgroundColor: 'rgba(255,255,255,0.8)'
-        }
-      };
-
-      const componentLimitValueClarificado = this.limitValueClarificado;
-      const componentLimitValueMeladura = this.limitValueMeladura;
+      });
 
       this.chart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
-          datasets: [
-            {
-              label: 'Clarificado',
-              data: clarificadoData,
-              backgroundColor: 'rgba(54, 162, 235, 0.7)',
-              borderColor: 'rgba(54, 162, 235, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            },
-            {
-              label: 'Meladura',
-              data: meladuraData,
-              backgroundColor: 'rgba(75, 192, 192, 0.7)',
-              borderColor: 'rgba(75, 192, 192, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            }
-          ]
+          datasets: datasets
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
             y: {
-              beginAtZero: false,
+              type: 'linear',
+              display: true,
+              position: 'left',
               title: {
                 display: true,
-                text: 'Porcentaje de Reducción'
-              }
+                text: 'Reductores'
+              },
+              min: 0
             },
             x: {
               title: {
@@ -350,23 +350,21 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
                 label: (context: any) => {
                   const label = context.dataset.label || '';
                   const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/D';
-                  return `${label}: ${value}%`;
+                  return `${label}: ${value}`;
                 },
                 afterLabel: (context: any) => {
                   const hour = labels[context.dataIndex];
-                  const dataItem = this.findDataItemByHour(hour);
+                  const dataItem = this.findDataItemByHour(hour, context.dataset.label);
                   
                   if (!dataItem) return 'No hay datos para esta hora';
                   
-                  const justificationField = context.dataset.label === 'Clarificado' 
-                    ? 'JUSTIFICACION_CLARIFICADO' 
-                    : 'JUSTIFICACION_MELADURA';
+                  const justificacion = dataItem.justificacion || 'No hay justificación registrada';
                   
                   return [
                     `─────────────────────`,
                     `Hora: ${hour}`,
                     `Justificación:`,
-                    `${dataItem[justificationField] || 'No hay justificación registrada'}`
+                    `${justificacion}`
                   ];
                 }
               },
@@ -381,10 +379,7 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
               position: 'top'
             },
             annotation: {
-              annotations: {
-                ['limitLineClarificado']: limitLineClarificado,
-                ['limitLineMeladura']: limitLineMeladura
-              }
+              annotations: annotations
             }
           }
         },
@@ -398,49 +393,31 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            
-            const yPixelClarificado = Math.floor(scales['y'].getPixelForValue(componentLimitValueClarificado));
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgb(255, 0, 0)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixelClarificado);
-            ctx.lineTo(Math.floor(chartArea.right), yPixelClarificado);
-            ctx.stroke();
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillRect(
-              Math.floor(chartArea.right - 120), 
-              Math.floor(yPixelClarificado - 15), 
-              120, 
-              20
-            );
-            
-            ctx.fillStyle = 'rgb(255, 0, 0)';
-            ctx.textAlign = 'right';
-            ctx.fillText(`Clarificado: ${componentLimitValueClarificado}`, Math.floor(chartArea.right - 10), yPixelClarificado);
-            
-            
-            const yPixelMeladura = Math.floor(scales['y'].getPixelForValue(componentLimitValueMeladura));
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgb(255, 165, 0)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixelMeladura);
-            ctx.lineTo(Math.floor(chartArea.right), yPixelMeladura);
-            ctx.stroke();
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillRect(
-              Math.floor(chartArea.right - 120), 
-              Math.floor(yPixelMeladura - 15), 
-              120, 
-              20
-            );
-            
-            ctx.fillStyle = 'rgb(255, 165, 0)';
-            ctx.textAlign = 'right';
-            ctx.fillText(`Meladura: ${componentLimitValueMeladura}`, Math.floor(chartArea.right - 10), yPixelMeladura);
+            this.limits.forEach(limit => {
+              if (limit.value !== null && scales[limit.axis]) {
+                const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
+                
+                ctx.beginPath();
+                ctx.strokeStyle = limit.color;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.moveTo(Math.floor(chartArea.left), yPixel);
+                ctx.lineTo(Math.floor(chartArea.right), yPixel);
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fillRect(
+                  Math.floor(chartArea.right - 150), 
+                  Math.floor(yPixel - 15), 
+                  150, 
+                  20
+                );
+                
+                ctx.fillStyle = limit.color;
+                ctx.textAlign = 'right';
+                ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
+              }
+            });
             
             ctx.restore();
           }
@@ -454,22 +431,21 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
     }
   }
 
-  private mapDataToFixedHours(dataField: string): (number | null)[] {
+  private mapDataToFixedHours(dataType: string): (number | null)[] {
     return this.fixedHours.map(hour => {
-      const dataItem = this.findDataItemByHour(hour);
-      if (!dataItem || dataItem[dataField] === null || dataItem[dataField] === undefined) {
-        return null;
-      }
-      return parseFloat(dataItem[dataField]);
+      const dataItem = this.findDataItemByHour(hour, dataType);
+      return dataItem ? dataItem.valor : null;
     });
   }
 
-  private findDataItemByHour(hour: string): any | null {
+  private findDataItemByHour(hour: string, dataType?: string): any | null {
     const targetMinutes = this.timeToMinutes(hour);
     let closestItem = null;
     let smallestDiff = Infinity;
 
     for (const item of this.filteredData) {
+      if (dataType && item.dato !== dataType) continue;
+      
       const itemMinutes = this.timeToMinutes(item.HORA_ORIGINAL);
       const diff = Math.abs(itemMinutes - targetMinutes);
       
@@ -485,26 +461,43 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToFixedHours('CLARIFICADO');
-    this.chart.data.datasets[1].data = this.mapDataToFixedHours('MELADURA');
-  
-    const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-    if (annotations?.['limitLineClarificado']) {
-      annotations['limitLineClarificado'].yMin = this.limitValueClarificado;
-      annotations['limitLineClarificado'].yMax = this.limitValueClarificado;
-      
-      if (annotations['limitLineClarificado'].label) {
-        annotations['limitLineClarificado'].label.content = `Límite Clarificado: ${this.limitValueClarificado}`;
-      }
-    }
+    this.chart.data.datasets = this.dataTypes.map((type, index) => {
+      const color = this.colorPalette[index % this.colorPalette.length];
+      return {
+        label: type,
+        data: this.mapDataToFixedHours(type),
+        borderColor: color,
+        backgroundColor: color.replace('1)', '0.2)'),
+        borderWidth: 2,
+        tension: 0.1,
+        yAxisID: 'y'
+      };
+    });
+
+    const annotations: ChartAnnotations = {};
     
-    if (annotations?.['limitLineMeladura']) {
-      annotations['limitLineMeladura'].yMin = this.limitValueMeladura;
-      annotations['limitLineMeladura'].yMax = this.limitValueMeladura;
-      
-      if (annotations['limitLineMeladura'].label) {
-        annotations['limitLineMeladura'].label.content = `Límite Meladura: ${this.limitValueMeladura}`;
+    this.limits.forEach(limit => {
+      if (limit.value !== null) {
+        annotations[`${limit.name}LimitLine`] = {
+          type: 'line',
+          yMin: limit.value,
+          yMax: limit.value,
+          borderColor: limit.color,
+          borderWidth: 2,
+          borderDash: [6, 6],
+          label: {
+            content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+            enabled: true,
+            position: 'end',
+            backgroundColor: 'rgba(255,255,255,0.8)'
+          },
+          yAxisID: limit.axis
+        };
       }
+    });
+
+    if (this.chart.options?.plugins?.annotation) {
+      this.chart.options.plugins.annotation.annotations = annotations;
     }
   
     this.chart.update();

@@ -1,6 +1,7 @@
+
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Chart, registerables, Scale } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -20,8 +21,16 @@ interface LimitLineAnnotation {
 }
 
 interface ChartAnnotations {
-  ['limitLinePureza']?: LimitLineAnnotation;
   [key: string]: any;
+}
+
+interface Limit {
+  id: number;
+  name: string;
+  value: number | null;
+  color: string;
+  axis: string;
+  unit: string;
 }
 
 @Component({
@@ -41,7 +50,10 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public limitValuePureza: number = 85; 
+  public dataTypes: string[] = [];
+  public limits: Limit[] = [
+    { id: 16, name: 'Pureza', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+  ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
@@ -49,6 +61,15 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
     '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
     '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
+  ];
+
+  private colorPalette = [
+    'rgba(255, 99, 132, 0.7)', 
+    'rgba(54, 162, 235, 0.7)',     
+    'rgba(75, 192, 192, 0.7)',
+    'rgb(86, 255, 213)',     
+    'rgba(153, 102, 255, 1)',
+    'rgba(255, 159, 64, 1)'
   ];
 
   constructor(
@@ -85,26 +106,29 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
   private loadLimitValues(): void {
     this.limitsLoaded = false;
     
-    this.http.get('http://localhost:3000/api/limites/16').subscribe({
-      next: (response: any) => {
-        if (response && response.LIMITE !== undefined) {
-          this.limitValuePureza = response.LIMITE;
-        } else {
-          console.warn('No se encontró LIMITE para pureza miel, usando valor por defecto');
-        }
+    const limitRequests = this.limits.map(limit => 
+      this.http.get(`http://localhost:3000/api/limites/${limit.id}`).toPromise()
+    );
+
+    Promise.all(limitRequests)
+      .then((responses: any[]) => {
+        responses.forEach((response, index) => {
+          this.limits[index].value = response?.LIMITE ?? null;
+        });
+        
         this.limitsLoaded = true;
         if (this.dataLoaded) {
           this.initChartIfReady();
         }
-      },
-      error: (error) => {
-        console.error('Error al obtener el valor límite:', error);
+      })
+      .catch((error) => {
+        console.error('Error al obtener los valores límite:', error);
+        this.limits.forEach(limit => limit.value = null);
         this.limitsLoaded = true;
         if (this.dataLoaded) {
           this.initChartIfReady();
         }
-      }
-    });
+      });
   }
 
   private initChartIfReady(): void {
@@ -133,11 +157,12 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
 
   checkApiConnection(): void {
     this.dataLoaded = false;
-    this.http.get('http://localhost:3000/api/purezamiel').subscribe({
+    this.http.get('http://localhost:3000/api/registrozafra').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
         this.extractAvailableDates();
+        this.extractDataTypes();
         if (this.availableDates.length > 0) {
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
@@ -148,7 +173,7 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
         }
       },
       error: (error) => {
-        this.apiConnectionStatus = 'Error al conectar con la API';
+        this.apiConnectionStatus = 'Error al conectar con la API ';
         this.errorMessage = error.message;
         console.error('Error:', error);
         this.dataLoaded = true;
@@ -162,8 +187,8 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
   private extractAvailableDates(): void {
     const uniqueDates = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.FECHA) {
-        const date = new Date(item.FECHA);
+      if (item.fecha) {
+        const date = new Date(item.fecha);
         if (!isNaN(date.getTime())) {
           const dateStr = date.toISOString().split('T')[0];
           uniqueDates.add(dateStr);
@@ -175,6 +200,16 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
     });
   }
 
+  private extractDataTypes(): void {
+    const uniqueTypes = new Set<string>();
+    this.originalData.forEach(item => {
+      if (item.dato && item.apartado === 'Pureza Miel Final') {
+        uniqueTypes.add(item.dato);
+      }
+    });
+    this.dataTypes = Array.from(uniqueTypes);
+  }
+
   filterDataByDate(): void {
     if (!this.selectedDate) {
       this.filteredData = [...this.originalData];
@@ -182,8 +217,8 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
     }
 
     this.filteredData = this.originalData.filter(item => {
-      if (!item.FECHA) return false;
-      const itemDate = new Date(item.FECHA);
+      if (!item.fecha) return false;
+      const itemDate = new Date(item.fecha);
       if (isNaN(itemDate.getTime())) return false;
       const itemDateStr = itemDate.toISOString().split('T')[0];
       return itemDateStr === this.selectedDate;
@@ -208,19 +243,21 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   private preserveOriginalTimes(rawData: any[]): any[] {
-    return rawData.map(item => {
-      let horaOriginal = '';
-      if (item.HORA) {
-        horaOriginal = this.formatTimeToHHMM(item.HORA);
-      }
+    return rawData
+      .filter(item => item.apartado === 'Pureza Miel Final')
+      .map(item => {
+        let horaOriginal = '';
+        if (item.hora) {
+          horaOriginal = this.formatTimeToHHMM(item.hora);
+        }
 
-      return {
-        ...item,
-        HORA_ORIGINAL: horaOriginal || '00:00',
-        PUREZA_MIEL_FINAL: item.PUREZA_MIEL_FINAL || null,
-        JUSTIFICACION: item.JUSTIFICACION || ''
-      };
-    });
+        return {
+          ...item,
+          HORA_ORIGINAL: horaOriginal || '00:00',
+          valor: item.valor !== null ? Number(item.valor) : null,
+          justificacion: item.justificacion || ''
+        };
+      });
   }
 
   private initChart(): void {
@@ -246,50 +283,61 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      const purezaData = this.mapDataToFixedHours('PUREZA_MIEL_FINAL');
+      
+      const datasets = this.dataTypes.map((type, index) => {
+        const color = this.colorPalette[index % this.colorPalette.length];
+        return {
+          label: type,
+          data: this.mapDataToFixedHours(type),
+          borderColor: color,
+          backgroundColor: color.replace('1)', '0.2)'),
+          borderWidth: 2,
+          tension: 0.1,
+          yAxisID: 'y'
+        };
+      });
 
-      const limitLinePureza: LimitLineAnnotation = {
-        type: 'line',
-        yMin: this.limitValuePureza,
-        yMax: this.limitValuePureza,
-        borderColor: 'rgb(255, 0, 0)',
-        borderWidth: 2,
-        borderDash: [6, 6],
-        label: {
-          content: `Límite Pureza: ${this.limitValuePureza}`,
-          enabled: true,
-          position: 'end',
-          backgroundColor: 'rgba(255,255,255,0.8)'
+      const annotations: ChartAnnotations = {};
+      
+      this.limits.forEach(limit => {
+        if (limit.value !== null) {
+          annotations[`${limit.name}LimitLine`] = {
+            type: 'line',
+            yMin: limit.value,
+            yMax: limit.value,
+            borderColor: limit.color,
+            borderWidth: 2,
+            borderDash: [6, 6],
+            label: {
+              content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'rgba(255,255,255,0.8)'
+            },
+            yAxisID: limit.axis
+          };
         }
-      };
-
-      const componentLimitValuePureza = this.limitValuePureza;
+      });
 
       this.chart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
-          datasets: [
-            {
-              label: 'Pureza Miel Final',
-              data: purezaData,
-              backgroundColor: 'rgba(54, 162, 235, 0.7)',
-              borderColor: 'rgba(54, 162, 235, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            }
-          ]
+          datasets: datasets
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
             y: {
-              beginAtZero: false,
+              type: 'linear',
+              display: true,
+              position: 'left',
               title: {
                 display: true,
-                text: 'Pureza (%)'
-              }
+                text: 'Molienda'
+              },
+              min: 0
             },
             x: {
               title: {
@@ -309,19 +357,21 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
                 label: (context: any) => {
                   const label = context.dataset.label || '';
                   const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/D';
-                  return `${label}: ${value}%`;
+                  return `${label}: ${value}`;
                 },
                 afterLabel: (context: any) => {
                   const hour = labels[context.dataIndex];
-                  const dataItem = this.findDataItemByHour(hour);
+                  const dataItem = this.findDataItemByHour(hour, context.dataset.label);
                   
                   if (!dataItem) return 'No hay datos para esta hora';
+                  
+                  const justificacion = dataItem.justificacion || 'No hay justificación registrada';
                   
                   return [
                     `─────────────────────`,
                     `Hora: ${hour}`,
                     `Justificación:`,
-                    `${dataItem.JUSTIFICACION || 'No hay justificación registrada'}`
+                    `${justificacion}`
                   ];
                 }
               },
@@ -336,9 +386,7 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
               position: 'top'
             },
             annotation: {
-              annotations: {
-                ['limitLinePureza']: limitLinePureza
-              }
+              annotations: annotations
             }
           }
         },
@@ -352,26 +400,31 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            const yPixelPureza = Math.floor(scales['y'].getPixelForValue(componentLimitValuePureza));
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgb(255, 0, 0)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-            ctx.moveTo(Math.floor(chartArea.left), yPixelPureza);
-            ctx.lineTo(Math.floor(chartArea.right), yPixelPureza);
-            ctx.stroke();
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillRect(
-              Math.floor(chartArea.right - 120), 
-              Math.floor(yPixelPureza - 15), 
-              120, 
-              20
-            );
-            
-            ctx.fillStyle = 'rgb(255, 0, 0)';
-            ctx.textAlign = 'right';
-            ctx.fillText(`Límite: ${componentLimitValuePureza}`, Math.floor(chartArea.right - 10), yPixelPureza);
+            this.limits.forEach(limit => {
+              if (limit.value !== null && scales[limit.axis]) {
+                const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
+                
+                ctx.beginPath();
+                ctx.strokeStyle = limit.color;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.moveTo(Math.floor(chartArea.left), yPixel);
+                ctx.lineTo(Math.floor(chartArea.right), yPixel);
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fillRect(
+                  Math.floor(chartArea.right - 150), 
+                  Math.floor(yPixel - 15), 
+                  150, 
+                  20
+                );
+                
+                ctx.fillStyle = limit.color;
+                ctx.textAlign = 'right';
+                ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
+              }
+            });
             
             ctx.restore();
           }
@@ -385,22 +438,21 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
     }
   }
 
-  private mapDataToFixedHours(dataField: string): (number | null)[] {
+  private mapDataToFixedHours(dataType: string): (number | null)[] {
     return this.fixedHours.map(hour => {
-      const dataItem = this.findDataItemByHour(hour);
-      if (!dataItem || dataItem[dataField] === null || dataItem[dataField] === undefined) {
-        return null;
-      }
-      return parseFloat(dataItem[dataField]);
+      const dataItem = this.findDataItemByHour(hour, dataType);
+      return dataItem ? dataItem.valor : null;
     });
   }
 
-  private findDataItemByHour(hour: string): any | null {
+  private findDataItemByHour(hour: string, dataType?: string): any | null {
     const targetMinutes = this.timeToMinutes(hour);
     let closestItem = null;
     let smallestDiff = Infinity;
 
     for (const item of this.filteredData) {
+      if (dataType && item.dato !== dataType) continue;
+      
       const itemMinutes = this.timeToMinutes(item.HORA_ORIGINAL);
       const diff = Math.abs(itemMinutes - targetMinutes);
       
@@ -416,16 +468,43 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToFixedHours('PUREZA_MIEL_FINAL');
-  
-    const annotations = this.chart.options?.plugins?.annotation?.annotations as ChartAnnotations | undefined;
-    if (annotations?.['limitLinePureza']) {
-      annotations['limitLinePureza'].yMin = this.limitValuePureza;
-      annotations['limitLinePureza'].yMax = this.limitValuePureza;
-      
-      if (annotations['limitLinePureza'].label) {
-        annotations['limitLinePureza'].label.content = `Límite Pureza: ${this.limitValuePureza}`;
+    this.chart.data.datasets = this.dataTypes.map((type, index) => {
+      const color = this.colorPalette[index % this.colorPalette.length];
+      return {
+        label: type,
+        data: this.mapDataToFixedHours(type),
+        borderColor: color,
+        backgroundColor: color.replace('1)', '0.2)'),
+        borderWidth: 2,
+        tension: 0.1,
+        yAxisID: 'y'
+      };
+    });
+
+    const annotations: ChartAnnotations = {};
+    
+    this.limits.forEach(limit => {
+      if (limit.value !== null) {
+        annotations[`${limit.name}LimitLine`] = {
+          type: 'line',
+          yMin: limit.value,
+          yMax: limit.value,
+          borderColor: limit.color,
+          borderWidth: 2,
+          borderDash: [6, 6],
+          label: {
+            content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+            enabled: true,
+            position: 'end',
+            backgroundColor: 'rgba(255,255,255,0.8)'
+          },
+          yAxisID: limit.axis
+        };
       }
+    });
+
+    if (this.chart.options?.plugins?.annotation) {
+      this.chart.options.plugins.annotation.annotations = annotations;
     }
   
     this.chart.update();
