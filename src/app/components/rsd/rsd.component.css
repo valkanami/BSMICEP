@@ -1,4 +1,4 @@
-/* rsd-chart.component.css */
+
 .chart-container {
   width: 100%;
   max-width: 900px;
@@ -149,7 +149,7 @@
     gap: 5px;
   }
 }
-/* Agrega esto a tu archivo rsd.component.css */
+
 
 .limit-controls {
   display: flex;

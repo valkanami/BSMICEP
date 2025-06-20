@@ -214,8 +214,8 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData.map(item => {
       let horaOriginal = '';
-      if (item.HORA) {  // Cambiado de item.TURNO a item.HORA
-        horaOriginal = this.formatTimeToHHMM(item.HORA);  // Cambiado de item.TURNO a item.HORA
+      if (item.HORA) {  
+        horaOriginal = this.formatTimeToHHMM(item.HORA);  
       }
 
       return {
@@ -390,7 +390,7 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            // Dibujar línea para PH Desmenuzado
+            
             const yPixelDesmenuzado = Math.floor(scales['y'].getPixelForValue(componentLimitValueDesmenuzado));
             ctx.beginPath();
             ctx.strokeStyle = 'rgb(255, 0, 0)';
@@ -412,7 +412,7 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
             ctx.textAlign = 'right';
             ctx.fillText(`Desmenuzado: ${componentLimitValueDesmenuzado}`, Math.floor(chartArea.right - 10), yPixelDesmenuzado);
             
-            // Dibujar línea para PH Mezclado
+            
             const yPixelMezclado = Math.floor(scales['y'].getPixelForValue(componentLimitValueMezclado));
             ctx.beginPath();
             ctx.strokeStyle = 'rgb(255, 165, 0)';

@@ -196,7 +196,7 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   filterData(): void {
-    // Primero filtramos por fecha
+   
     let filtered = [...this.originalData];
     
     if (this.selectedDate) {
@@ -209,12 +209,12 @@ export class BrixMeladuraComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     }
 
-    // Luego filtramos por apartado si no es 'Todos'
+    
     if (this.selectedApartado && this.selectedApartado !== 'Todos') {
       filtered = filtered.filter(item => item.apartado === this.selectedApartado);
     }
 
-    // Ordenamos por hora
+    
     this.filteredData = filtered.sort((a, b) => {
       const timeA = this.timeToMinutes(a.HORA_ORIGINAL);
       const timeB = this.timeToMinutes(b.HORA_ORIGINAL);

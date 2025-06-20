@@ -1,17 +1,17 @@
 <div class="container">
-  <!-- Botón para mostrar/ocultar sidebar -->
+ 
   <button class="floating-toggle-btn" (click)="toggleSidebar()">
     {{ isSidebarHidden ? '☰' : '✕' }}
   </button>
 
-  <!-- Sidebar -->
+  
   <div class="sidebar" [class.hidden]="isSidebarHidden">
     <div class="sidebar-header">
       <span class="sidebar-title">Menú</span>
     </div>
     
     <ul class="menu">
-      <!-- Menú Prueba -->
+      
       <li class="menu-item">
         <div class="menu-header" (click)="toggleMenu('prueba')">
           <span>Prueba</span>
@@ -31,7 +31,7 @@
         </ul>
       </li>
       
-      <!-- Menú Clima -->
+      
       <li class="menu-item">
         <div class="menu-header" (click)="toggleMenu('clima')">
           <span>Clima</span>

@@ -233,4 +233,4 @@ export class PhPromedioComponent implements OnInit, AfterViewInit, OnDestroy {
       this.chart = null;
     }
   }
-}
+} 

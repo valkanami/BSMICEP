@@ -87,10 +87,10 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
   private loadLimitValues(): void {
     this.limitsLoaded = false;
     
-    // Load clarificado limit (ID 13)
+    
     const clarificadoRequest = this.http.get('http://localhost:3000/api/limites/13').toPromise();
     
-    // Load meladura limit (ID 14)
+    
     const meladuraRequest = this.http.get('http://localhost:3000/api/limites/14').toPromise();
 
     Promise.all([clarificadoRequest, meladuraRequest])
@@ -398,7 +398,7 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            // Draw clarificado limit line
+            
             const yPixelClarificado = Math.floor(scales['y'].getPixelForValue(componentLimitValueClarificado));
             ctx.beginPath();
             ctx.strokeStyle = 'rgb(255, 0, 0)';
@@ -420,7 +420,7 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
             ctx.textAlign = 'right';
             ctx.fillText(`Clarificado: ${componentLimitValueClarificado}`, Math.floor(chartArea.right - 10), yPixelClarificado);
             
-            // Draw meladura limit line
+            
             const yPixelMeladura = Math.floor(scales['y'].getPixelForValue(componentLimitValueMeladura));
             ctx.beginPath();
             ctx.strokeStyle = 'rgb(255, 165, 0)';

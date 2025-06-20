@@ -1,4 +1,4 @@
-/* brix-meladura.component.css */
+
 .container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   max-width: 1200px;
@@ -107,7 +107,6 @@ button:disabled {
   background-color: #fdfdfd;
 }
 
-/* Estilos para móviles */
 @media (max-width: 768px) {
   .container {
     padding: 15px;
@@ -132,7 +131,7 @@ button:disabled {
   }
 }
 
-/* Estilos para tooltips del gráfico */
+
 .chartjs-tooltip {
   opacity: 1;
   position: absolute;
@@ -153,7 +152,7 @@ button:disabled {
   margin-right: 5px;
 }
 
-/* Animación de carga */
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }

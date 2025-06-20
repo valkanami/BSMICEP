@@ -152,8 +152,8 @@ export class PurezaJugoComponent implements OnInit, AfterViewInit, OnDestroy {
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData.map(item => {
       let horaOriginal = '';
-      if (item.HORA) {  // Cambiado de item.TURNO a item.HORA
-        horaOriginal = this.formatTimeToHHMM(item.HORA);  // Cambiado de item.TURNO a item.HORA
+      if (item.HORA) {  
+        horaOriginal = this.formatTimeToHHMM(item.HORA);  
       }
 
       return {
@@ -171,7 +171,7 @@ export class PurezaJugoComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private initChart(): void {
     if (!this.isBrowser || !this.chartCanvas?.nativeElement) return;
-
+//
     this.destroyChart();
 
     try {
@@ -248,7 +248,7 @@ export class PurezaJugoComponent implements OnInit, AfterViewInit, OnDestroy {
             x: {
               title: {
                 display: true,
-                text: 'Hora del día'  // Cambiado de "Hora del turno" a "Hora del día"
+                text: 'Hora del día'  
               },
               ticks: {
                 autoSkip: false,

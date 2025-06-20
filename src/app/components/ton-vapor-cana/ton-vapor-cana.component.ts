@@ -149,11 +149,11 @@ export class TonVaporCanaComponent implements OnInit, AfterViewInit, OnDestroy {
       this.chart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: ['', '1', '2', '3', ''], // Espacios vacíos al inicio y final
+          labels: ['', '1', '2', '3', ''], 
           datasets: [
             {
               label: 'Toneladas de Caña',
-              data: [null, ...tonCanaData, null], // Null al inicio y final
+              data: [null, ...tonCanaData, null], 
               borderColor: 'rgba(75, 192, 192, 1)',
               backgroundColor: 'rgba(75, 192, 192, 0.2)',
               borderWidth: 2,
@@ -162,7 +162,7 @@ export class TonVaporCanaComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             {
               label: 'Toneladas de Vapor por Caña',
-              data: [null, ...tonVaporCanaData, null], // Null al inicio y final
+              data: [null, ...tonVaporCanaData, null], 
               borderColor: 'rgba(153, 102, 255, 1)',
               backgroundColor: 'rgba(153, 102, 255, 0.2)',
               borderWidth: 2,

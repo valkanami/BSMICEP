@@ -361,7 +361,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            // Dibujar línea límite para desmenuzado
+            
             const yPixelDesmenuzado = Math.floor(scales['y'].getPixelForValue(componentDesmenuzadoLimitValue));
             
             ctx.beginPath();
@@ -384,7 +384,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
             ctx.textAlign = 'right';
             ctx.fillText(` Desmenuzado: ${componentDesmenuzadoLimitValue}`, Math.floor(chartArea.right - 10), yPixelDesmenuzado);
             
-            // Dibujar línea límite para mezclado
+            
             const yPixelMezclado = Math.floor(scales['y'].getPixelForValue(componentMezcladoLimitValue));
             
             ctx.beginPath();

@@ -152,11 +152,11 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.chart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: ['', '1', '2', '3', ''], // Espacios vacíos al inicio y final
+          labels: ['', '1', '2', '3', ''], 
           datasets: [
             {
               label: 'Color Azúcar A',
-              data: [null, ...colorAzucarData, null], // Null al inicio y final
+              data: [null, ...colorAzucarData, null], 
               borderColor: 'rgba(255, 99, 132, 1)',
               backgroundColor: 'rgba(255, 99, 132, 0.2)',
               borderWidth: 2,
@@ -165,7 +165,7 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             {
               label: 'LOM Color',
-              data: [null, ...lomColorData, null], // Null al inicio y final
+              data: [null, ...lomColorData, null], 
               borderColor: 'rgba(54, 162, 235, 1)',
               backgroundColor: 'rgba(54, 162, 235, 0.2)',
               borderWidth: 2,
@@ -193,8 +193,8 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
               ticks: {
                 autoSkip: false
               },
-              offset: true,       // Agregado para espacio adicional
-              bounds: 'ticks'    // Agregado para espacio adicional
+              offset: true,       
+              bounds: 'ticks'    
             }
           },
           plugins: {

@@ -299,7 +299,7 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const annotations: ChartAnnotations = {};
       
-      // Agregar anotaciones para cada límite definido
+      
       this.limits.forEach(limit => {
         if (limit.value !== null) {
           annotations[`${limit.name}LimitLine`] = {
@@ -416,7 +416,7 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
             ctx.save();
             ctx.translate(0.5, 0.5);
             
-            // Dibujar líneas de límite para cada límite definido
+            
             this.limits.forEach(limit => {
               if (limit.value !== null && scales[limit.axis]) {
                 const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));

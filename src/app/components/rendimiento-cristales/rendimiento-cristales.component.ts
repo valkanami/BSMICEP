@@ -73,9 +73,9 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = response.map(item => {
-          // Solución definitiva para el problema de fechas
+          
           const fecha = new Date(item.FECHA);
-          // Ajustar la fecha sumando el offset de la zona horaria
+          
           const offset = fecha.getTimezoneOffset() * 60000;
           const fechaAjustada = new Date(fecha.getTime() + offset);
           
@@ -309,12 +309,12 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
                   const item = this.filteredData[dataIndex];
                   let justificacion = '';
                   
-                  // Obtener la justificación correspondiente según el dataset
-                  if (datasetIndex === 0) { // Cristales A
+                  
+                  if (datasetIndex === 0) { 
                     justificacion = item.JUSTIFICACION_A || 'No hay justificación registrada';
-                  } else if (datasetIndex === 1) { // Cristales B
+                  } else if (datasetIndex === 1) { 
                     justificacion = item.JUSTIFICACION_B || 'No hay justificación registrada';
-                  } else if (datasetIndex === 2) { // Cristales C
+                  } else if (datasetIndex === 2) { 
                     justificacion = item.JUSTIFICACION_C || 'No hay justificación registrada';
                   }
                   

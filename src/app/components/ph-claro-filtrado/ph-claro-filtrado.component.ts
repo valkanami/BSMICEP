@@ -85,10 +85,10 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
   private loadLimitValues(): void {
     this.limitsLoaded = false;
     
-    // Obtener límite para PH Claro (ID 7)
+    
     const claroRequest = this.http.get('http://localhost:3000/api/limites/7').toPromise();
     
-    // Obtener límite para PH Filtrado (ID 8)
+    
     const filtradoRequest = this.http.get('http://localhost:3000/api/limites/8').toPromise();
 
     Promise.all([claroRequest, filtradoRequest])
@@ -217,8 +217,8 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData.map(item => {
       let horaOriginal = '';
-      if (item.HORA) {  // Cambiado de item.TURNO a item.HORA
-        horaOriginal = this.formatTimeToHHMM(item.HORA);  // Cambiado de item.TURNO a item.HORA
+      if (item.HORA) {  
+        horaOriginal = this.formatTimeToHHMM(item.HORA);  
       }
 
       return {
