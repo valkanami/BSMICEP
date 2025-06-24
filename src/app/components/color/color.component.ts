@@ -4,6 +4,34 @@ import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+interface LimitLineAnnotation {
+  type: 'line';
+  yMin: number;
+  yMax: number;
+  borderColor: string;
+  borderWidth: number;
+  borderDash: number[];
+  label?: {
+    content: string;
+    enabled: boolean;
+    position: 'start' | 'center' | 'end';
+    backgroundColor: string;
+  };
+}
+
+interface ChartAnnotations {
+  [key: string]: any;
+}
+
+interface Limit {
+  id: number;
+  name: string;
+  value: number | null;
+  color: string;
+  axis: string;
+  unit: string;
+}
+
 @Component({
   selector: 'app-color',
   standalone: true,
@@ -21,7 +49,29 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public categories: string[] = ['COLOR_AZUCAR_A', 'LOM_COLOR'];
+  public turnos: string[] = [];
+  public limits: Limit[] = [
+    
+  ];
+  public dataLoaded: boolean = false;
+  public limitsLoaded: boolean = false;
+  public fixedHours: string[] = [
+    '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
+    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
+    '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
+    '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
+  ];
+
+  private colorPalette = [
+    'rgba(255, 99, 132, 0.7)',
+    'rgba(54, 162, 235, 0.7)',
+    'rgba(75, 192, 192, 0.7)',
+    'rgba(153, 102, 255, 0.7)',
+    'rgba(255, 159, 64, 0.7)',
+    'rgba(86, 255, 213, 0.7)',
+    'rgba(201, 203, 207, 0.7)',
+    'rgba(255, 205, 86, 0.7)'
+  ];
 
   constructor(
     private http: HttpClient,
@@ -35,13 +85,18 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.isBrowser) {
-      this.checkApiConnection();
+      this.loadInitialData();
     }
   }
 
+  private loadInitialData(): void {
+    this.checkApiConnection();
+    this.loadLimitValues();
+  }
+
   ngAfterViewInit(): void {
-    if (this.isBrowser && this.filteredData.length > 0) {
-      this.initChart();
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
+      this.initChartIfReady();
     }
   }
 
@@ -49,39 +104,83 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroyChart();
   }
 
-  private formatDateToYYYYMMDD(dateString: string | Date): string {
-    if (typeof dateString === 'string') {
-      if (dateString.includes('T')) {
-        return dateString.split('T')[0];
-      }
-      return dateString;
-    } else if (dateString instanceof Date) {
-      return dateString.toISOString().split('T')[0];
+  private loadLimitValues(): void {
+    this.limitsLoaded = false;
+    
+    const limitRequests = this.limits.map(limit => 
+      this.http.get(`http://localhost:3000/api/limites/${limit.id}`).toPromise()
+    );
+
+    Promise.all(limitRequests)
+      .then((responses: any[]) => {
+        responses.forEach((response, index) => {
+          this.limits[index].value = response?.LIMITE ?? null;
+        });
+        
+        this.limitsLoaded = true;
+        if (this.dataLoaded) {
+          this.initChartIfReady();
+        }
+      })
+      .catch((error) => {
+        console.error('Error al obtener los valores límite:', error);
+        this.limits.forEach(limit => limit.value = null);
+        this.limitsLoaded = true;
+        if (this.dataLoaded) {
+          this.initChartIfReady();
+        }
+      });
+  }
+
+  private initChartIfReady(): void {
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded && this.filteredData.length > 0) {
+      this.initChart();
     }
-    return '';
+  }
+
+  private formatTimeToHHMM(timeString: string | Date): string {
+    if (typeof timeString === 'string') {
+      if (timeString.includes('T')) {
+        const timePart = timeString.split('T')[1].split('.')[0];
+        const [hours, minutes] = timePart.split(':');
+        return `${hours}:${minutes}`;
+      } else {
+        const parts = timeString.split(':');
+        return `${parts[0]}:${parts[1]}`;
+      }
+    } else if (timeString instanceof Date) {
+      const hours = timeString.getHours().toString().padStart(2, '0');
+      const minutes = timeString.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+    return '00:00';
   }
 
   checkApiConnection(): void {
-    this.http.get('http://localhost:3000/api/colorazucar').subscribe({
+    this.dataLoaded = false;
+    this.http.get('http://localhost:3000/api/datosturno').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
-        this.originalData = (response as any[]).map(item => ({
-          ...item,
-          LOM_COLOR: item[' LOM_COLOR '] || item['LOM_COLOR'] || item.LOM_COLOR
-        }));
+        this.originalData = this.preserveOriginalTimes(response as any[]);
         this.extractAvailableDates();
+        this.extractTurnos();
         if (this.availableDates.length > 0) {
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
         }
-        if (this.isBrowser) {
-          setTimeout(() => this.initChart(), 0);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
         }
       },
       error: (error) => {
-        this.apiConnectionStatus = 'Error al conectar con la API';
+        this.apiConnectionStatus = 'Error al conectar con la API ';
         this.errorMessage = error.message;
         console.error('Error:', error);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
+        }
       }
     });
   }
@@ -89,14 +188,27 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
   private extractAvailableDates(): void {
     const uniqueDates = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.FECHA) {
-        const dateStr = this.formatDateToYYYYMMDD(item.FECHA);
-        uniqueDates.add(dateStr);
+      if (item.fecha) {
+        const date = new Date(item.fecha);
+        if (!isNaN(date.getTime())) {
+          const dateStr = date.toISOString().split('T')[0];
+          uniqueDates.add(dateStr);
+        }
       }
     });
     this.availableDates = Array.from(uniqueDates).sort((a, b) => {
       return new Date(a).getTime() - new Date(b).getTime();
     });
+  }
+
+  private extractTurnos(): void {
+    const uniqueTurnos = new Set<string>();
+    this.originalData.forEach(item => {
+      if (item.turno && item.apartado === 'Color Azucar A') {
+        uniqueTurnos.add(item.turno);
+      }
+    });
+    this.turnos = Array.from(uniqueTurnos);
   }
 
   filterDataByDate(): void {
@@ -106,16 +218,47 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.filteredData = this.originalData.filter(item => {
-      if (!item.FECHA) return false;
-      const itemDateStr = this.formatDateToYYYYMMDD(item.FECHA);
+      if (!item.fecha) return false;
+      const itemDate = new Date(item.fecha);
+      if (isNaN(itemDate.getTime())) return false;
+      const itemDateStr = itemDate.toISOString().split('T')[0];
       return itemDateStr === this.selectedDate;
+    });
+
+    this.filteredData.sort((a, b) => {
+      const timeA = this.timeToMinutes(a.HORA_ORIGINAL);
+      const timeB = this.timeToMinutes(b.HORA_ORIGINAL);
+      return timeA - timeB;
     });
 
     if (this.chart) {
       this.updateChartData();
-    } else if (this.isBrowser) {
+    } else if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
       this.initChart();
     }
+  }
+
+  private timeToMinutes(timeStr: string): number {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  private preserveOriginalTimes(rawData: any[]): any[] {
+    return rawData
+      .filter(item => item.apartado === 'Color Azucar A')
+      .map(item => {
+        let horaOriginal = '';
+        if (item.hora) {
+          horaOriginal = this.formatTimeToHHMM(item.hora);
+        }
+
+        return {
+          ...item,
+          HORA_ORIGINAL: horaOriginal || '00:00',
+          valor: item.valor !== null ? Number(item.valor) : null,
+          justificacion: item.justificacion || ''
+        };
+      });
   }
 
   private initChart(): void {
@@ -140,73 +283,101 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
       canvas.style.height = `${rect.height}px`;
       ctx.scale(dpr, dpr);
 
-      const sortedData = [...this.filteredData].sort((a, b) => {
-        return new Date(a.FECHA).getTime() - new Date(b.FECHA).getTime();
-      });
-
-      const displayData = sortedData.slice(0, 3);
+      const labels = this.turnos;
       
-      const colorAzucarData = displayData.map(item => item.COLOR_AZUCAR_A ? parseFloat(item.COLOR_AZUCAR_A) : null);
-      const lomColorData = displayData.map(item => item.LOM_COLOR ? parseFloat(item.LOM_COLOR) : null);
+      const datasets = [{
+        data: this.turnos.map(turno => {
+          const dataItem = this.filteredData.find(item => item.turno === turno);
+          return dataItem ? dataItem.valor : null;
+        }),
+        borderColor: this.turnos.map((_, index) => this.colorPalette[index % this.colorPalette.length]),
+        backgroundColor: this.turnos.map((_, index) => {
+          const color = this.colorPalette[index % this.colorPalette.length];
+          return color.replace('0.7)', '0.5)').replace('1)', '0.5)');
+        }),
+        borderWidth: 2,
+        yAxisID: 'y'
+      }];
+
+      const annotations: ChartAnnotations = {};
+      
+      this.limits.forEach(limit => {
+        if (limit.value !== null) {
+          annotations[`${limit.name}LimitLine`] = {
+            type: 'line',
+            yMin: limit.value,
+            yMax: limit.value,
+            borderColor: limit.color,
+            borderWidth: 2,
+            borderDash: [6, 6],
+            label: {
+              content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'rgba(255,255,255,0.8)'
+            },
+            yAxisID: limit.axis
+          };
+        }
+      });
 
       this.chart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: ['', '1', '2', '3', ''], 
-          datasets: [
-            {
-              label: 'Color Azúcar A',
-              data: [null, ...colorAzucarData, null], 
-              borderColor: 'rgba(255, 99, 132, 1)',
-              backgroundColor: 'rgba(255, 99, 132, 0.2)',
-              borderWidth: 2,
-              tension: 0.1,
-              fill: false
-            },
-            {
-              label: 'LOM Color',
-              data: [null, ...lomColorData, null], 
-              borderColor: 'rgba(54, 162, 235, 1)',
-              backgroundColor: 'rgba(54, 162, 235, 0.2)',
-              borderWidth: 2,
-              tension: 0.1,
-              fill: false
-            }
-          ]
+          labels: labels,
+          datasets: datasets
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
             y: {
-              beginAtZero: false,
+              type: 'linear',
+              display: true,
+              position: 'left',
               title: {
                 display: true,
-                text: 'Valor de Color'
-              }
+                text: 'Molienda'
+              },
+              min: 0
             },
             x: {
               title: {
                 display: true,
-                text: 'Muestras'
+                text: 'Turnos'
               },
               ticks: {
-                autoSkip: false
-              },
-              offset: true,       
-              bounds: 'ticks'    
+                autoSkip: false,
+                maxRotation: 45,
+                minRotation: 45
+              }
             }
           },
           plugins: {
             tooltip: {
               callbacks: {
                 label: (context: any) => {
-                  const label = context.dataset.label || '';
                   const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/D';
-                  return `${label}: ${value}`;
+                  return `Valor: ${value}`;
+                },
+                afterLabel: (context: any) => {
+                  const turno = labels[context.dataIndex];
+                  const dataItem = this.filteredData.find(item => item.turno === turno);
+                  
+                  if (!dataItem) return 'No hay datos para este turno';
+                  
+                  const hora = dataItem.HORA_ORIGINAL || 'Hora desconocida';
+                  const justificacion = dataItem.justificacion || 'No hay justificación registrada';
+                  
+                  return [
+                    `─────────────────────`,
+                    `Hora: ${hora}`,
+                    `Justificación:`,
+                    `${justificacion}`
+                  ];
                 }
               },
-              displayColors: true,
+              displayColors: false,
               backgroundColor: 'rgba(0, 0, 0, 0.8)',
               titleFont: { size: 14, weight: 'bold' },
               bodyFont: { size: 12 },
@@ -214,14 +385,52 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
               bodySpacing: 4
             },
             legend: {
-              position: 'top',
-              labels: {
-                boxWidth: 12,
-                padding: 20
-              }
+              display: false
+            },
+            annotation: {
+              annotations: annotations
             }
           }
-        }
+        },
+        plugins: [{
+          id: 'limitLine',
+          beforeDraw: (chart: any) => {
+            const {ctx, chartArea, scales} = chart;
+            
+            if (!ctx || !chartArea || !scales?.['y']) return;
+            
+            ctx.save();
+            ctx.translate(0.5, 0.5);
+            
+            this.limits.forEach(limit => {
+              if (limit.value !== null && scales[limit.axis]) {
+                const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
+                
+                ctx.beginPath();
+                ctx.strokeStyle = limit.color;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.moveTo(Math.floor(chartArea.left), yPixel);
+                ctx.lineTo(Math.floor(chartArea.right), yPixel);
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fillRect(
+                  Math.floor(chartArea.right - 150), 
+                  Math.floor(yPixel - 15), 
+                  150, 
+                  20
+                );
+                
+                ctx.fillStyle = limit.color;
+                ctx.textAlign = 'right';
+                ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
+              }
+            });
+            
+            ctx.restore();
+          }
+        }]
       });
 
     } catch (error) {
@@ -232,21 +441,49 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public updateChartData(): void {
-    if (!this.chart || this.filteredData.length === 0) return;
+    if (!this.chart) return;
   
-    const sortedData = [...this.filteredData].sort((a, b) => {
-      return new Date(a.FECHA).getTime() - new Date(b.FECHA).getTime();
+    this.chart.data.labels = this.turnos;
+    this.chart.data.datasets = [{
+      data: this.turnos.map(turno => {
+        const dataItem = this.filteredData.find(item => item.turno === turno);
+        return dataItem ? dataItem.valor : null;
+      }),
+      borderColor: this.turnos.map((_, index) => this.colorPalette[index % this.colorPalette.length]),
+      backgroundColor: this.turnos.map((_, index) => {
+        const color = this.colorPalette[index % this.colorPalette.length];
+        return color.replace('0.7)', '0.5)').replace('1)', '0.5)');
+      }),
+      borderWidth: 2,
+      yAxisID: 'y'
+    }];
+
+    const annotations: ChartAnnotations = {};
+    
+    this.limits.forEach(limit => {
+      if (limit.value !== null) {
+        annotations[`${limit.name}LimitLine`] = {
+          type: 'line',
+          yMin: limit.value,
+          yMax: limit.value,
+          borderColor: limit.color,
+          borderWidth: 2,
+          borderDash: [6, 6],
+          label: {
+            content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+            enabled: true,
+            position: 'end',
+            backgroundColor: 'rgba(255,255,255,0.8)'
+          },
+          yAxisID: limit.axis
+        };
+      }
     });
 
-    const displayData = sortedData.slice(0, 3);
-    
-    const colorAzucarData = displayData.map(item => item.COLOR_AZUCAR_A ? parseFloat(item.COLOR_AZUCAR_A) : null);
-    const lomColorData = displayData.map(item => item.LOM_COLOR ? parseFloat(item.LOM_COLOR) : null);
+    if (this.chart.options?.plugins?.annotation) {
+      this.chart.options.plugins.annotation.annotations = annotations;
+    }
   
-    this.chart.data.labels = ['', '1', '2', '3', ''];
-    this.chart.data.datasets[0].data = [null, ...colorAzucarData, null];
-    this.chart.data.datasets[1].data = [null, ...lomColorData, null];
-    
     this.chart.update();
   }
 
@@ -255,5 +492,13 @@ export class ColorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.chart.destroy();
       this.chart = null;
     }
+  }
+
+  refreshData(): void {
+    this.apiConnectionStatus = 'Verificando conexión...';
+    this.errorMessage = '';
+    this.dataLoaded = false;
+    this.limitsLoaded = false;
+    this.loadInitialData();
   }
 }

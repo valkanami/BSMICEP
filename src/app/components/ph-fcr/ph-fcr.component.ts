@@ -1,8 +1,37 @@
+
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+interface LimitLineAnnotation {
+  type: 'line';
+  yMin: number;
+  yMax: number;
+  borderColor: string;
+  borderWidth: number;
+  borderDash: number[];
+  label?: {
+    content: string;
+    enabled: boolean;
+    position: 'start' | 'center' | 'end';
+    backgroundColor: string;
+  };
+}
+
+interface ChartAnnotations {
+  [key: string]: any;
+}
+
+interface Limit {
+  id: number;
+  name: string;
+  value: number | null;
+  color: string;
+  axis: string;
+  unit: string;
+}
 
 @Component({
   selector: 'app-ph-fcr',
@@ -21,7 +50,27 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public turnos: string[] = Array.from({length: 12}, (_, i) => `Turno ${i+1}`);
+  public dataTypes: string[] = [];
+  public limits: Limit[] = [
+    
+  ];
+  public dataLoaded: boolean = false;
+  public limitsLoaded: boolean = false;
+  public fixedHours: string[] = [
+    '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
+    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
+    '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
+    '01:00', '02:00', '03:00', '04:00', '05:00', 
+  ];
+
+  private colorPalette = [
+    'rgba(255, 99, 132, 0.7)', 
+    'rgba(54, 162, 235, 0.7)',     
+    'rgba(75, 192, 192, 0.7)',
+    'rgb(86, 255, 213)',     
+    'rgba(153, 102, 255, 1)',
+    'rgba(255, 159, 64, 1)'
+  ];
 
   constructor(
     private http: HttpClient,
@@ -35,18 +84,57 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.isBrowser) {
-      this.checkApiConnection();
+      this.loadInitialData();
     }
   }
 
+  private loadInitialData(): void {
+    this.checkApiConnection();
+    this.loadLimitValues();
+  }
+
   ngAfterViewInit(): void {
-    if (this.isBrowser && this.filteredData.length > 0) {
-      this.initChart();
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
+      this.initChartIfReady();
     }
   }
 
   ngOnDestroy(): void {
     this.destroyChart();
+  }
+
+  private loadLimitValues(): void {
+    this.limitsLoaded = false;
+    
+    const limitRequests = this.limits.map(limit => 
+      this.http.get(`http://localhost:3000/api/limites/${limit.id}`).toPromise()
+    );
+
+    Promise.all(limitRequests)
+      .then((responses: any[]) => {
+        responses.forEach((response, index) => {
+          this.limits[index].value = response?.LIMITE ?? null;
+        });
+        
+        this.limitsLoaded = true;
+        if (this.dataLoaded) {
+          this.initChartIfReady();
+        }
+      })
+      .catch((error) => {
+        console.error('Error al obtener los valores límite:', error);
+        this.limits.forEach(limit => limit.value = null);
+        this.limitsLoaded = true;
+        if (this.dataLoaded) {
+          this.initChartIfReady();
+        }
+      });
+  }
+
+  private initChartIfReady(): void {
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded && this.filteredData.length > 0) {
+      this.initChart();
+    }
   }
 
   private formatTimeToHHMM(timeString: string | Date): string {
@@ -68,23 +156,30 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   checkApiConnection(): void {
-    this.http.get('http://localhost:3000/api/ph2h').subscribe({
+    this.dataLoaded = false;
+    this.http.get('http://localhost:3000/api/registrozafra').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
         this.extractAvailableDates();
+        this.extractDataTypes();
         if (this.availableDates.length > 0) {
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
         }
-        if (this.isBrowser) {
-          setTimeout(() => this.initChart(), 0);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
         }
       },
       error: (error) => {
-        this.apiConnectionStatus = 'Error al conectar con la API';
+        this.apiConnectionStatus = 'Error al conectar con la API ';
         this.errorMessage = error.message;
         console.error('Error:', error);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
+        }
       }
     });
   }
@@ -92,8 +187,8 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
   private extractAvailableDates(): void {
     const uniqueDates = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.FECHA) {
-        const date = new Date(item.FECHA);
+      if (item.fecha) {
+        const date = new Date(item.fecha);
         if (!isNaN(date.getTime())) {
           const dateStr = date.toISOString().split('T')[0];
           uniqueDates.add(dateStr);
@@ -105,6 +200,16 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private extractDataTypes(): void {
+    const uniqueTypes = new Set<string>();
+    this.originalData.forEach(item => {
+      if (item.dato && item.apartado === 'pH 2hrs') {
+        uniqueTypes.add(item.dato);
+      }
+    });
+    this.dataTypes = Array.from(uniqueTypes);
+  }
+
   filterDataByDate(): void {
     if (!this.selectedDate) {
       this.filteredData = [...this.originalData];
@@ -112,33 +217,47 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.filteredData = this.originalData.filter(item => {
-      if (!item.FECHA) return false;
-      const itemDate = new Date(item.FECHA);
+      if (!item.fecha) return false;
+      const itemDate = new Date(item.fecha);
       if (isNaN(itemDate.getTime())) return false;
       const itemDateStr = itemDate.toISOString().split('T')[0];
       return itemDateStr === this.selectedDate;
     });
 
+    this.filteredData.sort((a, b) => {
+      const timeA = this.timeToMinutes(a.HORA_ORIGINAL);
+      const timeB = this.timeToMinutes(b.HORA_ORIGINAL);
+      return timeA - timeB;
+    });
+
     if (this.chart) {
       this.updateChartData();
-    } else if (this.isBrowser) {
+    } else if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
       this.initChart();
     }
   }
 
+  private timeToMinutes(timeStr: string): number {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
   private preserveOriginalTimes(rawData: any[]): any[] {
-    return rawData.map(item => {
-      return {
-        ...item,
-        TURNO_ORIGINAL: item.TURNO || '00:00',
-        pH_FUNDIDO: item.pH_FUNDIDO || null,
-        pH_CLARIF: item.pH_CLARIF || null,
-        pH_REFINADO: item.pH_REFINADO || null,
-        JUSTIFICACION_FUNDIDO: item.JUSTIFICACION_FUNDIDO || '',
-        JUSTIFICACION_CLARIF: item.JUSTIFICACION_CLARIF || '',
-        JUSTIFICACION_REFINADO: item.JUSTIFICACION_REFINADO || ''
-      };
-    });
+    return rawData
+      .filter(item => item.apartado === 'pH 2hrs')
+      .map(item => {
+        let horaOriginal = '';
+        if (item.hora) {
+          horaOriginal = this.formatTimeToHHMM(item.hora);
+        }
+
+        return {
+          ...item,
+          HORA_ORIGINAL: horaOriginal || '00:00',
+          valor: item.valor !== null ? Number(item.valor) : null,
+          justificacion: item.justificacion || ''
+        };
+      });
   }
 
   private initChart(): void {
@@ -163,62 +282,72 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
       canvas.style.height = `${rect.height}px`;
       ctx.scale(dpr, dpr);
 
-      const labels = this.turnos;
-      const fundidoData = this.mapDataToTurnos('pH_FUNDIDO');
-      const clarifData = this.mapDataToTurnos('pH_CLARIF');
-      const refinadoData = this.mapDataToTurnos('pH_REFINADO');
+      const labels = this.fixedHours;
+      
+      const datasets = this.dataTypes.map((type, index) => {
+        const color = this.colorPalette[index % this.colorPalette.length];
+        return {
+          label: type,
+          data: this.mapDataToFixedHours(type),
+          borderColor: color,
+          backgroundColor: color.replace('1)', '0.2)'),
+          borderWidth: 2,
+          tension: 0.1,
+          yAxisID: 'y'
+        };
+      });
+
+      const annotations: ChartAnnotations = {};
+      
+      this.limits.forEach(limit => {
+        if (limit.value !== null) {
+          annotations[`${limit.name}LimitLine`] = {
+            type: 'line',
+            yMin: limit.value,
+            yMax: limit.value,
+            borderColor: limit.color,
+            borderWidth: 2,
+            borderDash: [6, 6],
+            label: {
+              content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'rgba(255,255,255,0.8)'
+            },
+            yAxisID: limit.axis
+          };
+        }
+      });
 
       this.chart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
-          datasets: [
-            {
-              label: 'pH Fundido',
-              data: fundidoData,
-              backgroundColor: 'rgba(255, 99, 132, 0.7)',
-              borderColor: 'rgba(255, 99, 132, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            },
-            {
-              label: 'pH Clarificado',
-              data: clarifData,
-              backgroundColor: 'rgba(54, 162, 235, 0.7)',
-              borderColor: 'rgba(54, 162, 235, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            },
-            {
-              label: 'pH Refinado',
-              data: refinadoData,
-              backgroundColor: 'rgba(75, 192, 192, 0.7)',
-              borderColor: 'rgba(75, 192, 192, 1)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            }
-          ]
+          datasets: datasets
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
             y: {
-              beginAtZero: false,
-              min: 0,
-              max: 14,
+              type: 'linear',
+              display: true,
+              position: 'left',
               title: {
                 display: true,
-                text: 'Valor de pH'
-              }
+                text: 'Molienda'
+              },
+              min: 0
             },
             x: {
               title: {
                 display: true,
-                text: 'Turnos'
+                text: 'Hora del turno'
               },
               ticks: {
-                autoSkip: false
+                autoSkip: false,
+                maxRotation: 45,
+                minRotation: 45
               }
             }
           },
@@ -231,25 +360,16 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
                   return `${label}: ${value}`;
                 },
                 afterLabel: (context: any) => {
-                  const turnoIndex = context.dataIndex;
-                  const dataItem = this.filteredData[turnoIndex];
+                  const hour = labels[context.dataIndex];
+                  const dataItem = this.findDataItemByHour(hour, context.dataset.label);
                   
-                  if (!dataItem) return 'No hay datos para este turno';
+                  if (!dataItem) return 'No hay datos para esta hora';
                   
-                  const datasetLabel = context.dataset.label;
-                  let justificacion = '';
-                  
-                  if (datasetLabel === 'pH Fundido') {
-                    justificacion = dataItem.JUSTIFICACION_FUNDIDO || 'No hay justificación registrada';
-                  } else if (datasetLabel === 'pH Clarificado') {
-                    justificacion = dataItem.JUSTIFICACION_CLARIF || 'No hay justificación registrada';
-                  } else if (datasetLabel === 'pH Refinado') {
-                    justificacion = dataItem.JUSTIFICACION_REFINADO || 'No hay justificación registrada';
-                  }
+                  const justificacion = dataItem.justificacion || 'No hay justificación registrada';
                   
                   return [
                     `─────────────────────`,
-                    `Turno: ${labels[turnoIndex]}`,
+                    `Hora: ${hour}`,
                     `Justificación:`,
                     `${justificacion}`
                   ];
@@ -264,9 +384,51 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             legend: {
               position: 'top'
+            },
+            annotation: {
+              annotations: annotations
             }
           }
-        }
+        },
+        plugins: [{
+          id: 'limitLine',
+          beforeDraw: (chart: any) => {
+            const {ctx, chartArea, scales} = chart;
+            
+            if (!ctx || !chartArea || !scales?.['y']) return;
+            
+            ctx.save();
+            ctx.translate(0.5, 0.5);
+            
+            this.limits.forEach(limit => {
+              if (limit.value !== null && scales[limit.axis]) {
+                const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
+                
+                ctx.beginPath();
+                ctx.strokeStyle = limit.color;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.moveTo(Math.floor(chartArea.left), yPixel);
+                ctx.lineTo(Math.floor(chartArea.right), yPixel);
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fillRect(
+                  Math.floor(chartArea.right - 150), 
+                  Math.floor(yPixel - 15), 
+                  150, 
+                  20
+                );
+                
+                ctx.fillStyle = limit.color;
+                ctx.textAlign = 'right';
+                ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
+              }
+            });
+            
+            ctx.restore();
+          }
+        }]
       });
 
     } catch (error) {
@@ -276,22 +438,74 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private mapDataToTurnos(dataField: string): (number | null)[] {
-    return Array.from({length: 12}, (_, i) => {
-      if (i < this.filteredData.length) {
-        const value = this.filteredData[i][dataField];
-        return value !== null && value !== undefined ? parseFloat(value) : null;
-      }
-      return null;
+  private mapDataToFixedHours(dataType: string): (number | null)[] {
+    return this.fixedHours.map(hour => {
+      const dataItem = this.findDataItemByHour(hour, dataType);
+      return dataItem ? dataItem.valor : null;
     });
+  }
+
+  private findDataItemByHour(hour: string, dataType?: string): any | null {
+    const targetMinutes = this.timeToMinutes(hour);
+    let closestItem = null;
+    let smallestDiff = Infinity;
+
+    for (const item of this.filteredData) {
+      if (dataType && item.dato !== dataType) continue;
+      
+      const itemMinutes = this.timeToMinutes(item.HORA_ORIGINAL);
+      const diff = Math.abs(itemMinutes - targetMinutes);
+      
+      if (diff < 30 && diff < smallestDiff) {
+        smallestDiff = diff;
+        closestItem = item;
+      }
+    }
+
+    return closestItem;
   }
 
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets[0].data = this.mapDataToTurnos('pH_FUNDIDO');
-    this.chart.data.datasets[1].data = this.mapDataToTurnos('pH_CLARIF');
-    this.chart.data.datasets[2].data = this.mapDataToTurnos('pH_REFINADO');
+    this.chart.data.datasets = this.dataTypes.map((type, index) => {
+      const color = this.colorPalette[index % this.colorPalette.length];
+      return {
+        label: type,
+        data: this.mapDataToFixedHours(type),
+        borderColor: color,
+        backgroundColor: color.replace('1)', '0.2)'),
+        borderWidth: 2,
+        tension: 0.1,
+        yAxisID: 'y'
+      };
+    });
+
+    const annotations: ChartAnnotations = {};
+    
+    this.limits.forEach(limit => {
+      if (limit.value !== null) {
+        annotations[`${limit.name}LimitLine`] = {
+          type: 'line',
+          yMin: limit.value,
+          yMax: limit.value,
+          borderColor: limit.color,
+          borderWidth: 2,
+          borderDash: [6, 6],
+          label: {
+            content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+            enabled: true,
+            position: 'end',
+            backgroundColor: 'rgba(255,255,255,0.8)'
+          },
+          yAxisID: limit.axis
+        };
+      }
+    });
+
+    if (this.chart.options?.plugins?.annotation) {
+      this.chart.options.plugins.annotation.annotations = annotations;
+    }
   
     this.chart.update();
   }
@@ -301,5 +515,13 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
       this.chart.destroy();
       this.chart = null;
     }
+  }
+
+  refreshData(): void {
+    this.apiConnectionStatus = 'Verificando conexión...';
+    this.errorMessage = '';
+    this.dataLoaded = false;
+    this.limitsLoaded = false;
+    this.loadInitialData();
   }
 }
