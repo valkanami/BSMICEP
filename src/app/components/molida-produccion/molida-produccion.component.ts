@@ -47,7 +47,7 @@ export class MolidaProduccionComponent implements OnInit, AfterViewInit, OnDestr
   public filteredData: any[] = [];
   public isBrowser: boolean;
   public errorMessage: string = 'Molida x Hora';
-  public selectedDate: string = 'produccion';
+  public selectedDate: string = 'Produccion';
   public availableDates: string[] = [];
   public dataTypes: string[] = ['Molida x Hora', 'Produccion']; 
   public limits: Limit[] = [];
