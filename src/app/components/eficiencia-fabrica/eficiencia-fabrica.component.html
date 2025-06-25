@@ -1,0 +1,33 @@
+<div class="sedimentos-container">
+  <div class="header">
+    <h2>Monitoreo de Sedimentos</h2>
+    <div class="controls">
+      <div class="control-group">
+        <label for="week-selector">Seleccionar Semana:</label>
+        <select id="week-selector" [(ngModel)]="selectedWeek" (change)="filterDataByWeek()">
+          <option *ngFor="let week of availableWeeks" [value]="week">{{week}}</option>
+        </select>
+      </div>
+      
+      <button class="refresh-btn" (click)="refreshData()">
+        <i class="refresh-icon"></i> Actualizar Datos
+      </button>
+    </div>
+    
+    <div class="status-message" [class.error]="apiConnectionStatus.includes('Error')">
+      {{apiConnectionStatus}}
+      <span *ngIf="errorMessage" class="error-details">{{errorMessage}}</span>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <canvas #chartCanvas></canvas>
+  </div>
+
+  <div class="legend-container">
+    <div class="limit-legend" *ngFor="let limit of limits">
+      <span class="limit-color" [style.background-color]="limit.color"></span>
+      <span class="limit-label">{{limit.name}}: {{limit.value !== null ? limit.value + limit.unit : 'No definido'}}</span>
+    </div>
+  </div>
+</div>

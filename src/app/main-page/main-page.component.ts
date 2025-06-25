@@ -39,6 +39,8 @@ import { TonVaporCanaComponent } from '../components/ton-vapor-cana/ton-vapor-ca
 import { TurbidezAzucarComponent } from '../components/turbidez-azucar/turbidez-azucar.component';
 import { ClimaDiaComponent } from '../components/clima-dia/clima-dia.component';
 import { ClimaSemanaComponent } from '../components/clima-semana/clima-semana.component';
+import { EficienciaFabricaComponent } from '../components/eficiencia-fabrica/eficiencia-fabrica.component';
+
 
 @Component({
   selector: 'app-main-page',
@@ -84,6 +86,7 @@ import { ClimaSemanaComponent } from '../components/clima-semana/clima-semana.co
     TurbidezAzucarComponent,
     ClimaDiaComponent,
     ClimaSemanaComponent,
+    EficienciaFabricaComponent,
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

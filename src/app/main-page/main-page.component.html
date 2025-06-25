@@ -67,6 +67,7 @@
           <li (click)="showChart('turbidez-azucar')">turbidez-azucar</li>
           <li (click)="showChart('clima-dia')">clima-dia</li>
           <li (click)="showChart('clima-semana')">clima-semana</li>
+          <li (click)="showChart('eficiencia-fabrica')">eficiencia-fabrica</li>
         </ul>
       </li>
     </ul>
@@ -114,6 +115,7 @@
       <app-turbidez-azucar *ngIf="currentChart ==='turbidez-azucar'"></app-turbidez-azucar>
       <app-clima-dia *ngIf="currentChart === 'clima-dia'"></app-clima-dia>
       <app-clima-semana *ngIf="currentChart === 'clima-semana'"></app-clima-semana>
+      <app-eficiencia-fabrica *ngIf="currentChart === 'eficiencia-fabrica'"></app-eficiencia-fabrica>
     </div>
   </div>
 </div>
