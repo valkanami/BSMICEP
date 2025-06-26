@@ -51,11 +51,11 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
   public availableWeeks: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 20, name: 'limite', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 17, name: 'Sedimentos', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
-  public weekDays: string[] = [
+  public daysOfWeek: string[] = [
     'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
   ];
 
@@ -67,6 +67,8 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
     'rgba(153, 102, 255, 1)',
     'rgba(255, 159, 64, 1)'
   ];
+
+  private weekDateRanges = new Map<string, {start: Date, end: Date}>();
 
   constructor(
     private http: HttpClient,
@@ -87,6 +89,12 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
   private loadInitialData(): void {
     this.checkApiConnection();
     this.loadLimitValues();
+    
+    setTimeout(() => {
+      if (!this.dataLoaded) {
+        this.apiConnectionStatus = 'Conexión lenta, intentando recuperar datos...';
+      }
+    }, 5000);
   }
 
   ngAfterViewInit(): void {
@@ -151,6 +159,20 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
     return '00:00';
   }
 
+  private getDayOfWeek(dateString: string): number {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        console.error('Fecha inválida:', dateString);
+        return 0;
+      }
+      return date.getDay();
+    } catch (error) {
+      console.error('Error al procesar fecha:', dateString, error);
+      return 0;
+    }
+  }
+
   checkApiConnection(): void {
     this.dataLoaded = false;
     this.http.get('http://localhost:3000/api/datossql').subscribe({
@@ -180,38 +202,80 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
     });
   }
 
+  private preserveOriginalTimes(rawData: any[]): any[] {
+    return rawData
+      .filter(item => item.apartado === 'Eficiencia Fabrica')
+      .map(item => {
+        let horaOriginal = '';
+        if (item.hora) {
+          horaOriginal = this.formatTimeToHHMM(item.hora);
+        }
+
+        let dayOfWeek = 0;
+        try {
+          dayOfWeek = this.getDayOfWeek(item.fecha);
+        } catch (error) {
+          console.error('Error al procesar fecha:', item.fecha, error);
+        }
+
+        return {
+          ...item,
+          HORA_ORIGINAL: horaOriginal || '00:00',
+          valor: item.valor !== null ? Number(item.valor) : null,
+          justificacion: item.justificacion || '',
+          dayOfWeek: dayOfWeek,
+          fechaDate: new Date(item.fecha)
+        };
+      });
+  }
+
   private extractAvailableWeeks(): void {
-    const weekMap = new Map<string, {start: Date, end: Date}>();
+    const weeksMap = new Map<string, {start: Date, end: Date}>();
     
     this.originalData.forEach(item => {
-      if (item.fecha) {
-        const date = new Date(item.fecha);
-        if (!isNaN(date.getTime())) {
-          // Obtener el domingo de la semana
-          const sunday = new Date(date);
-          sunday.setDate(date.getDate() - date.getDay());
-          sunday.setHours(0, 0, 0, 0);
-          
-          // Obtener el sábado de la semana
-          const saturday = new Date(sunday);
-          saturday.setDate(sunday.getDate() + 6);
-          saturday.setHours(23, 59, 59, 999);
-          
-          const weekKey = `${sunday.toISOString().split('T')[0]} a ${saturday.toISOString().split('T')[0]}`;
-          
-          if (!weekMap.has(weekKey)) {
-            weekMap.set(weekKey, {start: sunday, end: saturday});
-          }
+      if (item.fechaDate && !isNaN(item.fechaDate.getTime())) {
+        const date = item.fechaDate;
+        
+        const sunday = new Date(date);
+        sunday.setDate(date.getDate() - date.getDay());
+        sunday.setHours(0, 0, 0, 0);
+        
+        const saturday = new Date(sunday);
+        saturday.setDate(sunday.getDate() + 6);
+        saturday.setHours(23, 59, 59, 999);
+        
+        const weekKey = sunday.toISOString().split('T')[0];
+        
+        if (!weeksMap.has(weekKey)) {
+          weeksMap.set(weekKey, {
+            start: sunday,
+            end: saturday
+          });
         }
       }
     });
     
-    // Ordenar las semanas cronológicamente
-    this.availableWeeks = Array.from(weekMap.keys()).sort((a, b) => {
-      const dateA = weekMap.get(a)?.start || new Date(0);
-      const dateB = weekMap.get(b)?.start || new Date(0);
-      return dateA.getTime() - dateB.getTime();
+    const sortedWeeks = Array.from(weeksMap.entries())
+      .sort((a, b) => a[1].start.getTime() - b[1].start.getTime());
+    
+    this.availableWeeks = sortedWeeks.map(([_, range]) => {
+      return this.formatDateRange(range.start, range.end);
     });
+    
+    this.weekDateRanges = new Map();
+    sortedWeeks.forEach(([weekKey, range], index) => {
+      this.weekDateRanges.set(this.availableWeeks[index], range);
+    });
+  }
+
+  private formatDateRange(start: Date, end: Date): string {
+    const format = (date: Date) => {
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      return `${day}/${month}/${date.getFullYear()}`;
+    };
+    
+    return `${format(start)} - ${format(end)}`;
   }
 
   private extractDataTypes(): void {
@@ -225,34 +289,19 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
   }
 
   filterDataByWeek(): void {
-    if (!this.selectedWeek) {
-      this.filteredData = [...this.originalData];
+    if (!this.selectedWeek || !this.weekDateRanges.has(this.selectedWeek)) {
+      this.filteredData = [];
       return;
     }
 
-    // Extraer las fechas de inicio y fin de la semana seleccionada
-    const [startDateStr, endDateStr] = this.selectedWeek.split(' a ');
-    const startDate = new Date(startDateStr);
-    const endDate = new Date(endDateStr);
-    
-    // Ajustar la hora de endDate para incluir todo el día
-    endDate.setHours(23, 59, 59, 999);
+    const weekRange = this.weekDateRanges.get(this.selectedWeek);
+    if (!weekRange) return;
 
     this.filteredData = this.originalData.filter(item => {
-      if (!item.fecha) return false;
-      const itemDate = new Date(item.fecha);
-      if (isNaN(itemDate.getTime())) return false;
-      return itemDate >= startDate && itemDate <= endDate;
-    });
-
-    // Ordenar por fecha y hora
-    this.filteredData.sort((a, b) => {
-      const dateA = new Date(a.fecha);
-      const dateB = new Date(b.fecha);
-      if (dateA.getTime() !== dateB.getTime()) {
-        return dateA.getTime() - dateB.getTime();
-      }
-      return this.timeToMinutes(a.HORA_ORIGINAL) - this.timeToMinutes(b.HORA_ORIGINAL);
+      if (!item.fechaDate) return false;
+      const itemDate = item.fechaDate;
+      
+      return itemDate >= weekRange.start && itemDate <= weekRange.end;
     });
 
     if (this.chart) {
@@ -260,29 +309,6 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
     } else if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
       this.initChart();
     }
-  }
-
-  private timeToMinutes(timeStr: string): number {
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return hours * 60 + minutes;
-  }
-
-  private preserveOriginalTimes(rawData: any[]): any[] {
-    return rawData
-      .filter(item => item.apartado === 'Eficiencia Fabrica')
-      .map(item => {
-        let horaOriginal = '';
-        if (item.hora) {
-          horaOriginal = this.formatTimeToHHMM(item.hora);
-        }
-
-        return {
-          ...item,
-          HORA_ORIGINAL: horaOriginal || '00:00',
-          valor: item.valor !== null ? Number(item.valor) : null,
-          justificacion: item.justificacion || ''
-        };
-      });
   }
 
   private initChart(): void {
@@ -307,13 +333,13 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
       canvas.style.height = `${rect.height}px`;
       ctx.scale(dpr, dpr);
 
-      const labels = this.weekDays;
+      const labels = this.daysOfWeek;
       
       const datasets = this.dataTypes.map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
         return {
           label: type,
-          data: this.mapDataToWeekDays(type),
+          data: this.mapDataToDaysOfWeek(type),
           borderColor: color,
           backgroundColor: color.replace('1)', '0.2)'),
           borderWidth: 2,
@@ -385,19 +411,32 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
                   return `${label}: ${value}`;
                 },
                 afterLabel: (context: any) => {
-                  const day = labels[context.dataIndex];
-                  const dataItem = this.findDataItemByDay(day, context.dataset.label);
+                  const dayIndex = context.dataIndex;
+                  const dayName = this.daysOfWeek[dayIndex];
+                  const dataType = context.dataset.label;
                   
-                  if (!dataItem) return 'No hay datos para este día';
+                  const dayData = this.filteredData.filter(item => 
+                    item.dayOfWeek === dayIndex && item.dato === dataType
+                  );
                   
-                  const justificacion = dataItem.justificacion || 'No hay justificación registrada';
+                  if (dayData.length === 0) return 'No hay datos para este día';
+                  
+                  const justificaciones = new Set<string>();
+                  dayData.forEach(item => {
+                    if (item.justificacion) {
+                      justificaciones.add(item.justificacion);
+                    }
+                  });
+                  
+                  const justText = justificaciones.size > 0 
+                    ? Array.from(justificaciones).join('\n') 
+                    : 'No hay justificación registrada';
                   
                   return [
                     `─────────────────────`,
-                    `Día: ${day}`,
-                    `Hora: ${dataItem.HORA_ORIGINAL}`,
-                    `Justificación:`,
-                    `${justificacion}`
+                    `Día: ${dayName}`,
+                    `Justificaciones:`,
+                    `${justText}`
                   ];
                 }
               },
@@ -464,42 +503,19 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
     }
   }
 
-  private mapDataToWeekDays(dataType: string): (number | null)[] {
-    return this.weekDays.map((day, index) => {
-      const dataItems = this.findDataItemsByDayIndex(index, dataType);
-      if (dataItems.length === 0) return null;
+  private mapDataToDaysOfWeek(dataType: string): (number | null)[] {
+    return this.daysOfWeek.map((_, dayIndex) => {
+      const dayData = this.filteredData.filter(item => 
+        item.dayOfWeek === dayIndex && 
+        item.dato === dataType &&
+        item.valor !== null
+      );
       
-      // Calcular promedio para el día
-      const sum = dataItems.reduce((acc, item) => acc + (item.valor || 0), 0);
-      return sum / dataItems.length;
-    });
-  }
-
-  private findDataItemsByDayIndex(dayIndex: number, dataType?: string): any[] {
-    const [startDateStr, endDateStr] = this.selectedWeek.split(' a ');
-    const startDate = new Date(startDateStr);
-    const targetDate = new Date(startDate);
-    targetDate.setDate(startDate.getDate() + dayIndex);
-    
-    return this.filteredData.filter(item => {
-      if (!item.fecha) return false;
-      const itemDate = new Date(item.fecha);
-      if (isNaN(itemDate.getTime())) return false;
+      if (dayData.length === 0) return null;
       
-      // Comparar solo día, mes y año
-      return itemDate.getDate() === targetDate.getDate() &&
-             itemDate.getMonth() === targetDate.getMonth() &&
-             itemDate.getFullYear() === targetDate.getFullYear() &&
-             (!dataType || item.dato === dataType);
+      const sum = dayData.reduce((total, item) => total + (item.valor || 0), 0);
+      return sum / dayData.length;
     });
-  }
-
-  private findDataItemByDay(day: string, dataType?: string): any | null {
-    const dayIndex = this.weekDays.indexOf(day);
-    if (dayIndex === -1) return null;
-    
-    const items = this.findDataItemsByDayIndex(dayIndex, dataType);
-    return items.length > 0 ? items[0] : null;
   }
 
   public updateChartData(): void {
@@ -509,7 +525,7 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
       const color = this.colorPalette[index % this.colorPalette.length];
       return {
         label: type,
-        data: this.mapDataToWeekDays(type),
+        data: this.mapDataToDaysOfWeek(type),
         borderColor: color,
         backgroundColor: color.replace('1)', '0.2)'),
         borderWidth: 2,
