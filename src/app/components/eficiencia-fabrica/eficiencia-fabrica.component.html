@@ -1,6 +1,6 @@
 <div class="sedimentos-container">
   <div class="header">
-    <h2>Monitoreo de Sedimentos</h2>
+    <h2>Eficiencia fabrica</h2>
     <div class="controls">
       <div class="control-group">
         <label for="week-selector">Seleccionar Semana:</label>
@@ -9,10 +9,7 @@
         </select>
       </div>
       
-      <button class="refresh-btn" (click)="refreshData()">
-        <i class="refresh-icon"></i> Actualizar Datos
-      </button>
-    </div>
+      
     
     <div class="status-message" [class.error]="apiConnectionStatus.includes('Error')">
       {{apiConnectionStatus}}

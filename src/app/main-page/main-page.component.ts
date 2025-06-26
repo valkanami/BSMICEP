@@ -40,6 +40,13 @@ import { TurbidezAzucarComponent } from '../components/turbidez-azucar/turbidez-
 import { ClimaDiaComponent } from '../components/clima-dia/clima-dia.component';
 import { ClimaSemanaComponent } from '../components/clima-semana/clima-semana.component';
 import { EficienciaFabricaComponent } from '../components/eficiencia-fabrica/eficiencia-fabrica.component';
+import { CachazaCanaComponent } from '../components/cachaza-cana/cachaza-cana.component';
+import { CanaMolidaComponent } from '../components/cana-molida/cana-molida.component';
+import { DextranasBrixComponent } from '../components/dextranas-brix/dextranas-brix.component';
+import { PerdidasCanaComponent } from '../components/perdidas-cana/perdidas-cana.component';
+import { PolCanaComponent } from '../components/pol-cana/pol-cana.component';
+import { PzaJugoMezcladoTierraComponent } from '../components/pza-jugo-mezclado-tierra/pza-jugo-mezclado-tierra.component';
+
 
 
 @Component({
@@ -87,6 +94,12 @@ import { EficienciaFabricaComponent } from '../components/eficiencia-fabrica/efi
     ClimaDiaComponent,
     ClimaSemanaComponent,
     EficienciaFabricaComponent,
+    CachazaCanaComponent,
+    CanaMolidaComponent,
+    DextranasBrixComponent,
+    PerdidasCanaComponent,
+    PolCanaComponent,
+    PzaJugoMezcladoTierraComponent,
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']
