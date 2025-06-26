@@ -51,7 +51,7 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
   public availableWeeks: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 17, name: 'Sedimentos', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 20, name: 'Sedimentos', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -166,7 +166,9 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
         console.error('Fecha inválida:', dateString);
         return 0;
       }
-      return date.getDay();
+      // Sumamos un día a la fecha para corregir el desplazamiento
+      date.setDate(date.getDate() + 1);
+      return date.getDay(); // 0 (Domingo) a 6 (Sábado)
     } catch (error) {
       console.error('Error al procesar fecha:', dateString, error);
       return 0;
@@ -234,7 +236,9 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
     
     this.originalData.forEach(item => {
       if (item.fechaDate && !isNaN(item.fechaDate.getTime())) {
-        const date = item.fechaDate;
+        const date = new Date(item.fechaDate);
+        // Ajustamos la fecha sumando un día
+        date.setDate(date.getDate() + 1);
         
         const sunday = new Date(date);
         sunday.setDate(date.getDate() - date.getDay());
@@ -299,9 +303,12 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
 
     this.filteredData = this.originalData.filter(item => {
       if (!item.fechaDate) return false;
-      const itemDate = item.fechaDate;
       
-      return itemDate >= weekRange.start && itemDate <= weekRange.end;
+      // Creamos una nueva fecha ajustada sumando un día
+      const adjustedDate = new Date(item.fechaDate);
+      adjustedDate.setDate(adjustedDate.getDate() + 1);
+      
+      return adjustedDate >= weekRange.start && adjustedDate <= weekRange.end;
     });
 
     if (this.chart) {
