@@ -385,7 +385,7 @@ export class ReductoresPromedioComponent implements OnInit, AfterViewInit, OnDes
               bodySpacing: 4
             },
             legend: {
-              display: false // Esto oculta completamente la leyenda
+              display: false 
             },
             annotation: {
               annotations: annotations
