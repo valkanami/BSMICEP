@@ -1,0 +1,31 @@
+<div class="chart-container">
+  <div class="chart-header">
+    <h2>Eficiencia Fabrica</h2>
+    <div class="chart-controls">
+      <div class="date-selector">
+        <label for="weekFilter">Filtrar por semana:</label>
+        <select id="weekFilter" [(ngModel)]="selectedWeek" (change)="filterDataByWeek()">
+          <option *ngFor="let week of availableWeeks" [value]="week">{{ week }}</option>
+        </select>
+      </div>
+      <div class="api-status" [ngClass]="{
+        'status-success': apiConnectionStatus.includes(' '),
+        'status-error': apiConnectionStatus.includes('Error')
+      }">
+        {{ apiConnectionStatus }}
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-wrapper">
+    <canvas #chartCanvas></canvas>
+  </div>
+
+  <div class="chart-footer">
+    <div class="data-info">
+      <ul>
+        <li><span class="limit-line-color"></span> Límite de Eficiencia Fabrica</li>
+      </ul>
+    </div>
+  </div>
+</div>

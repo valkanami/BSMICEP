@@ -313,7 +313,7 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
       });
 
       this.chart = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
           labels: labels,
           datasets: datasets

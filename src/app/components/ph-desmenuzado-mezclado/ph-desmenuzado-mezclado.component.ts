@@ -313,7 +313,7 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
       });
 
       this.chart = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
           labels: labels,
           datasets: datasets

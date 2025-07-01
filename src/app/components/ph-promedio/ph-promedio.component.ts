@@ -51,7 +51,12 @@ export class PhPromedioComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    
+    { id: 21, name: 'Desmenuzado', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 22, name: 'Mezclado', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 23, name: 'Alcalizado', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 24, name: 'Claro', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 25, name: 'Meladura', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -322,7 +327,7 @@ export class PhPromedioComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
       this.chart = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
           labels: labels,
           datasets: datasets

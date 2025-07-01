@@ -33,13 +33,13 @@ interface Limit {
 }
 
 @Component({
-  selector: 'app-perdidas-cana',
+  selector: 'app-perdidas-cosechamiento',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './perdidas-cana.component.html',
-  styleUrls: ['./perdidas-cana.component.css']
+  templateUrl: './perdidas-cosechamiento.component.html',
+  styleUrls: ['./perdidas-cosechamiento.component.css']
 })
-export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PerdidasCosechamientoComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
@@ -177,7 +177,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   checkApiConnection(): void {
     this.dataLoaded = false;
-    this.http.get('http://localhost:3000/api/datossql').subscribe({
+    this.http.get('http://localhost:3000/api/datosdia').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
@@ -206,7 +206,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData
-      .filter(item => item.apartado === 'Pérdidas % caña')
+      .filter(item => item.apartado === 'Perdidas de cosechamiento')
       .map(item => {
         let horaOriginal = '';
         if (item.hora) {
@@ -285,7 +285,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
   private extractDataTypes(): void {
     const uniqueTypes = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.dato && item.apartado === 'Pérdidas % caña') {
+      if (item.dato && item.apartado === 'Perdidas de cosechamiento') {
         uniqueTypes.add(item.dato);
       }
     });
@@ -341,8 +341,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const labels = this.daysOfWeek;
       
-      // Crear datasets para barras (todos menos el último)
-      const barDatasets = this.dataTypes.slice(0, -1).map((type, index) => {
+      const datasets = this.dataTypes.map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
         return {
           label: type,
@@ -351,26 +350,9 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
           borderColor: color,
           borderWidth: 1,
           yAxisID: 'y',
-          stack: 'stack1'
+          stack: 'stack1' // Mismo stack para todas las barras
         };
       });
-
-      // Crear dataset para línea (último dato)
-      const lineDataset = {
-        label: this.dataTypes[this.dataTypes.length - 1],
-        data: this.mapDataToDaysOfWeek(this.dataTypes[this.dataTypes.length - 1]),
-        borderColor: this.colorPalette[(this.dataTypes.length - 1) % this.colorPalette.length],
-        backgroundColor: 'transparent',
-        borderWidth: 3,
-        pointBackgroundColor: this.colorPalette[(this.dataTypes.length - 1) % this.colorPalette.length],
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        yAxisID: 'y',
-        type: 'line' as const,
-        fill: false
-      };
-
-      const datasets = [...barDatasets, lineDataset];
 
       const annotations: ChartAnnotations = {};
       
@@ -395,7 +377,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
       this.chart = new Chart(ctx, {
-        type: 'bar', // Tipo principal sigue siendo bar
+        type: 'bar',
         data: {
           labels: labels,
           datasets: datasets
@@ -413,7 +395,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
                 text: 'Molienda'
               },
               min: 0,
-              stacked: true // Solo afecta a las barras
+              stacked: true // Eje Y apilado
             },
             x: {
               title: {
@@ -425,7 +407,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
                 maxRotation: 45,
                 minRotation: 45
               },
-              stacked: true // Solo afecta a las barras
+              stacked: true // Eje X apilado
             }
           },
           plugins: {
@@ -547,8 +529,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
   public updateChartData(): void {
     if (!this.chart) return;
   
-    // Datasets para barras (todos menos el último)
-    const barDatasets = this.dataTypes.slice(0, -1).map((type, index) => {
+    this.chart.data.datasets = this.dataTypes.map((type, index) => {
       const color = this.colorPalette[index % this.colorPalette.length];
       return {
         label: type,
@@ -557,26 +538,9 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
         borderColor: color,
         borderWidth: 1,
         yAxisID: 'y',
-        stack: 'stack1'
+        stack: 'stack1' // Mantener el mismo stack
       };
     });
-
-    // Dataset para línea (último dato)
-    const lineDataset = {
-      label: this.dataTypes[this.dataTypes.length - 1],
-      data: this.mapDataToDaysOfWeek(this.dataTypes[this.dataTypes.length - 1]),
-      borderColor: this.colorPalette[(this.dataTypes.length - 1) % this.colorPalette.length],
-      backgroundColor: 'transparent',
-      borderWidth: 3,
-      pointBackgroundColor: this.colorPalette[(this.dataTypes.length - 1) % this.colorPalette.length],
-      pointRadius: 5,
-      pointHoverRadius: 7,
-      yAxisID: 'y',
-      type: 'line' as const,
-      fill: false
-    };
-
-    this.chart.data.datasets = [...barDatasets, lineDataset];
 
     const annotations: ChartAnnotations = {};
     

@@ -48,6 +48,8 @@ import { PolCanaComponent } from '../components/pol-cana/pol-cana.component';
 import { PzaJugoMezcladoTierraComponent } from '../components/pza-jugo-mezclado-tierra/pza-jugo-mezclado-tierra.component';
 import { CortadoresComponent } from '../components/cortadores/cortadores.component';
 import { FrescuraHoraComponent } from '../components/frescura-hora/frescura-hora.component';
+import { PerdidasCosechamientoComponent } from '../components/perdidas-cosechamiento/perdidas-cosechamiento.component';
+import { PhAcmComponent } from '../components/ph-acm/ph-acm.component';
 
 
 @Component({
@@ -103,6 +105,8 @@ import { FrescuraHoraComponent } from '../components/frescura-hora/frescura-hora
     PzaJugoMezcladoTierraComponent,
     CortadoresComponent,
     FrescuraHoraComponent,
+    PerdidasCosechamientoComponent,
+    PhAcmComponent,
 ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

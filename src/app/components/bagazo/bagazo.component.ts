@@ -51,7 +51,7 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 15, name: 'Hume', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 1, name: 'Hume', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
     { id: 2, name: 'Pol', value: null, color: 'rgb(0, 0, 255)', axis: 'y1', unit: '' }
   ];
   public dataLoaded: boolean = false;

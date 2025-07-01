@@ -48,6 +48,7 @@
           <li (click)="showChart('reductores')">Reductores</li>
           <li (click)="showChart('ph-claro-filtrado')">PH Claro Filtrado</li>
           <li (click)="showChart('ph-desmenuzado-mezclado')">PH Desmenuzado Mezclado</li>
+          <li (click)="showChart('ph-acm')">ph-acm</li>
           <li (click)="showChart('ph-promedio')">PH Promedio</li>
           <li (click)="showChart('reductores-claro-meladura')">Reductores Claro Meladura</li>
           <li (click)="showChart('reductores-promedio')">Reductores Promedio</li>
@@ -76,6 +77,7 @@
           <li (click)="showChart('pza-jugo-mezclado-tierra')">pza-jugo-mezclado-tierra</li>
           <li (click)="showChart('cortadores')">cortadores</li>
           <li (click)=" showChart('frescura-hora')">frescura-hora</li>
+          <li (click)="showChart('perdidas-cosechamiento')">perdidas-cosechamiento</li>
         </ul>
       </li>
     </ul>
@@ -132,6 +134,7 @@
       <app-pza-jugo-mezclado-tierra *ngIf="currentChart === 'pza-jugo-mezclado-tierra'"></app-pza-jugo-mezclado-tierra>
       <app-cortadores *ngIf="currentChart === 'cortadores'"></app-cortadores>
       <app-frescura-hora *ngIf="currentChart === 'frescura-hora'"></app-frescura-hora>
+      <app-perdidas-cosechamiento *ngIf="currentChart === 'perdidas-cosechamiento'"></app-perdidas-cosechamiento>
+      <app-ph-acm *ngIf="currentChart === 'ph-acm'"></app-ph-acm>
     </div>
   </div>
-</div>
