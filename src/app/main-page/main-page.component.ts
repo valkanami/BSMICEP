@@ -46,7 +46,8 @@ import { DextranasBrixComponent } from '../components/dextranas-brix/dextranas-b
 import { PerdidasCanaComponent } from '../components/perdidas-cana/perdidas-cana.component';
 import { PolCanaComponent } from '../components/pol-cana/pol-cana.component';
 import { PzaJugoMezcladoTierraComponent } from '../components/pza-jugo-mezclado-tierra/pza-jugo-mezclado-tierra.component';
-
+import { CortadoresComponent } from '../components/cortadores/cortadores.component';
+import { FrescuraHoraComponent } from '../components/frescura-hora/frescura-hora.component';
 
 
 @Component({
@@ -100,7 +101,9 @@ import { PzaJugoMezcladoTierraComponent } from '../components/pza-jugo-mezclado-
     PerdidasCanaComponent,
     PolCanaComponent,
     PzaJugoMezcladoTierraComponent,
-  ],
+    CortadoresComponent,
+    FrescuraHoraComponent,
+],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']
 })

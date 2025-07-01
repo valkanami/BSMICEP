@@ -74,6 +74,8 @@
           <li (click)="showChart('perdidas-cana')">perdidas-cana</li>
           <li (click)="showChart('pol-cana')">pol-cana</li>
           <li (click)="showChart('pza-jugo-mezclado-tierra')">pza-jugo-mezclado-tierra</li>
+          <li (click)="showChart('cortadores')">cortadores</li>
+          <li (click)=" showChart('frescura-hora')">frescura-hora</li>
         </ul>
       </li>
     </ul>
@@ -128,6 +130,8 @@
       <app-perdidas-cana *ngIf="currentChart === 'perdidas-cana'"></app-perdidas-cana>
       <app-pol-cana *ngIf="currentChart === 'pol-cana'"></app-pol-cana>
       <app-pza-jugo-mezclado-tierra *ngIf="currentChart === 'pza-jugo-mezclado-tierra'"></app-pza-jugo-mezclado-tierra>
+      <app-cortadores *ngIf="currentChart === 'cortadores'"></app-cortadores>
+      <app-frescura-hora *ngIf="currentChart === 'frescura-hora'"></app-frescura-hora>
     </div>
   </div>
 </div>

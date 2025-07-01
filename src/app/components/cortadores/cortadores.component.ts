@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Chart, registerables, ChartType, ChartDataset, ScaleOptions } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -32,26 +32,14 @@ interface Limit {
   unit: string;
 }
 
-interface BarDataset extends ChartDataset<'bar', (number | null)[]> {
-  yAxisID: string;
-}
-
-interface LineDataset extends ChartDataset<'line', (number | null)[]> {
-  yAxisID: string;
-  tension: number;
-  pointRadius: number;
-  pointHoverRadius: number;
-  pointBackgroundColor: string;
-}
-
 @Component({
-  selector: 'app-pza-jugo-mezclado-tierra',
+  selector: 'app-cortadores',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './pza-jugo-mezclado-tierra.component.html',
-  styleUrls: ['./pza-jugo-mezclado-tierra.component.css']
+  templateUrl: './cortadores.component.html',
+  styleUrls: ['./cortadores.component.css']
 })
-export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, OnDestroy {
+export class CortadoresComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
@@ -189,7 +177,7 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
 
   checkApiConnection(): void {
     this.dataLoaded = false;
-    this.http.get('http://localhost:3000/api/datossql').subscribe({
+    this.http.get('http://localhost:3000/api/datosdia').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
@@ -218,7 +206,7 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
 
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData
-      .filter(item => item.apartado === 'Pza. jugo mezclado y tierra')
+      .filter(item => item.apartado === 'Cortadores')
       .map(item => {
         let horaOriginal = '';
         if (item.hora) {
@@ -297,7 +285,7 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
   private extractDataTypes(): void {
     const uniqueTypes = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.dato && item.apartado === 'Pza. jugo mezclado y tierra') {
+      if (item.dato && item.apartado === 'Cortadores') {
         uniqueTypes.add(item.dato);
       }
     });
@@ -315,6 +303,7 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
 
     this.filteredData = this.originalData.filter(item => {
       if (!item.fechaDate) return false;
+      
       
       const adjustedDate = new Date(item.fechaDate);
       adjustedDate.setDate(adjustedDate.getDate() + 1);
@@ -353,34 +342,17 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
 
       const labels = this.daysOfWeek;
       
-      const datasets: (BarDataset | LineDataset)[] = this.dataTypes.map((type, index) => {
+      const datasets = this.dataTypes.map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
-        
-        if (index === 1 && this.dataTypes.length > 1) {
-          return {
-            label: type,
-            data: this.mapDataToDaysOfWeek(type),
-            borderColor: color,
-            backgroundColor: 'transparent',
-            borderWidth: 3,
-            tension: 0.4,
-            type: 'line',
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            pointBackgroundColor: color,
-            yAxisID: 'y1'
-          } as LineDataset;
-        }
-        
         return {
           label: type,
           data: this.mapDataToDaysOfWeek(type),
           borderColor: color,
-          backgroundColor: color.replace('1)', '0.5)'),
+          backgroundColor: color.replace('1)', '0.2)'),
           borderWidth: 2,
-          yAxisID: 'y',
-          type: 'bar'
-        } as BarDataset;
+          tension: 0.1,
+          yAxisID: 'y'
+        };
       });
 
       const annotations: ChartAnnotations = {};
@@ -406,7 +378,7 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
       });
 
       this.chart = new Chart(ctx, {
-        type: 'bar' as const,
+        type: 'bar',
         data: {
           labels: labels,
           datasets: datasets
@@ -421,28 +393,9 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
               position: 'left',
               title: {
                 display: true,
-                text: this.dataTypes[0] || 'Valores'
+                text: 'Molienda'
               },
-              min: 0,
-              ticks: {
-                callback: (value: number | string) => `${value}`
-              }
-            },
-            y1: {
-              type: 'linear',
-              display: this.dataTypes.length > 1,
-              position: 'right',
-              title: {
-                display: true,
-                text: this.dataTypes[1] || 'Valores'
-              },
-              min: 0,
-              grid: {
-                drawOnChartArea: false
-              },
-              ticks: {
-                callback: (value: number | string) => `${value}`
-              }
+              min: 0
             },
             x: {
               title: {
@@ -525,7 +478,7 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
                 
                 ctx.beginPath();
                 ctx.strokeStyle = limit.color;
-                ctx.lineWidth; 2;
+                ctx.lineWidth = 2;
                 ctx.setLineDash([6, 6]);
                 ctx.moveTo(Math.floor(chartArea.left), yPixel);
                 ctx.lineTo(Math.floor(chartArea.right), yPixel);
@@ -575,59 +528,21 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
   public updateChartData(): void {
     if (!this.chart) return;
   
-    const datasets: (BarDataset | LineDataset)[] = this.dataTypes.map((type, index) => {
+    this.chart.data.datasets = this.dataTypes.map((type, index) => {
       const color = this.colorPalette[index % this.colorPalette.length];
-      
-      if (index === 1 && this.dataTypes.length > 1) {
-        return {
-          label: type,
-          data: this.mapDataToDaysOfWeek(type),
-          borderColor: color,
-          backgroundColor: 'transparent',
-          borderWidth: 3,
-          tension: 0.4,
-          type: 'line',
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          pointBackgroundColor: color,
-          yAxisID: 'y1'
-        } as LineDataset;
-      }
-      
       return {
         label: type,
         data: this.mapDataToDaysOfWeek(type),
         borderColor: color,
-        backgroundColor: color.replace('1)', '0.5)'),
+        backgroundColor: color.replace('1)', '0.2)'),
         borderWidth: 2,
-        yAxisID: 'y',
-        type: 'bar'
-      } as BarDataset;
+        tension: 0.1,
+        yAxisID: 'y'
+      };
     });
 
-    this.chart.data.datasets = datasets;
-    
-    // Actualizar configuración de ejes
-    if (this.chart.options?.scales) {
-      // Eje Y izquierdo
-      if (this.chart.options.scales['y']) {
-        (this.chart.options.scales['y'] as any).title = {
-          display: true,
-          text: this.dataTypes[0] || 'Valores'
-        };
-      }
-
-      // Eje Y derecho
-      if (this.chart.options.scales['y1']) {
-        (this.chart.options.scales['y1'] as any).display = this.dataTypes.length > 1;
-        (this.chart.options.scales['y1'] as any).title = {
-          display: true,
-          text: this.dataTypes[1] || 'Valores'
-        };
-      }
-    }
-
     const annotations: ChartAnnotations = {};
+    
     this.limits.forEach(limit => {
       if (limit.value !== null) {
         annotations[`${limit.name}LimitLine`] = {

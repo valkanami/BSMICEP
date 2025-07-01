@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Chart, registerables, ChartType, ChartDataset, ScaleOptions } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -32,26 +32,14 @@ interface Limit {
   unit: string;
 }
 
-interface BarDataset extends ChartDataset<'bar', (number | null)[]> {
-  yAxisID: string;
-}
-
-interface LineDataset extends ChartDataset<'line', (number | null)[]> {
-  yAxisID: string;
-  tension: number;
-  pointRadius: number;
-  pointHoverRadius: number;
-  pointBackgroundColor: string;
-}
-
 @Component({
-  selector: 'app-pza-jugo-mezclado-tierra',
+  selector: 'app-frescura-hora',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './pza-jugo-mezclado-tierra.component.html',
-  styleUrls: ['./pza-jugo-mezclado-tierra.component.css']
+  templateUrl: './frescura-hora.component.html',
+  styleUrls: ['./frescura-hora.component.css']
 })
-export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, OnDestroy {
+export class FrescuraHoraComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
@@ -59,28 +47,29 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
   public filteredData: any[] = [];
   public isBrowser: boolean;
   public errorMessage: string = '';
-  public selectedWeek: string = '';
-  public availableWeeks: string[] = [];
+  public selectedDate: string = '';
+  public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 20, name: '', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 4, name: 'Hume', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
-  public daysOfWeek: string[] = [
-    'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
+  public fixedHours: string[] = [
+    '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
+    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
+    '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
+    '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
   ];
 
   private colorPalette = [
-    'rgba(255, 99, 132, 0.7)', 
-    'rgba(54, 162, 235, 0.7)',     
-    'rgba(75, 192, 192, 0.7)',
-    'rgb(86, 255, 213)',     
+    'rgba(255, 99, 132, 1)',    
+    'rgba(54, 162, 235, 1)',     
+    'rgba(255, 206, 86, 1)',     
+    'rgba(75, 192, 192, 1)',
     'rgba(153, 102, 255, 1)',
     'rgba(255, 159, 64, 1)'
   ];
-
-  private weekDateRanges = new Map<string, {start: Date, end: Date}>();
 
   constructor(
     private http: HttpClient,
@@ -101,12 +90,6 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
   private loadInitialData(): void {
     this.checkApiConnection();
     this.loadLimitValues();
-    
-    setTimeout(() => {
-      if (!this.dataLoaded) {
-        this.apiConnectionStatus = 'Conexión lenta, intentando recuperar datos...';
-      }
-    }, 5000);
   }
 
   ngAfterViewInit(): void {
@@ -171,33 +154,17 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
     return '00:00';
   }
 
-  private getDayOfWeek(dateString: string): number {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        console.error('Fecha inválida:', dateString);
-        return 0;
-      }
-      
-      date.setDate(date.getDate() + 1);
-      return date.getDay(); 
-    } catch (error) {
-      console.error('Error al procesar fecha:', dateString, error);
-      return 0;
-    }
-  }
-
   checkApiConnection(): void {
     this.dataLoaded = false;
-    this.http.get('http://localhost:3000/api/datossql').subscribe({
+    this.http.get('http://localhost:3000/api/datoshora').subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
-        this.extractAvailableWeeks();
+        this.extractAvailableDates();
         this.extractDataTypes();
-        if (this.availableWeeks.length > 0) {
-          this.selectedWeek = this.availableWeeks[this.availableWeeks.length - 1];
-          this.filterDataByWeek();
+        if (this.availableDates.length > 0) {
+          this.selectedDate = this.availableDates[this.availableDates.length - 1];
+          this.filterDataByDate();
         }
         this.dataLoaded = true;
         if (this.limitsLoaded) {
@@ -216,110 +183,50 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
     });
   }
 
-  private preserveOriginalTimes(rawData: any[]): any[] {
-    return rawData
-      .filter(item => item.apartado === 'Pza. jugo mezclado y tierra')
-      .map(item => {
-        let horaOriginal = '';
-        if (item.hora) {
-          horaOriginal = this.formatTimeToHHMM(item.hora);
-        }
-
-        let dayOfWeek = 0;
-        try {
-          dayOfWeek = this.getDayOfWeek(item.fecha);
-        } catch (error) {
-          console.error('Error al procesar fecha:', item.fecha, error);
-        }
-
-        return {
-          ...item,
-          HORA_ORIGINAL: horaOriginal || '00:00',
-          valor: item.valor !== null ? Number(item.valor) : null,
-          justificacion: item.justificacion || '',
-          dayOfWeek: dayOfWeek,
-          fechaDate: new Date(item.fecha)
-        };
-      });
-  }
-
-  private extractAvailableWeeks(): void {
-    const weeksMap = new Map<string, {start: Date, end: Date}>();
-    
+  private extractAvailableDates(): void {
+    const uniqueDates = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.fechaDate && !isNaN(item.fechaDate.getTime())) {
-        const date = new Date(item.fechaDate);
-        
-        date.setDate(date.getDate() + 1);
-        
-        const sunday = new Date(date);
-        sunday.setDate(date.getDate() - date.getDay());
-        sunday.setHours(0, 0, 0, 0);
-        
-        const saturday = new Date(sunday);
-        saturday.setDate(sunday.getDate() + 6);
-        saturday.setHours(23, 59, 59, 999);
-        
-        const weekKey = sunday.toISOString().split('T')[0];
-        
-        if (!weeksMap.has(weekKey)) {
-          weeksMap.set(weekKey, {
-            start: sunday,
-            end: saturday
-          });
+      if (item.fecha) {
+        const date = new Date(item.fecha);
+        if (!isNaN(date.getTime())) {
+          const dateStr = date.toISOString().split('T')[0];
+          uniqueDates.add(dateStr);
         }
       }
     });
-    
-    const sortedWeeks = Array.from(weeksMap.entries())
-      .sort((a, b) => a[1].start.getTime() - b[1].start.getTime());
-    
-    this.availableWeeks = sortedWeeks.map(([_, range]) => {
-      return this.formatDateRange(range.start, range.end);
+    this.availableDates = Array.from(uniqueDates).sort((a, b) => {
+      return new Date(a).getTime() - new Date(b).getTime();
     });
-    
-    this.weekDateRanges = new Map();
-    sortedWeeks.forEach(([weekKey, range], index) => {
-      this.weekDateRanges.set(this.availableWeeks[index], range);
-    });
-  }
-
-  private formatDateRange(start: Date, end: Date): string {
-    const format = (date: Date) => {
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      return `${day}/${month}/${date.getFullYear()}`;
-    };
-    
-    return `${format(start)} - ${format(end)}`;
   }
 
   private extractDataTypes(): void {
     const uniqueTypes = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.dato && item.apartado === 'Pza. jugo mezclado y tierra') {
+      if (item.dato && item.apartado === 'Frescura por hora') {
         uniqueTypes.add(item.dato);
       }
     });
     this.dataTypes = Array.from(uniqueTypes);
   }
 
-  filterDataByWeek(): void {
-    if (!this.selectedWeek || !this.weekDateRanges.has(this.selectedWeek)) {
-      this.filteredData = [];
+  filterDataByDate(): void {
+    if (!this.selectedDate) {
+      this.filteredData = [...this.originalData];
       return;
     }
 
-    const weekRange = this.weekDateRanges.get(this.selectedWeek);
-    if (!weekRange) return;
-
     this.filteredData = this.originalData.filter(item => {
-      if (!item.fechaDate) return false;
-      
-      const adjustedDate = new Date(item.fechaDate);
-      adjustedDate.setDate(adjustedDate.getDate() + 1);
-      
-      return adjustedDate >= weekRange.start && adjustedDate <= weekRange.end;
+      if (!item.fecha) return false;
+      const itemDate = new Date(item.fecha);
+      if (isNaN(itemDate.getTime())) return false;
+      const itemDateStr = itemDate.toISOString().split('T')[0];
+      return itemDateStr === this.selectedDate;
+    });
+
+    this.filteredData.sort((a, b) => {
+      const timeA = this.timeToMinutes(a.HORA_ORIGINAL);
+      const timeB = this.timeToMinutes(b.HORA_ORIGINAL);
+      return timeA - timeB;
     });
 
     if (this.chart) {
@@ -327,6 +234,29 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
     } else if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
       this.initChart();
     }
+  }
+
+  private timeToMinutes(timeStr: string): number {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  private preserveOriginalTimes(rawData: any[]): any[] {
+    return rawData
+      .filter(item => item.apartado === 'Frescura por hora')
+      .map(item => {
+        let horaOriginal = '';
+        if (item.hora) {
+          horaOriginal = this.formatTimeToHHMM(item.hora);
+        }
+
+        return {
+          ...item,
+          HORA_ORIGINAL: horaOriginal || '00:00',
+          valor: item.valor !== null ? Number(item.valor) : null,
+          justificacion: item.justificacion || ''
+        };
+      });
   }
 
   private initChart(): void {
@@ -351,36 +281,19 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
       canvas.style.height = `${rect.height}px`;
       ctx.scale(dpr, dpr);
 
-      const labels = this.daysOfWeek;
+      const labels = this.fixedHours;
       
-      const datasets: (BarDataset | LineDataset)[] = this.dataTypes.map((type, index) => {
+      const datasets = this.dataTypes.map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
-        
-        if (index === 1 && this.dataTypes.length > 1) {
-          return {
-            label: type,
-            data: this.mapDataToDaysOfWeek(type),
-            borderColor: color,
-            backgroundColor: 'transparent',
-            borderWidth: 3,
-            tension: 0.4,
-            type: 'line',
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            pointBackgroundColor: color,
-            yAxisID: 'y1'
-          } as LineDataset;
-        }
-        
         return {
           label: type,
-          data: this.mapDataToDaysOfWeek(type),
+          data: this.mapDataToFixedHours(type),
           borderColor: color,
-          backgroundColor: color.replace('1)', '0.5)'),
+          backgroundColor: color.replace('1)', '0.2)'),
           borderWidth: 2,
-          yAxisID: 'y',
-          type: 'bar'
-        } as BarDataset;
+          tension: 0.1,
+          yAxisID: 'y'
+        };
       });
 
       const annotations: ChartAnnotations = {};
@@ -406,7 +319,7 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
       });
 
       this.chart = new Chart(ctx, {
-        type: 'bar' as const,
+        type: 'line',
         data: {
           labels: labels,
           datasets: datasets
@@ -421,33 +334,14 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
               position: 'left',
               title: {
                 display: true,
-                text: this.dataTypes[0] || 'Valores'
+                text: 'Imbibicion'
               },
-              min: 0,
-              ticks: {
-                callback: (value: number | string) => `${value}`
-              }
-            },
-            y1: {
-              type: 'linear',
-              display: this.dataTypes.length > 1,
-              position: 'right',
-              title: {
-                display: true,
-                text: this.dataTypes[1] || 'Valores'
-              },
-              min: 0,
-              grid: {
-                drawOnChartArea: false
-              },
-              ticks: {
-                callback: (value: number | string) => `${value}`
-              }
+              min: 0
             },
             x: {
               title: {
                 display: true,
-                text: 'Días de la semana'
+                text: 'Hora del turno'
               },
               ticks: {
                 autoSkip: false,
@@ -465,32 +359,18 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
                   return `${label}: ${value}`;
                 },
                 afterLabel: (context: any) => {
-                  const dayIndex = context.dataIndex;
-                  const dayName = this.daysOfWeek[dayIndex];
-                  const dataType = context.dataset.label;
+                  const hour = labels[context.dataIndex];
+                  const dataItem = this.findDataItemByHour(hour, context.dataset.label);
                   
-                  const dayData = this.filteredData.filter(item => 
-                    item.dayOfWeek === dayIndex && item.dato === dataType
-                  );
+                  if (!dataItem) return 'No hay datos para esta hora';
                   
-                  if (dayData.length === 0) return 'No hay datos para este día';
-                  
-                  const justificaciones = new Set<string>();
-                  dayData.forEach(item => {
-                    if (item.justificacion) {
-                      justificaciones.add(item.justificacion);
-                    }
-                  });
-                  
-                  const justText = justificaciones.size > 0 
-                    ? Array.from(justificaciones).join('\n') 
-                    : 'No hay justificación registrada';
+                  const justificacion = dataItem.justificacion || 'No hay justificación registrada';
                   
                   return [
                     `─────────────────────`,
-                    `Día: ${dayName}`,
-                    `Justificaciones:`,
-                    `${justText}`
+                    `Hora: ${hour}`,
+                    `Justificación:`,
+                    `${justificacion}`
                   ];
                 }
               },
@@ -525,7 +405,7 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
                 
                 ctx.beginPath();
                 ctx.strokeStyle = limit.color;
-                ctx.lineWidth; 2;
+                ctx.lineWidth = 2;
                 ctx.setLineDash([6, 6]);
                 ctx.moveTo(Math.floor(chartArea.left), yPixel);
                 ctx.lineTo(Math.floor(chartArea.right), yPixel);
@@ -557,77 +437,51 @@ export class PzaJugoMezcladoTierraComponent implements OnInit, AfterViewInit, On
     }
   }
 
-  private mapDataToDaysOfWeek(dataType: string): (number | null)[] {
-    return this.daysOfWeek.map((_, dayIndex) => {
-      const dayData = this.filteredData.filter(item => 
-        item.dayOfWeek === dayIndex && 
-        item.dato === dataType &&
-        item.valor !== null
-      );
-      
-      if (dayData.length === 0) return null;
-      
-      const sum = dayData.reduce((total, item) => total + (item.valor || 0), 0);
-      return sum / dayData.length;
+  private mapDataToFixedHours(dataType: string): (number | null)[] {
+    return this.fixedHours.map(hour => {
+      const dataItem = this.findDataItemByHour(hour, dataType);
+      return dataItem ? dataItem.valor : null;
     });
+  }
+
+  private findDataItemByHour(hour: string, dataType?: string): any | null {
+    const targetMinutes = this.timeToMinutes(hour);
+    let closestItem = null;
+    let smallestDiff = Infinity;
+
+    for (const item of this.filteredData) {
+      if (dataType && item.dato !== dataType) continue;
+      
+      const itemMinutes = this.timeToMinutes(item.HORA_ORIGINAL);
+      const diff = Math.abs(itemMinutes - targetMinutes);
+      
+      if (diff < 30 && diff < smallestDiff) {
+        smallestDiff = diff;
+        closestItem = item;
+      }
+    }
+
+    return closestItem;
   }
 
   public updateChartData(): void {
     if (!this.chart) return;
   
-    const datasets: (BarDataset | LineDataset)[] = this.dataTypes.map((type, index) => {
+    this.chart.data.datasets = this.dataTypes.map((type, index) => {
       const color = this.colorPalette[index % this.colorPalette.length];
-      
-      if (index === 1 && this.dataTypes.length > 1) {
-        return {
-          label: type,
-          data: this.mapDataToDaysOfWeek(type),
-          borderColor: color,
-          backgroundColor: 'transparent',
-          borderWidth: 3,
-          tension: 0.4,
-          type: 'line',
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          pointBackgroundColor: color,
-          yAxisID: 'y1'
-        } as LineDataset;
-      }
-      
       return {
         label: type,
-        data: this.mapDataToDaysOfWeek(type),
+        data: this.mapDataToFixedHours(type),
         borderColor: color,
-        backgroundColor: color.replace('1)', '0.5)'),
+        backgroundColor: color.replace('1)', '0.2)'),
         borderWidth: 2,
-        yAxisID: 'y',
-        type: 'bar'
-      } as BarDataset;
+        tension: 0.1,
+        yAxisID: 'y'
+      };
     });
 
-    this.chart.data.datasets = datasets;
-    
-    // Actualizar configuración de ejes
-    if (this.chart.options?.scales) {
-      // Eje Y izquierdo
-      if (this.chart.options.scales['y']) {
-        (this.chart.options.scales['y'] as any).title = {
-          display: true,
-          text: this.dataTypes[0] || 'Valores'
-        };
-      }
-
-      // Eje Y derecho
-      if (this.chart.options.scales['y1']) {
-        (this.chart.options.scales['y1'] as any).display = this.dataTypes.length > 1;
-        (this.chart.options.scales['y1'] as any).title = {
-          display: true,
-          text: this.dataTypes[1] || 'Valores'
-        };
-      }
-    }
-
     const annotations: ChartAnnotations = {};
+    
     this.limits.forEach(limit => {
       if (limit.value !== null) {
         annotations[`${limit.name}LimitLine`] = {
