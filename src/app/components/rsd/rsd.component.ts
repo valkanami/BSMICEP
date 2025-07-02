@@ -52,7 +52,9 @@ export class RsdComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    
+    { id: 38, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    { id: 39, name: '', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
+    { id: 40, name: '', value: null, color: 'rgba(75, 192, 192, 0.7)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;

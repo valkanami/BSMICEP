@@ -1,4 +1,3 @@
-
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Chart, registerables } from 'chart.js';
@@ -34,13 +33,13 @@ interface Limit {
 }
 
 @Component({
-  selector: 'app-ph-fcr',
+  selector: 'app-ph-tratado',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './ph-fcr.component.html',
-  styleUrls: ['./ph-fcr.component.css']
+  templateUrl: './ph-tratado.component.html',
+  styleUrls: ['./ph-tratado.component.css']
 })
-export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PhTratadoComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
@@ -52,9 +51,7 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 32, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
-    { id: 33, name: '', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
-    { id: 34, name: '', value: null, color: 'rgba(75, 192, 192, 0.7)', axis: 'y', unit: '' },
+    { id: 41, name: '', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -65,10 +62,10 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   private colorPalette = [
-    'rgba(255, 99, 132, 0.7)', 
-    'rgba(54, 162, 235, 0.7)',     
-    'rgba(75, 192, 192, 0.7)',
-    'rgb(86, 255, 213)',     
+    'rgba(255, 99, 132, 1)',    
+    'rgba(54, 162, 235, 1)',     
+    'rgba(255, 206, 86, 1)',     
+    'rgba(75, 192, 192, 1)',
     'rgba(153, 102, 255, 1)',
     'rgba(255, 159, 64, 1)'
   ];
@@ -204,7 +201,7 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
   private extractDataTypes(): void {
     const uniqueTypes = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.dato && item.apartado === 'pH 2hrs') {
+      if (item.dato && item.apartado === 'pH tratado') {
         uniqueTypes.add(item.dato);
       }
     });
@@ -245,7 +242,7 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData
-      .filter(item => item.apartado === 'pH 2hrs')
+      .filter(item => item.apartado === 'pH tratado')
       .map(item => {
         let horaOriginal = '';
         if (item.hora) {
@@ -336,7 +333,7 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: 'Molienda'
+                text: 'Imbibicion'
               },
               min: 0
             },

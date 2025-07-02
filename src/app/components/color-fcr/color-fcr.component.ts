@@ -52,15 +52,16 @@ export class ColorFcrComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    
+    { id: 35, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    { id: 36, name: '', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
+    { id: 37, name: '', value: null, color: 'rgba(75, 192, 192, 0.7)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
-    '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
-    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
-    '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
-    '01:00', '02:00', '03:00', '04:00', '05:00', 
+    '06:00', '08:00', '10:00', '12:00', 
+    '14:00', '16:00', '18:00', '20:00', '22:00', '00:00',
+    '02:00', '04:00', 
   ];
 
   private colorPalette = [
@@ -320,7 +321,7 @@ export class ColorFcrComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
       this.chart = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
           labels: labels,
           datasets: datasets

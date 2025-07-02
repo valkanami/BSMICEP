@@ -50,6 +50,7 @@ import { CortadoresComponent } from '../components/cortadores/cortadores.compone
 import { FrescuraHoraComponent } from '../components/frescura-hora/frescura-hora.component';
 import { PerdidasCosechamientoComponent } from '../components/perdidas-cosechamiento/perdidas-cosechamiento.component';
 import { PhAcmComponent } from '../components/ph-acm/ph-acm.component';
+import { PhTratadoComponent } from '../components/ph-tratado/ph-tratado.component';
 
 
 @Component({
@@ -107,6 +108,7 @@ import { PhAcmComponent } from '../components/ph-acm/ph-acm.component';
     FrescuraHoraComponent,
     PerdidasCosechamientoComponent,
     PhAcmComponent,
+    PhTratadoComponent,
 ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

@@ -78,6 +78,7 @@
           <li (click)="showChart('cortadores')">cortadores</li>
           <li (click)=" showChart('frescura-hora')">frescura-hora</li>
           <li (click)="showChart('perdidas-cosechamiento')">perdidas-cosechamiento</li>
+          <li (click)="showChart('ph-tratado')">ph-tratado</li>
         </ul>
       </li>
     </ul>
@@ -136,5 +137,6 @@
       <app-frescura-hora *ngIf="currentChart === 'frescura-hora'"></app-frescura-hora>
       <app-perdidas-cosechamiento *ngIf="currentChart === 'perdidas-cosechamiento'"></app-perdidas-cosechamiento>
       <app-ph-acm *ngIf="currentChart === 'ph-acm'"></app-ph-acm>
+      <app-ph-tratado *ngIf="currentChart === 'ph-tratado'"></app-ph-tratado>
     </div>
   </div>
