@@ -110,20 +110,20 @@
 
 .limit-line-desmenuzado-color {
   display: inline-block;
-  width: 15px;
-  height: 2px;
-  background-color: rgb(255, 0, 0);
-  margin-right: 8px;
-  border: 1px dashed rgb(255, 0, 0);
+    width: 15px;
+    height: 2px;
+    background-color: rgba(255, 99, 132, 1);
+    margin-right: 8px;
+    border: 1px dashed rgba(255, 99, 132, 1);
 }
 
 .limit-line-mezclado-color {
-  display: inline-block;
-  width: 15px;
-  height: 2px;
-  background-color: rgb(255, 165, 0);
-  margin-right: 8px;
-  border: 1px dashed rgb(255, 165, 0);
+ display: inline-block;
+    width: 15px;
+    height: 2px;
+    background-color: rgba(54, 162, 235, 1);
+    margin-right: 8px;
+    border: 1px dashed rgba(54, 162, 235, 1);
 }
 
 .refresh-btn {

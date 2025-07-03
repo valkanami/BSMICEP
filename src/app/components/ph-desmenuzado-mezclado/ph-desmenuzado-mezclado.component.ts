@@ -49,9 +49,9 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public dataTypes: string[] = ['Desmenuzado', 'Mezclado']; 
+  public dataTypes: string[] = ['Desmenuzado', 'Mezclado', 'Acidez']; 
   public limits: Limit[] = [
-    { id: 11, name: 'Desmenuzado', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 11, name: 'Desmenuzado', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
     { id: 12, name: 'Mezclado', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
@@ -64,9 +64,9 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
   ];
 
   private colorPalette = [
-    'rgba(255, 99, 132, 0.7)', 
-    'rgba(54, 162, 235, 0.7)',     
-    'rgba(75, 192, 192, 0.7)',
+    'rgba(255, 99, 132, 1)', 
+    'rgba(54, 162, 235, 1)',     
+    'rgba(75, 192, 192, 1)',
     'rgb(86, 255, 213)',     
     'rgba(153, 102, 255, 1)',
     'rgba(255, 159, 64, 1)'
@@ -213,7 +213,7 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
       if (isNaN(itemDate.getTime())) return false;
       const itemDateStr = itemDate.toISOString().split('T')[0];
       return itemDateStr === this.selectedDate && 
-             (item.dato === 'Desmenuzado' || item.dato === 'Mezclado');
+             (item.dato === 'Desmenuzado' || item.dato === 'Mezclado' || item.dato === 'Acidez');
     });
 
     this.filteredData.sort((a, b) => {
@@ -237,7 +237,7 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData
       .filter(item => item.apartado === 'pH' && 
-             (item.dato === 'Desmenuzado' || item.dato === 'Mezclado')) 
+             (item.dato === 'Desmenuzado' || item.dato === 'Mezclado' || item.dato === 'Acidez')) 
       .map(item => {
         let horaOriginal = '';
         if (item.hora) {

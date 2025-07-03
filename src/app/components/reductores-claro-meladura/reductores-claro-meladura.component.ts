@@ -51,22 +51,20 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
   public availableDates: string[] = [];
   public dataTypes: string[] = ['Clarificado', 'Meladura']; 
   public limits: Limit[] = [
-    { id: 13, name: 'Clarificado', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 13, name: 'Clarificado', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
     { id: 14, name: 'Meladura', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
-    '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
-    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
-    '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
-    '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
+    '07:00', '11:00', '15:00',
+    '19:00',  '23:00',  '03:00', 
   ];
 
   private colorPalette = [
-    'rgba(255, 99, 132, 0.7)', 
-    'rgba(54, 162, 235, 0.7)',     
-    'rgba(75, 192, 192, 0.7)',
+    'rgba(255, 99, 132, 1)', 
+    'rgba(54, 162, 235, 1)',     
+    'rgba(75, 192, 192, 1)',
     'rgb(86, 255, 213)',     
     'rgba(153, 102, 255, 1)',
     'rgba(255, 159, 64, 1)'
@@ -313,7 +311,7 @@ export class ReductoresClaroMeladuraComponent implements OnInit, AfterViewInit, 
       });
 
       this.chart = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
           labels: labels,
           datasets: datasets

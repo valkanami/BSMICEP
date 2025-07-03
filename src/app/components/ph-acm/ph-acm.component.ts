@@ -51,9 +51,9 @@ export class PhAcmComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableDates: string[] = [];
   public dataTypes: string[] = ['Alcalizado', 'Claro', 'Meladura']; 
   public limits: Limit[] = [
-    { id: 9, name: 'Alcalizado', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
-    { id: 7, name: 'Claro', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
-    { id: 10, name: 'Meladura', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
+    { id: 9, name: 'Alcalizado', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    { id: 7, name: 'Claro', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
+    { id: 10, name: 'Meladura', value: null, color: 'rgba(75, 192, 192, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -65,9 +65,9 @@ export class PhAcmComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   private colorPalette = [
-    'rgba(255, 99, 132, 0.7)', 
-    'rgba(54, 162, 235, 0.7)',     
-    'rgba(75, 192, 192, 0.7)',
+    'rgba(255, 99, 132, 1)', 
+    'rgba(54, 162, 235, 1)',     
+    'rgba(75, 192, 192, 1)',
     'rgb(86, 255, 213)',     
     'rgba(153, 102, 255, 1)',
     'rgba(255, 159, 64, 1)'

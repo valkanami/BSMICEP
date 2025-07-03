@@ -57,7 +57,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableDates: string[] = [];
   public dataTypes: string[] = ['Desmenuzado', 'Mezclado']; 
   public limits: Limit[] = [
-    { id: 5, name: 'Desmenuzado', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 5, name: 'Desmenuzado', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
     { id: 6, name: 'Mezclado', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;

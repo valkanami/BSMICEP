@@ -52,7 +52,7 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 16, name: 'Pureza', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 16, name: 'Pureza', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -62,9 +62,9 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
   ];
 
   private colorPalette = [
-    'rgba(255, 99, 132, 0.7)', 
-    'rgba(54, 162, 235, 0.7)',     
-    'rgba(75, 192, 192, 0.7)',
+    'rgba(255, 99, 132, 1)', 
+    'rgba(54, 162, 235, 1)',     
+    'rgba(75, 192, 192, 1)',
     'rgb(86, 255, 213)',     
     'rgba(153, 102, 255, 1)',
     'rgba(255, 159, 64, 1)'

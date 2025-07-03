@@ -79,8 +79,6 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  gap: 15px;
 }
 
 .data-info li {
@@ -90,31 +88,30 @@
 
 .fundido-color {
   display: inline-block;
-  width: 15px;
-  height: 15px;
-  background-color: rgba(153, 102, 255, 0.7);
-  margin-right: 8px;
-  border: 1px solid rgba(153, 102, 255, 1);
+    width: 15px;
+    height: 2px;
+    background-color: rgba(255, 99, 132, 1);
+    margin-right: 8px;
+    border: 1px dashed rgba(255, 99, 132, 1);
 }
 
 .clarif-color {
   display: inline-block;
-  width: 15px;
-  height: 15px;
-  background-color: rgba(255, 159, 64, 0.7);
-  margin-right: 8px;
-  border: 1px solid rgba(255, 159, 64, 1);
+    width: 15px;
+    height: 2px;
+    background-color: rgba(54, 162, 235, 1);
+    margin-right: 8px;
+    border: 1px dashed rgba(54, 162, 235, 1);
 }
 
 .refinado-color {
   display: inline-block;
-  width: 15px;
-  height: 15px;
-  background-color: rgba(255, 206, 86, 0.7);
-  margin-right: 8px;
-  border: 1px solid rgba(255, 206, 86, 1);
+    width: 15px;
+    height: 2px;
+    background-color: rgba(75, 192, 192, 1);
+    margin-right: 8px;
+    border: 1px dashed rgba(75, 192, 192, 1);
 }
-
 @media (max-width: 768px) {
   .chart-header {
     gap: 10px;

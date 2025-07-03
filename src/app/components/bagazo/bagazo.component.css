@@ -107,18 +107,18 @@
     display: inline-block;
     width: 15px;
     height: 2px;
-    background-color: rgb(255, 0, 0);
+    background-color: rgba(255, 99, 132, 1);
     margin-right: 8px;
-    border: 1px dashed rgb(255, 0, 0);
+    border: 1px dashed rgba(255, 99, 132, 1);
 }
 
 .pol-limit-color {
     display: inline-block;
     width: 15px;
     height: 2px;
-    background-color: rgb(0, 0, 255);
+    background-color: rgba(54, 162, 235, 1);
     margin-right: 8px;
-    border: 1px dashed rgb(0, 0, 255);
+    border: 1px dashed rgba(54, 162, 235, 1);
 }
 
 .refresh-btn {
