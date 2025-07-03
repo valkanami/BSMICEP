@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Chart, registerables } from 'chart.js';
+import { Chart, ChartDataset, registerables, TooltipItem } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -31,6 +31,12 @@ interface Limit {
   axis: string;
   unit: string;
 }
+
+type LineDataset = ChartDataset<'line', (number | null)[]> & {
+  tension: number;
+};
+
+type BarDataset = ChartDataset<'bar', (number | null)[]>;
 
 @Component({
   selector: 'app-reductores',
@@ -206,7 +212,6 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    
     this.filteredData = this.originalData.filter(item => {
       if (!item.fecha) return false;
       const itemDate = new Date(item.fecha);
@@ -277,7 +282,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const labels = this.fixedHours;
       
-      const datasets = this.dataTypes.map((type, index) => {
+      const lineDatasets: LineDataset[] = this.dataTypes.map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
         return {
           label: type,
@@ -286,9 +291,22 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
           backgroundColor: color.replace('1)', '0.2)'),
           borderWidth: 2,
           tension: 0.1,
-          yAxisID: 'y'
+          yAxisID: 'y',
+          type: 'line'
         };
       });
+
+      const barDataset: BarDataset = {
+        label: 'Diferencia',
+        data: this.calculateDifferences(),
+        backgroundColor: 'rgba(169, 169, 169, 0.5)',
+        borderColor: 'rgba(169, 169, 169, 1)',
+        borderWidth: 1,
+        yAxisID: 'y',
+        type: 'bar'
+      };
+
+      const datasets: (LineDataset | BarDataset)[] = [...lineDatasets, barDataset];
 
       const annotations: ChartAnnotations = {};
       
@@ -313,7 +331,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
       this.chart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels: labels,
           datasets: datasets
@@ -347,12 +365,19 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
           plugins: {
             tooltip: {
               callbacks: {
-                label: (context: any) => {
+                label: (context: TooltipItem<'line' | 'bar'>) => {
                   const label = context.dataset.label || '';
-                  const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/D';
-                  return `${label}: ${value}`;
+                  if (label === 'Diferencia') {
+                    const value = context.parsed.y !== null ? Math.abs(context.parsed.y).toFixed(2) : 'N/D';
+                    return `${label}: ${value}`;
+                  } else {
+                    const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/D';
+                    return `${label}: ${value}`;
+                  }
                 },
-                afterLabel: (context: any) => {
+                afterLabel: (context: TooltipItem<'line' | 'bar'>) => {
+                  if (context.dataset.label === 'Diferencia') return undefined;
+                  
                   const hour = labels[context.dataIndex];
                   const dataItem = this.findDataItemByHour(hour, context.dataset.label);
                   
@@ -431,6 +456,18 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private calculateDifferences(): (number | null)[] {
+    if (this.dataTypes.length !== 2) return [];
+
+    const desmenuzadoData = this.mapDataToFixedHours('Desmenuzado');
+    const mezcladoData = this.mapDataToFixedHours('Mezclado');
+
+    return desmenuzadoData.map((val, index) => {
+      if (val === null || mezcladoData[index] === null) return null;
+      return val - mezcladoData[index];
+    });
+  }
+
   private mapDataToFixedHours(dataType: string): (number | null)[] {
     return this.fixedHours.map(hour => {
       const dataItem = this.findDataItemByHour(hour, dataType);
@@ -461,7 +498,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets = this.dataTypes.map((type, index) => {
+    const lineDatasets: LineDataset[] = this.dataTypes.map((type, index) => {
       const color = this.colorPalette[index % this.colorPalette.length];
       return {
         label: type,
@@ -470,9 +507,22 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
         backgroundColor: color.replace('1)', '0.2)'),
         borderWidth: 2,
         tension: 0.1,
-        yAxisID: 'y'
+        yAxisID: 'y',
+        type: 'line'
       };
     });
+
+    const barDataset: BarDataset = {
+      label: 'Diferencia',
+      data: this.calculateDifferences(),
+      backgroundColor: 'rgba(169, 169, 169, 0.5)',
+      borderColor: 'rgba(169, 169, 169, 1)',
+      borderWidth: 1,
+      yAxisID: 'y',
+      type: 'bar'
+    };
+
+    this.chart.data.datasets = [...lineDatasets, barDataset] as ChartDataset[];
 
     const annotations: ChartAnnotations = {};
     
