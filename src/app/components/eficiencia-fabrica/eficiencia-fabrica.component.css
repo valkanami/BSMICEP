@@ -93,6 +93,8 @@
     border: 1px dashed rgba(255, 99, 132, 1);
 }
 
+
+
 @media (max-width: 768px) {
   .chart-controls {
     flex-direction: column;

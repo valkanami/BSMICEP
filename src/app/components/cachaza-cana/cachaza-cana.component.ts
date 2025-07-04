@@ -51,7 +51,8 @@ export class CachazaCanaComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableWeeks: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 20, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    { id: 45, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    { id: 46, name: '', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;

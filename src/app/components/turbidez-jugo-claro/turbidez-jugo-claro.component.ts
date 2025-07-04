@@ -41,7 +41,7 @@ interface Limit {
 })
 export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
-  public chart: Chart | null = null;
+  public chart: Chart<'line' | 'bar', (number | null)[], string> | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
   public originalData: any[] = [];
   public filteredData: any[] = [];
@@ -51,7 +51,7 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 18, name: 'Hume', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 18, name: 'Hume', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -64,8 +64,8 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
 
   private colorPalette = [
     'rgba(255, 99, 132, 1)',    
-    'rgba(54, 162, 235, 1)',     
-    'rgba(255, 206, 86, 1)',     
+    'rgba(54, 162, 235, 0.7)',     
+    'rgba(75, 192, 192, 0.7)',     
     'rgba(75, 192, 192, 1)',
     'rgba(153, 102, 255, 1)',
     'rgba(255, 159, 64, 1)'
@@ -285,14 +285,19 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
       
       const datasets = this.dataTypes.map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
+        const isFirstDataset = index === 0;
+        
         return {
           label: type,
           data: this.mapDataToFixedHours(type),
           borderColor: color,
-          backgroundColor: color.replace('1)', '0.2)'),
-          borderWidth: 2,
-          tension: 0.1,
-          yAxisID: 'y'
+          backgroundColor: color.replace('1)', isFirstDataset ? '0.2)' : '0.7)'),
+          borderWidth: isFirstDataset ? 2 : 0,
+          tension: isFirstDataset ? 0.1 : 0,
+          yAxisID: 'y',
+          type: isFirstDataset ? 'line' : 'bar',
+          barPercentage: isFirstDataset ? undefined : 0.8,
+          categoryPercentage: isFirstDataset ? undefined : 0.9
         };
       });
 
@@ -322,7 +327,7 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
         type: 'line',
         data: {
           labels: labels,
-          datasets: datasets
+          datasets: datasets as any
         },
         options: {
           responsive: true,
@@ -469,15 +474,20 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   
     this.chart.data.datasets = this.dataTypes.map((type, index) => {
       const color = this.colorPalette[index % this.colorPalette.length];
+      const isFirstDataset = index === 0;
+      
       return {
         label: type,
         data: this.mapDataToFixedHours(type),
         borderColor: color,
-        backgroundColor: color.replace('1)', '0.2)'),
-        borderWidth: 2,
-        tension: 0.1,
-        yAxisID: 'y'
-      };
+        backgroundColor: color.replace('1)', isFirstDataset ? '0.2)' : '0.7)'),
+        borderWidth: isFirstDataset ? 2 : 0,
+        tension: isFirstDataset ? 0.1 : 0,
+        yAxisID: 'y',
+        type: isFirstDataset ? 'line' : 'bar',
+        barPercentage: isFirstDataset ? undefined : 0.8,
+        categoryPercentage: isFirstDataset ? undefined : 0.9
+      } as any;
     });
 
     const annotations: ChartAnnotations = {};

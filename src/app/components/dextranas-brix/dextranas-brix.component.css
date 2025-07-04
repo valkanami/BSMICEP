@@ -93,6 +93,15 @@
     border: 1px dashed rgba(255, 99, 132, 1);
 }
 
+.limit-line2-color {
+  display: inline-block;
+    width: 15px;
+    height: 2px;
+    background-color: rgba(255, 99, 132, 1);
+    margin-right: 8px;
+    border: 1px dashed rgba(255, 99, 132, 1);
+}
+
 @media (max-width: 768px) {
   .chart-controls {
     flex-direction: column;

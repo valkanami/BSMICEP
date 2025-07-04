@@ -51,6 +51,9 @@ import { FrescuraHoraComponent } from '../components/frescura-hora/frescura-hora
 import { PerdidasCosechamientoComponent } from '../components/perdidas-cosechamiento/perdidas-cosechamiento.component';
 import { PhAcmComponent } from '../components/ph-acm/ph-acm.component';
 import { PhTratadoComponent } from '../components/ph-tratado/ph-tratado.component';
+import { MasaCocidaComponent } from '../components/masa-cocida/masa-cocida.component';
+import { RendimientoCristalesSemanaComponent } from '../components/rendimiento-cristales-semana/rendimiento-cristales-semana.component';
+import { RecirculacionComponent } from '../components/recirculacion/recirculacion.component';
 
 
 @Component({
@@ -109,6 +112,9 @@ import { PhTratadoComponent } from '../components/ph-tratado/ph-tratado.componen
     PerdidasCosechamientoComponent,
     PhAcmComponent,
     PhTratadoComponent,
+    MasaCocidaComponent,
+    RendimientoCristalesSemanaComponent,
+    RecirculacionComponent,
 ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

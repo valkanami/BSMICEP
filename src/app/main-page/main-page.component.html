@@ -79,6 +79,9 @@
           <li (click)=" showChart('frescura-hora')">frescura-hora</li>
           <li (click)="showChart('perdidas-cosechamiento')">perdidas-cosechamiento</li>
           <li (click)="showChart('ph-tratado')">ph-tratado</li>
+          <li (click)="showChart('masa-cocida')">masa-cocida</li>
+          <li (click)="showChart('rendimiento-cristales-semana')">rendimiento-cristales-semana</li>
+          <li (click)="showChart('recirculacion')">recirculacion</li>
         </ul>
       </li>
     </ul>
@@ -138,5 +141,8 @@
       <app-perdidas-cosechamiento *ngIf="currentChart === 'perdidas-cosechamiento'"></app-perdidas-cosechamiento>
       <app-ph-acm *ngIf="currentChart === 'ph-acm'"></app-ph-acm>
       <app-ph-tratado *ngIf="currentChart === 'ph-tratado'"></app-ph-tratado>
+      <app-masa-cocida *ngIf="currentChart === 'masa-cocida'"></app-masa-cocida>
+      <app-rendimiento-cristales-semana *ngIf="currentChart === 'rendimiento-cristales-semana'"></app-rendimiento-cristales-semana>
+      <app-recirculacion *ngIf="currentChart === 'recirculacion'"></app-recirculacion>
     </div>
   </div>

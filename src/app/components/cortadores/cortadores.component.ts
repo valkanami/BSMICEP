@@ -51,7 +51,7 @@ export class CortadoresComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableWeeks: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 20, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    { id: 47, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
