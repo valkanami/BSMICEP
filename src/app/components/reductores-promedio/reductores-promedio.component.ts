@@ -1,27 +1,8 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Chart, registerables } from 'chart.js';
+import { Chart, registerables, TooltipItem } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-interface LimitLineAnnotation {
-  type: 'line';
-  yMin: number;
-  yMax: number;
-  borderColor: string;
-  borderWidth: number;
-  borderDash: number[];
-  label?: {
-    content: string;
-    enabled: boolean;
-    position: 'start' | 'center' | 'end';
-    backgroundColor: string;
-  };
-}
-
-interface ChartAnnotations {
-  [key: string]: any;
-}
 
 interface Limit {
   id: number;
@@ -51,7 +32,10 @@ export class ReductoresPromedioComponent implements OnInit, AfterViewInit, OnDes
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    
+    { id: 26, name: 'Desmenuzado', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 27, name: 'Mezclado', value: null, color: 'rgb(0, 255, 0)', axis: 'y', unit: '' },
+    { id: 28, name: 'Claro', value: null, color: 'rgb(0, 0, 255)', axis: 'y', unit: '' },
+    { id: 29, name: 'Meladura', value: null, color: 'rgb(255, 0, 255)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -60,17 +44,6 @@ export class ReductoresPromedioComponent implements OnInit, AfterViewInit, OnDes
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
     '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
     '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
-  ];
-
-  private colorPalette = [
-    'rgba(255, 99, 132, 0.7)',
-    'rgba(54, 162, 235, 0.7)',
-    'rgba(75, 192, 192, 0.7)',
-    'rgba(153, 102, 255, 0.7)',
-    'rgba(255, 159, 64, 0.7)',
-    'rgba(86, 255, 213, 0.7)',
-    'rgba(201, 203, 207, 0.7)',
-    'rgba(255, 205, 86, 0.7)'
   ];
 
   constructor(
@@ -283,49 +256,45 @@ export class ReductoresPromedioComponent implements OnInit, AfterViewInit, OnDes
       canvas.style.height = `${rect.height}px`;
       ctx.scale(dpr, dpr);
 
-      const labels = this.dataTypes;
       
-      const datasets = [{
+      const mainDataset = {
+        label: 'Valores de pH',
         data: this.dataTypes.map(type => {
           const dataItem = this.filteredData.find(item => item.dato === type);
           return dataItem ? dataItem.promedio : null;
         }),
-        borderColor: this.dataTypes.map((_, index) => this.colorPalette[index % this.colorPalette.length]),
-        backgroundColor: this.dataTypes.map((_, index) => {
-          const color = this.colorPalette[index % this.colorPalette.length];
-          return color.replace('0.7)', '0.5)').replace('1)', '0.5)');
-        }),
+        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
         borderWidth: 2,
-        yAxisID: 'y'
-      }];
+        yAxisID: 'y',
+        type: 'line' as const,
+        tension: 0.1,
+        pointRadius: 5,
+        pointHoverRadius: 7
+      };
 
-      const annotations: ChartAnnotations = {};
       
-      this.limits.forEach(limit => {
-        if (limit.value !== null) {
-          annotations[`${limit.name}LimitLine`] = {
-            type: 'line',
-            yMin: limit.value,
-            yMax: limit.value,
-            borderColor: limit.color,
-            borderWidth: 2,
-            borderDash: [6, 6],
-            label: {
-              content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
-              enabled: true,
-              position: 'end',
-              backgroundColor: 'rgba(255,255,255,0.8)'
-            },
-            yAxisID: limit.axis
-          };
-        }
-      });
+      const limitsDataset = {
+        label: 'Límites',
+        data: this.limits.map(limit => limit.value),
+        borderColor: 'rgba(255, 99, 132, 1)',
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        borderWidth: 2,
+        borderDash: [5, 5],
+        yAxisID: 'y',
+        type: 'line' as const,
+        tension: 0,
+        pointBackgroundColor: this.limits.map(limit => limit.color),
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        fill: false
+      };
 
       this.chart = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
-          labels: labels,
-          datasets: datasets
+          labels: this.limits.map(limit => limit.name),
+          datasets: [mainDataset, limitsDataset]
         },
         options: {
           responsive: true,
@@ -337,14 +306,14 @@ export class ReductoresPromedioComponent implements OnInit, AfterViewInit, OnDes
               position: 'left',
               title: {
                 display: true,
-                text: 'Molienda'
+                text: 'Valores de pH'
               },
               min: 0
             },
             x: {
               title: {
                 display: true,
-                text: 'Datos de Molienda'
+                text: 'Etapas de Proceso'
               },
               ticks: {
                 autoSkip: false,
@@ -356,28 +325,39 @@ export class ReductoresPromedioComponent implements OnInit, AfterViewInit, OnDes
           plugins: {
             tooltip: {
               callbacks: {
-                label: (context: any) => {
+                label: (context: TooltipItem<'line'>) => {
+                  const datasetLabel = context.dataset.label || '';
                   const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/D';
-                  return `Valor: ${value}`;
+                  
+                  if (datasetLabel === 'Límites') {
+                    const limit = this.limits[context.dataIndex];
+                    return `Límite ${limit?.name || ''}: ${value}`;
+                  } else {
+                    const dataType = this.dataTypes[context.dataIndex];
+                    return `${dataType}: ${value}`;
+                  }
                 },
-                afterLabel: (context: any) => {
-                  const dataType = labels[context.dataIndex];
-                  const dataItem = this.filteredData.find(item => item.dato === dataType);
-                  
-                  if (!dataItem) return 'No hay datos para este tipo';
-                  
-                  const hora = dataItem.HORA_ORIGINAL || 'Hora desconocida';
-                  const justificacion = dataItem.justificacion || 'No hay justificación registrada';
-                  
-                  return [
-                    `─────────────────────`,
-                    `Hora: ${hora}`,
-                    `Justificación:`,
-                    `${justificacion}`
-                  ];
+                afterLabel: (context: TooltipItem<'line'>) => {
+                  if (context.datasetIndex === 0) {
+                    const dataType = this.dataTypes[context.dataIndex];
+                    const dataItem = this.filteredData.find(item => item.dato === dataType);
+                    
+                    if (!dataItem) return 'No hay datos para este tipo';
+                    
+                    const hora = dataItem.HORA_ORIGINAL || 'Hora desconocida';
+                    const justificacion = dataItem.justificacion || 'No hay justificación registrada';
+                    
+                    return [
+                      `─────────────────────`,
+                      `Hora: ${hora}`,
+                      `Justificación:`,
+                      `${justificacion}`
+                    ];
+                  }
+                  return undefined;
                 }
               },
-              displayColors: false,
+              displayColors: true,
               backgroundColor: 'rgba(0, 0, 0, 0.8)',
               titleFont: { size: 14, weight: 'bold' },
               bodyFont: { size: 12 },
@@ -385,52 +365,14 @@ export class ReductoresPromedioComponent implements OnInit, AfterViewInit, OnDes
               bodySpacing: 4
             },
             legend: {
-              display: false 
-            },
-            annotation: {
-              annotations: annotations
+              display: true,
+              position: 'top',
+              labels: {
+                boxWidth: 12
+              }
             }
           }
-        },
-        plugins: [{
-          id: 'limitLine',
-          beforeDraw: (chart: any) => {
-            const {ctx, chartArea, scales} = chart;
-            
-            if (!ctx || !chartArea || !scales?.['y']) return;
-            
-            ctx.save();
-            ctx.translate(0.5, 0.5);
-            
-            this.limits.forEach(limit => {
-              if (limit.value !== null && scales[limit.axis]) {
-                const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
-                
-                ctx.beginPath();
-                ctx.strokeStyle = limit.color;
-                ctx.lineWidth = 2;
-                ctx.setLineDash([6, 6]);
-                ctx.moveTo(Math.floor(chartArea.left), yPixel);
-                ctx.lineTo(Math.floor(chartArea.right), yPixel);
-                ctx.stroke();
-                
-                ctx.fillStyle = 'rgba(255,255,255,0.8)';
-                ctx.fillRect(
-                  Math.floor(chartArea.right - 150), 
-                  Math.floor(yPixel - 15), 
-                  150, 
-                  20
-                );
-                
-                ctx.fillStyle = limit.color;
-                ctx.textAlign = 'right';
-                ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
-              }
-            });
-            
-            ctx.restore();
-          }
-        }]
+        }
       });
 
     } catch (error) {
@@ -442,48 +384,44 @@ export class ReductoresPromedioComponent implements OnInit, AfterViewInit, OnDes
 
   public updateChartData(): void {
     if (!this.chart) return;
-  
-    this.chart.data.labels = this.dataTypes;
-    this.chart.data.datasets = [{
+
+    // Actualizar dataset principal
+    this.chart.data.datasets[0] = {
+      label: 'Valores de pH',
       data: this.dataTypes.map(type => {
         const dataItem = this.filteredData.find(item => item.dato === type);
         return dataItem ? dataItem.promedio : null;
       }),
-      borderColor: this.dataTypes.map((_, index) => this.colorPalette[index % this.colorPalette.length]),
-      backgroundColor: this.dataTypes.map((_, index) => {
-        const color = this.colorPalette[index % this.colorPalette.length];
-        return color.replace('0.7)', '0.5)').replace('1)', '0.5)');
-      }),
+      borderColor: 'rgba(54, 162, 235, 1)',
+      backgroundColor: 'rgba(54, 162, 235, 0.5)',
       borderWidth: 2,
-      yAxisID: 'y'
-    }];
+      yAxisID: 'y',
+      type: 'line',
+      tension: 0.1,
+      pointRadius: 5,
+      pointHoverRadius: 7
+    };
 
-    const annotations: ChartAnnotations = {};
-    
-    this.limits.forEach(limit => {
-      if (limit.value !== null) {
-        annotations[`${limit.name}LimitLine`] = {
-          type: 'line',
-          yMin: limit.value,
-          yMax: limit.value,
-          borderColor: limit.color,
-          borderWidth: 2,
-          borderDash: [6, 6],
-          label: {
-            content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
-            enabled: true,
-            position: 'end',
-            backgroundColor: 'rgba(255,255,255,0.8)'
-          },
-          yAxisID: limit.axis
-        };
-      }
-    });
+    // Actualizar dataset de límites
+    this.chart.data.datasets[1] = {
+      label: 'Límites',
+      data: this.limits.map(limit => limit.value),
+      borderColor: 'rgba(255, 99, 132, 1)',
+      backgroundColor: 'rgba(255, 99, 132, 0.5)',
+      borderWidth: 2,
+      borderDash: [5, 5],
+      yAxisID: 'y',
+      type: 'line',
+      tension: 0,
+      pointBackgroundColor: this.limits.map(limit => limit.color),
+      pointRadius: 6,
+      pointHoverRadius: 8,
+      fill: false
+    };
 
-    if (this.chart.options?.plugins?.annotation) {
-      this.chart.options.plugins.annotation.annotations = annotations;
-    }
-  
+    // Actualizar labels
+    this.chart.data.labels = this.limits.map(limit => limit.name);
+
     this.chart.update();
   }
 
