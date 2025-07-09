@@ -41,6 +41,7 @@ interface Limit {
 })
 export class ConsumoGralAguaComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef<HTMLDivElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
   public originalData: any[] = [];
@@ -49,7 +50,7 @@ export class ConsumoGralAguaComponent implements OnInit, AfterViewInit, OnDestro
   public errorMessage: string = '';
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    // Aquí puedes mantener tus límites si los necesitas
+    
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -140,12 +141,17 @@ export class ConsumoGralAguaComponent implements OnInit, AfterViewInit, OnDestro
       if (isNaN(date.getTime())) {
         return dateString;
       }
+      // Sumar un día a la fecha
+      date.setDate(date.getDate() + 1);
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       return `${day}/${month}`;
     } else if (dateString instanceof Date) {
-      const day = dateString.getDate().toString().padStart(2, '0');
-      const month = (dateString.getMonth() + 1).toString().padStart(2, '0');
+      // Sumar un día a la fecha
+      const newDate = new Date(dateString);
+      newDate.setDate(newDate.getDate() + 1);
+      const day = newDate.getDate().toString().padStart(2, '0');
+      const month = (newDate.getMonth() + 1).toString().padStart(2, '0');
       return `${day}/${month}`;
     }
     return '';
@@ -226,13 +232,14 @@ export class ConsumoGralAguaComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   private initChart(): void {
-    if (!this.isBrowser || !this.chartCanvas?.nativeElement) return;
+    if (!this.isBrowser || !this.chartCanvas?.nativeElement || !this.chartContainer?.nativeElement) return;
 
     this.destroyChart();
 
     try {
       const canvas = this.chartCanvas.nativeElement;
       const ctx = canvas.getContext('2d');
+      const container = this.chartContainer.nativeElement;
       
       if (!ctx) {
         throw new Error('No se pudo obtener el contexto del canvas');
@@ -428,6 +435,13 @@ export class ConsumoGralAguaComponent implements OnInit, AfterViewInit, OnDestro
           }
         }]
       });
+
+      // Desplazar al final del gráfico después de que se renderice
+      setTimeout(() => {
+        if (container && container.scrollWidth > container.clientWidth) {
+          container.scrollLeft = container.scrollWidth - container.clientWidth;
+        }
+      }, 100);
 
     } catch (error) {
       console.error('Error al crear el gráfico:', error);
