@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Chart, registerables } from 'chart.js';
-import zoomPlugin from 'chartjs-plugin-zoom';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -70,7 +69,7 @@ export class ConsumoGralAguaComponent implements OnInit, AfterViewInit, OnDestro
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
     if (this.isBrowser) {
-      Chart.register(...registerables, zoomPlugin);
+      Chart.register(...registerables);
     }
   }
 
@@ -239,13 +238,21 @@ export class ConsumoGralAguaComponent implements OnInit, AfterViewInit, OnDestro
         throw new Error('No se pudo obtener el contexto del canvas');
       }
       
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
+      // Configuración de tamaño basada en 10 datos visibles inicialmente
+      const visibleDataPoints = 10;
+      const baseWidthPerPoint = 80; // px por dato para vista inicial
+      const scrollWidthPerPoint = 30; // px por dato cuando hay scroll
       
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
+      const showScroll = this.filteredData.length > visibleDataPoints;
+      const chartWidth = showScroll 
+        ? this.filteredData.length * scrollWidthPerPoint 
+        : Math.max(this.filteredData.length * baseWidthPerPoint, 800);
+      
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = chartWidth * dpr;
+      canvas.height = 400 * dpr;
+      canvas.style.width = `${chartWidth}px`;
+      canvas.style.height = `400px`;
       ctx.scale(dpr, dpr);
 
       const uniqueDates = [...new Set(this.filteredData.map(item => item.formattedDate))];
@@ -330,22 +337,6 @@ export class ConsumoGralAguaComponent implements OnInit, AfterViewInit, OnDestro
             }
           },
           plugins: {
-            zoom: {
-              pan: {
-                enabled: true,
-                mode: 'x',
-                modifierKey: 'shift'
-              },
-              zoom: {
-                wheel: {
-                  enabled: true,
-                },
-                pinch: {
-                  enabled: true
-                },
-                mode: 'x',
-              }
-            },
             tooltip: {
               callbacks: {
                 label: (context: any) => {

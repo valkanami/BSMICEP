@@ -10,9 +10,11 @@
 
 .chart-header {
   display: flex;
-  flex-direction: column;
-  gap: 15px;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .chart-header h2 {
@@ -23,26 +25,35 @@
 
 .chart-controls {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 15px;
 }
 
-.date-selector {
+.refresh-button {
+  padding: 6px 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
+  transition: background-color 0.3s;
 }
 
-.date-selector label {
-  font-weight: 500;
-  font-size: 0.9rem;
+.refresh-button:hover {
+  background-color: #45a049;
 }
 
-.date-selector select {
-  padding: 5px 10px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 0.9rem;
+.refresh-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .api-status {
@@ -62,10 +73,19 @@
   color: #721c24;
 }
 
+.chart-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 4px;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .chart-wrapper {
   position: relative;
   height: 400px;
-  width: 100%;
+  width: fit-content;
+  min-width: 100%;
 }
 
 .chart-footer {
@@ -76,27 +96,65 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .data-info li {
   display: flex;
   align-items: center;
   margin-bottom: 5px;
+  font-size: 0.9rem;
 }
 
 .limit-line-color {
   display: inline-block;
-    width: 15px;
-    height: 2px;
-    background-color: rgba(255, 99, 132, 1);
-    margin-right: 8px;
-    border: 1px dashed rgba(255, 99, 132, 1);
+  width: 15px;
+  height: 2px;
+  margin-right: 8px;
+  border: 1px dashed;
+}
+
+/* Scrollbar styling */
+.chart-scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.chart-scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.chart-scroll-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.chart-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 @media (max-width: 768px) {
-  .chart-controls {
+  .chart-container {
+    padding: 15px;
+  }
+  
+  .chart-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+  }
+  
+  .chart-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .chart-wrapper {
+    height: 350px;
+  }
+  
+  .data-info ul {
+    flex-direction: column;
+    gap: 8px;
   }
 }
