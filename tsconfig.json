@@ -16,7 +16,13 @@
     "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
-    "module": "ES2022"
+    "module": "ES2022",
+    "types": [
+      "jasmine",
+      "node",
+      "chart.js",
+      "express"
+    ]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
@@ -24,4 +30,6 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true
   }
+
+  
 }
