@@ -1,10 +1,8 @@
 <div class="container">
- 
   <button class="floating-toggle-btn" (click)="toggleSidebar()">
     {{ isSidebarHidden ? '☰' : '✕' }}
   </button>
 
-  
   <div class="sidebar" [class.hidden]="isSidebarHidden">
     <div class="sidebar-header">
       <span class="sidebar-title">Menú</span>
@@ -82,6 +80,18 @@
           <li (click)="showChart('masa-cocida')">masa-cocida</li>
           <li (click)="showChart('rendimiento-cristales-semana')">rendimiento-cristales-semana</li>
           <li (click)="showChart('recirculacion')">recirculacion</li>
+          <li (click)="showChart('comparativo-abl')">Comparativo ABL</li>
+          <li (click)="showChart('comparativo-ton-solidos')">Comparativo Ton Sólidos</li>
+          <li (click)="showChart('consumo-bagazo-astilla')">Consumo Bagazo/Astilla</li>
+          <li (click)="showChart('consumo-agua-m3')">Consumo Agua m3</li>
+          <li (click)="showChart('consumo-agua-lts')">Consumo Agua lts</li>
+          <li (click)="showChart('consumo-gral-agua')">Consumo General Agua</li>
+          <li (click)="showChart('descarga-gral-agua')">Descarga General Agua</li>
+          <li (click)="showChart('pol-descarga-fabrica')">POL Descarga Fábrica</li>
+          <li (click)="showChart('ph-descarga-fabrica')">PH Descarga Fábrica</li>
+          <li (click)="showChart('pol-agua-torre')">POL Agua Torre</li>
+          <li (click)="showChart('ph-agua-torre')">PH Agua Torre</li>
+
         </ul>
       </li>
     </ul>
@@ -144,5 +154,17 @@
       <app-masa-cocida *ngIf="currentChart === 'masa-cocida'"></app-masa-cocida>
       <app-rendimiento-cristales-semana *ngIf="currentChart === 'rendimiento-cristales-semana'"></app-rendimiento-cristales-semana>
       <app-recirculacion *ngIf="currentChart === 'recirculacion'"></app-recirculacion>
+      <app-comparativo-abl *ngIf="currentChart === 'comparativo-abl'"></app-comparativo-abl>
+      <app-comparativo-ton-solidos *ngIf="currentChart === 'comparativo-ton-solidos'"></app-comparativo-ton-solidos>
+      <app-consumo-bagazo-astilla *ngIf="currentChart === 'consumo-bagazo-astilla'"></app-consumo-bagazo-astilla>
+      <app-consumo-agua-m3 *ngIf="currentChart === 'consumo-agua-m3'"></app-consumo-agua-m3>
+      <app-consumo-agua-lts *ngIf="currentChart === 'consumo-agua-lts'"></app-consumo-agua-lts>
+      <app-consumo-gral-agua *ngIf="currentChart === 'consumo-gral-agua'"></app-consumo-gral-agua>
+      <app-descarga-gral-agua *ngIf="currentChart === 'descarga-gral-agua'"></app-descarga-gral-agua>
+      <app-pol-descarga-fabrica *ngIf="currentChart === 'pol-descarga-fabrica'"></app-pol-descarga-fabrica>
+      <app-ph-descarga-fabrica *ngIf="currentChart === 'ph-descarga-fabrica'"></app-ph-descarga-fabrica>
+      <app-pol-agua-torre *ngIf="currentChart === 'pol-agua-torre'"></app-pol-agua-torre>
+      <app-ph-agua-torre *ngIf="currentChart === 'ph-agua-torre'"></app-ph-agua-torre>
     </div>
   </div>
+</div>

@@ -54,6 +54,17 @@ import { PhTratadoComponent } from '../components/ph-tratado/ph-tratado.componen
 import { MasaCocidaComponent } from '../components/masa-cocida/masa-cocida.component';
 import { RendimientoCristalesSemanaComponent } from '../components/rendimiento-cristales-semana/rendimiento-cristales-semana.component';
 import { RecirculacionComponent } from '../components/recirculacion/recirculacion.component';
+import { ComparativoAblComponent } from '../components/comparativo-abl/comparativo-abl.component';
+import { ComparativoTonSolidosComponent } from '../components/comparativo-ton-solidos/comparativo-ton-solidos.component';
+import { ConsumoBagazoAstillaComponent } from '../components/consumo-bagazo-astilla/consumo-bagazo-astilla.component';
+import { ConsumoAguaM3Component } from '../components/consumo-agua-m3/consumo-agua-m3.component';
+import { ConsumoAguaLtsComponent } from '../components/consumo-agua-lts/consumo-agua-lts.component';
+import { ConsumoGralAguaComponent } from '../components/consumo-gral-agua/consumo-gral-agua.component';
+import { DescargaGralAguaComponent } from '../components/descarga-gral-agua/descarga-gral-agua.component';
+import { PolDescargaFabricaComponent } from '../components/pol-descarga-fabrica/pol-descarga-fabrica.component';
+import { PhDescargaFabricaComponent } from '../components/ph-descarga-fabrica/ph-descarga-fabrica.component';
+import { PolAguaTorreComponent } from '../components/pol-agua-torre/pol-agua-torre.component';
+import { PhAguaTorreComponent } from '../components/ph-agua-torre/ph-agua-torre.component';
 
 
 @Component({
@@ -115,6 +126,17 @@ import { RecirculacionComponent } from '../components/recirculacion/recirculacio
     MasaCocidaComponent,
     RendimientoCristalesSemanaComponent,
     RecirculacionComponent,
+    ComparativoAblComponent,
+    ComparativoTonSolidosComponent,
+    ConsumoBagazoAstillaComponent,
+    ConsumoAguaM3Component,
+    ConsumoAguaLtsComponent,
+    ConsumoGralAguaComponent,
+    DescargaGralAguaComponent,
+    PolDescargaFabricaComponent,
+    PhDescargaFabricaComponent,
+    PolAguaTorreComponent,
+    PhAguaTorreComponent
 ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

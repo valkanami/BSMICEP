@@ -1,1 +1,34 @@
-<p>comparativo-ton-solidos works!</p>
+<div class="dashboard-container">
+  <!-- Sección de Ton Solidos -->
+  <div class="ton-solidos-display" *ngIf="tonSolidosValue !== null">
+    <h3>Ton Solidos</h3>
+    <div class="value">{{ tonSolidosValue }}</div>
+    <div class="time">Hora: {{ tonSolidosTime }}</div>
+    <div class="justification">Justificación: {{ tonSolidosJustification }}</div>
+  </div>
+
+  <!-- Sección del Gráfico -->
+  <div class="chart-container">
+    <div class="chart-header">
+      <h2>Rendimiento de Cristales por Día</h2>
+      <div class="chart-controls">
+        <div class="date-selector">
+          <label for="dateFilter">Filtrar por fecha:</label>
+          <select id="dateFilter" [(ngModel)]="selectedDate" (change)="filterDataByDate()">
+            <option *ngFor="let date of availableDates" [value]="date">{{ date }}</option>
+          </select>
+        </div>
+        <div class="api-status" [ngClass]="{
+          'status-success': apiConnectionStatus.includes('exitoso'),
+          'status-error': apiConnectionStatus.includes('Error')
+        }">
+          {{ apiConnectionStatus }}
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-wrapper">
+      <canvas #chartCanvas></canvas>
+    </div>
+  </div>
+</div>
