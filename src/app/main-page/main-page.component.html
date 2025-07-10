@@ -97,6 +97,11 @@
           <li (click)="showChart('cana-mayor')">cana-mayor</li>
           <li (click)="showChart('cana-accidentada')">cana-accidentada</li>
           <li (click)="showChart('cana-corralon')">cana-corralon</li>
+          <li (click)="showChart('fibra-pol')">fibra-pol</li>
+          <li (click)="showChart('ton-pol-cachaza')">ton-pol-cachaza</li>
+          <li (click)="showChart('color-icumsa')">color-icumsa</li>
+          <li (click)="showChart('silos')">silos </li>
+          <li (click)="showChart('tamano-grano')">tamano-grano</li>
         </ul>
       </li>
     </ul>
@@ -176,6 +181,11 @@
       <app-cana-mayor *ngIf="currentChart === 'cana-mayor'"></app-cana-mayor>
       <app-cana-accidentada *ngIf="currentChart === 'cana-accidentada'"></app-cana-accidentada>
       <app-cana-corralon *ngIf="currentChart === 'cana-corralon'"></app-cana-corralon>
+      <app-fibra-pol *ngIf="currentChart === 'fibra-pol'"></app-fibra-pol>
+      <app-ton-pol-cachaza *ngIf="currentChart === 'ton-pol-cachaza'"></app-ton-pol-cachaza>
+      <app-color-icumsa *ngIf="currentChart === 'color-icumsa'"></app-color-icumsa>
+      <app-silos *ngIf="currentChart === 'silos'"></app-silos>
+      <app-tamano-grano *ngIf="currentChart === 'tamano-grano'"></app-tamano-grano>
     </div>
   </div>
 </div>

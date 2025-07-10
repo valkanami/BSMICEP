@@ -33,13 +33,13 @@ interface Limit {
 }
 
 @Component({
-  selector: 'app-cana-corralon',
+  selector: 'app-silos',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './cana-corralon.component.html',
-  styleUrls: ['./cana-corralon.component.css']
+  templateUrl: './silos.component.html',
+  styleUrls: ['./silos.component.css']
 })
-export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
+export class SilosComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef<HTMLDivElement>;
   public chart: Chart | null = null;
@@ -50,7 +50,7 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
   public errorMessage: string = '';
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-        { id: 47, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -184,7 +184,7 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData
-      .filter(item => item.apartado === 'Caña en corralón')
+      .filter(item => item.apartado === 'Silos de azúcar')
       .map(item => {
         let horaOriginal = '';
         if (item.hora) {
@@ -224,7 +224,7 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
   private extractDataTypes(): void {
     const uniqueTypes = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.dato && item.apartado === 'Caña en corralón') {
+      if (item.dato && item.apartado === 'Silos de azúcar') {
         uniqueTypes.add(item.dato);
       }
     });

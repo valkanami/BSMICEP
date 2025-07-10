@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Chart, registerables } from 'chart.js';
+import { Chart, registerables, ChartType } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -33,13 +33,13 @@ interface Limit {
 }
 
 @Component({
-  selector: 'app-cana-corralon',
+  selector: 'app-tamano-grano',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './cana-corralon.component.html',
-  styleUrls: ['./cana-corralon.component.css']
+  templateUrl: './tamano-grano.component.html',
+  styleUrls: ['./tamano-grano.component.css']
 })
-export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
+export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef<HTMLDivElement>;
   public chart: Chart | null = null;
@@ -49,9 +49,7 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
   public isBrowser: boolean;
   public errorMessage: string = '';
   public dataTypes: string[] = [];
-  public limits: Limit[] = [
-        { id: 47, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
-  ];
+  public limits: Limit[] = [];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
 
@@ -141,13 +139,11 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
       if (isNaN(date.getTime())) {
         return dateString;
       }
-      // Sumar un día a la fecha
       date.setDate(date.getDate() + 1);
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       return `${day}/${month}`;
     } else if (dateString instanceof Date) {
-      // Sumar un día a la fecha
       const newDate = new Date(dateString);
       newDate.setDate(newDate.getDate() + 1);
       const day = newDate.getDate().toString().padStart(2, '0');
@@ -184,7 +180,7 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData
-      .filter(item => item.apartado === 'Caña en corralón')
+      .filter(item => item.apartado === 'Caña accidentada')
       .map(item => {
         let horaOriginal = '';
         if (item.hora) {
@@ -224,7 +220,7 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
   private extractDataTypes(): void {
     const uniqueTypes = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.dato && item.apartado === 'Caña en corralón') {
+      if (item.dato && item.apartado === 'Caña accidentada') {
         uniqueTypes.add(item.dato);
       }
     });
@@ -245,10 +241,9 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
         throw new Error('No se pudo obtener el contexto del canvas');
       }
       
-
       const visibleDataPoints = 10;
-      const baseWidthPerPoint = 80; 
-      const scrollWidthPerPoint = 30; 
+      const baseWidthPerPoint = 80;
+      const scrollWidthPerPoint = 30;
       
       const showScroll = this.filteredData.length > visibleDataPoints;
       const chartWidth = showScroll 
@@ -278,15 +273,32 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
           return sum / itemsForDate.length;
         });
 
-        return {
-          label: type,
-          data: data,
-          borderColor: color,
-          backgroundColor: color.replace('1)', '0.2)'),
-          borderWidth: 2,
-          tension: 0.1,
-          yAxisID: 'y'
-        };
+        const isFirstDataset = index === 0;
+        
+        if (isFirstDataset) {
+          return {
+            label: type,
+            data: data,
+            borderColor: color,
+            backgroundColor: color,
+            borderWidth: 1,
+            yAxisID: 'y',
+            type: 'bar' as const,
+            barPercentage: 0.8,
+            categoryPercentage: 0.9
+          };
+        } else {
+          return {
+            label: type,
+            data: data,
+            borderColor: color,
+            backgroundColor: color.replace('1)', '0.2)'),
+            borderWidth: 2,
+            tension: 0.1,
+            yAxisID: 'y',
+            type: 'line' as const
+          };
+        }
       });
 
       const annotations: ChartAnnotations = {};
@@ -329,7 +341,8 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
                 display: true,
                 text: 'Consumo de agua (lts)'
               },
-              min: 0
+              min: 0,
+              stacked: false
             },
             x: {
               title: {
@@ -340,6 +353,9 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
                 autoSkip: false,
                 maxRotation: 45,
                 minRotation: 45
+              },
+              grid: {
+                offset: true
               }
             }
           },
@@ -411,7 +427,7 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
                 
                 ctx.beginPath();
                 ctx.strokeStyle = limit.color;
-                ctx.lineWidth = 2;
+                ctx.lineWidth; 2
                 ctx.setLineDash([6, 6]);
                 ctx.moveTo(Math.floor(chartArea.left), yPixel);
                 ctx.lineTo(Math.floor(chartArea.right), yPixel);
@@ -436,7 +452,6 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
         }]
       });
 
-      // Desplazar al final del gráfico después de que se renderice
       setTimeout(() => {
         if (container && container.scrollWidth > container.clientWidth) {
           container.scrollLeft = container.scrollWidth - container.clientWidth;

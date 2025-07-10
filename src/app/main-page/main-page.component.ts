@@ -71,7 +71,11 @@ import { TonCanaImbibicionComponent } from '../components/ton-cana-imbibicion/to
 import { CanaMayorComponent } from '../components/cana-mayor/cana-mayor.component';
 import { CanaAccidentadaComponent } from '../components/cana-accidentada/cana-accidentada.component';
 import { CanaCorralonComponent } from '../components/cana-corralon/cana-corralon.component';
-
+import { FibraPolComponent } from '../components/fibra-pol/fibra-pol.component';
+import { TonPolCachazaComponent } from '../components/ton-pol-cachaza/ton-pol-cachaza.component';
+import { ColorIcumsaComponent } from '../components/color-icumsa/color-icumsa.component';
+import { SilosComponent } from '../components/silos/silos.component';
+import { TamanoGranoComponent } from '../components/tamano-grano/tamano-grano.component';
 @Component({
   selector: 'app-main-page',
   standalone: true,
@@ -148,6 +152,11 @@ import { CanaCorralonComponent } from '../components/cana-corralon/cana-corralon
     CanaMayorComponent,
     CanaAccidentadaComponent,
     CanaCorralonComponent,
+    FibraPolComponent,
+    TonPolCachazaComponent,
+    ColorIcumsaComponent,
+    SilosComponent,
+    TamanoGranoComponent
 
 ],
   templateUrl: './main-page.component.html',

@@ -33,13 +33,13 @@ interface Limit {
 }
 
 @Component({
-  selector: 'app-cana-corralon',
+  selector: 'app-color-icumsa',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './cana-corralon.component.html',
-  styleUrls: ['./cana-corralon.component.css']
+  templateUrl: './color-icumsa.component.html',
+  styleUrls: ['./color-icumsa.component.css']
 })
-export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ColorIcumsaComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef<HTMLDivElement>;
   public chart: Chart | null = null;
@@ -59,8 +59,7 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
     'rgba(255, 99, 132, 0.7)', 
     'rgba(54, 162, 235, 0.7)',     
     'rgba(75, 192, 192, 0.7)',
-    'rgb(86, 255, 213)',     
-    'rgba(153, 102, 255, 1)',
+    'rgba(153, 102, 255, 0.7)',     
     'rgba(255, 159, 64, 1)'
   ];
 
@@ -184,7 +183,7 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData
-      .filter(item => item.apartado === 'Caña en corralón')
+      .filter(item => item.apartado === 'Color icumsa')
       .map(item => {
         let horaOriginal = '';
         if (item.hora) {
@@ -224,7 +223,7 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
   private extractDataTypes(): void {
     const uniqueTypes = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.dato && item.apartado === 'Caña en corralón') {
+      if (item.dato && item.apartado === 'Color icumsa') {
         uniqueTypes.add(item.dato);
       }
     });
@@ -312,7 +311,7 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
       this.chart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels: uniqueDates,
           datasets: datasets
