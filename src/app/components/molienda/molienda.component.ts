@@ -52,7 +52,7 @@ export class MoliendaComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 3, name: 'Molienda', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 3, name: '', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;

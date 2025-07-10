@@ -51,7 +51,7 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 18, name: 'Hume', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    { id: 18, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;

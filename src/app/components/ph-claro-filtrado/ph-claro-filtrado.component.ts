@@ -51,8 +51,8 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
   public availableDates: string[] = [];
   public dataTypes: string[] = ['Claro', 'Filtrado']; 
   public limits: Limit[] = [
-    { id: 7, name: 'Claro', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
-    { id: 8, name: 'Filtrado', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
+    { id: 7, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    { id: 8, name: '', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -328,7 +328,7 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
               position: 'left',
               title: {
                 display: true,
-                text: 'Turbidez (NTU)'
+                text: 'pH'
               },
               min: 0
             },

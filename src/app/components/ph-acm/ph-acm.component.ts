@@ -51,9 +51,9 @@ export class PhAcmComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableDates: string[] = [];
   public dataTypes: string[] = ['Alcalizado', 'Claro', 'Meladura']; 
   public limits: Limit[] = [
-    { id: 9, name: 'Alcalizado', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
-    { id: 7, name: 'Claro', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
-    { id: 10, name: 'Meladura', value: null, color: 'rgba(75, 192, 192, 1)', axis: 'y', unit: '' },
+    { id: 9, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    { id: 7, name: '', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
+    { id: 10, name: '', value: null, color: 'rgba(75, 192, 192, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -329,7 +329,7 @@ export class PhAcmComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: 'Turbidez (NTU)'
+                text: 'pH'
               },
               min: 0
             },

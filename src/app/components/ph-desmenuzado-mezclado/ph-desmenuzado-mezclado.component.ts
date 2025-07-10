@@ -51,8 +51,8 @@ export class PhDesmenuzadoMezcladoComponent implements OnInit, AfterViewInit, On
   public availableDates: string[] = [];
   public dataTypes: string[] = ['Desmenuzado', 'Mezclado', 'Acidez']; 
   public limits: Limit[] = [
-    { id: 11, name: 'Desmenuzado', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
-    { id: 12, name: 'Mezclado', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
+    { id: 11, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    { id: 12, name: '', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
