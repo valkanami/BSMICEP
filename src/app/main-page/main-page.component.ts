@@ -65,7 +65,12 @@ import { PolDescargaFabricaComponent } from '../components/pol-descarga-fabrica/
 import { PhDescargaFabricaComponent } from '../components/ph-descarga-fabrica/ph-descarga-fabrica.component';
 import { PolAguaTorreComponent } from '../components/pol-agua-torre/pol-agua-torre.component';
 import { PhAguaTorreComponent } from '../components/ph-agua-torre/ph-agua-torre.component';
-
+import { TonPolPerdidasComponent } from '../components/ton-pol-perdidas/ton-pol-perdidas.component';
+import { FrescuraRsdComponent } from '../components/frescura-rsd/frescura-rsd.component';
+import { TonCanaImbibicionComponent } from '../components/ton-cana-imbibicion/ton-cana-imbibicion.component';
+import { CanaMayorComponent } from '../components/cana-mayor/cana-mayor.component';
+import { CanaAccidentadaComponent } from '../components/cana-accidentada/cana-accidentada.component';
+import { CanaCorralonComponent } from '../components/cana-corralon/cana-corralon.component';
 
 @Component({
   selector: 'app-main-page',
@@ -136,7 +141,14 @@ import { PhAguaTorreComponent } from '../components/ph-agua-torre/ph-agua-torre.
     PolDescargaFabricaComponent,
     PhDescargaFabricaComponent,
     PolAguaTorreComponent,
-    PhAguaTorreComponent
+    PhAguaTorreComponent,
+    TonPolPerdidasComponent,
+    FrescuraRsdComponent,
+    TonCanaImbibicionComponent,
+    CanaMayorComponent,
+    CanaAccidentadaComponent,
+    CanaCorralonComponent,
+
 ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']

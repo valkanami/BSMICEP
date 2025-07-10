@@ -1,0 +1,36 @@
+<div class="chart-container">
+  <div class="chart-header">
+    <h2>Caña mayor a 48 hrs</h2>
+    <div class="chart-controls">
+      <button class="refresh-button" (click)="refreshData()">
+        <i class="refresh-icon"></i> Actualizar
+      </button>
+      <div class="api-status" [ngClass]="{
+        'status-success': apiConnectionStatus.includes(' '),
+        'status-error': apiConnectionStatus.includes('Error')
+      }">
+        {{ apiConnectionStatus }}
+        <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div #chartContainer class="chart-scroll-container" style="width: 100%; overflow-x: auto;">
+    <div class="chart-wrapper" style="position: relative; height: 400px; min-width: 100%;">
+      <canvas #chartCanvas></canvas>
+    </div>
+  </div>
+
+  <div class="chart-footer">
+    <div class="data-info">
+      <ul>
+        <li *ngFor="let limit of limits">
+          <span class="limit-line-color" 
+                [style.background-color]="limit.color" 
+                [style.border-color]="limit.color"></span> 
+          Límite {{limit.name}}: {{limit.value || 'N/D'}}{{limit.unit}}
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

@@ -51,7 +51,7 @@ export class PolDescargaFabricaComponent implements OnInit, AfterViewInit, OnDes
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 4, name: 'Hume', value: null, color: 'rgb(255, 0, 0)', axis: 'y', unit: '' },
+    { id: 4, name: 'Hume', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;

@@ -33,13 +33,13 @@ interface Limit {
 }
 
 @Component({
-  selector: 'app-pol-agua-torre',
+  selector: 'app-ton-cana-imbibicion',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './pol-agua-torre.component.html',
-  styleUrls: ['./pol-agua-torre.component.css']
+  templateUrl: './ton-cana-imbibicion.component.html',
+  styleUrls: ['./ton-cana-imbibicion.component.css']
 })
-export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
+export class TonCanaImbibicionComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
@@ -51,7 +51,7 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 4, name: 'Hume', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    { id: 4, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -202,7 +202,7 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
   private extractDataTypes(): void {
     const uniqueTypes = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.dato && item.apartado === 'Pol agua entrada a la torre') {
+      if (item.dato && item.apartado === 'Ton caña - imbibicion') {
         uniqueTypes.add(item.dato);
       }
     });
@@ -243,7 +243,7 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData
-      .filter(item => item.apartado === 'Pol agua entrada a la torre')
+      .filter(item => item.apartado === 'Ton caña - imbibicion')
       .map(item => {
         let horaOriginal = '';
         if (item.hora) {
@@ -283,6 +283,7 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const labels = this.fixedHours;
       
+      // Asignamos el segundo dataset al eje derecho (y1)
       const datasets = this.dataTypes.map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
         return {
@@ -292,7 +293,7 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
           backgroundColor: color.replace('1)', '0.2)'),
           borderWidth: 2,
           tension: 0.1,
-          yAxisID: 'y'
+          yAxisID: index === 1 ? 'y1' : 'y' // El segundo dataset va al eje derecho
         };
       });
 
@@ -334,9 +335,22 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: 'Imbibicion'
+                text: this.dataTypes[0] || 'Eje izquierdo'
               },
               min: 0
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              title: {
+                display: true,
+                text: this.dataTypes[1] || 'Eje derecho'
+              },
+              min: 0,
+              grid: {
+                drawOnChartArea: false // No mostrar líneas de grid para el eje derecho
+              }
             },
             x: {
               title: {
@@ -476,7 +490,7 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
         backgroundColor: color.replace('1)', '0.2)'),
         borderWidth: 2,
         tension: 0.1,
-        yAxisID: 'y'
+        yAxisID: index === 1 ? 'y1' : 'y' // El segundo dataset va al eje derecho
       };
     });
 
@@ -504,6 +518,25 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.chart.options?.plugins?.annotation) {
       this.chart.options.plugins.annotation.annotations = annotations;
+    }
+
+    // Actualizar las escalas con los nuevos títulos
+    if (this.chart.options?.scales) {
+      this.chart.options.scales['y'] = {
+        ...this.chart.options.scales['y'],
+        title: {
+          display: true,
+          text: this.dataTypes[0] || 'Eje izquierdo'
+        }
+      };
+      
+      this.chart.options.scales['y1'] = {
+        ...this.chart.options.scales['y1'],
+        title: {
+          display: true,
+          text: this.dataTypes[1] || 'Eje derecho'
+        }
+      };
     }
   
     this.chart.update();

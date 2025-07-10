@@ -91,7 +91,12 @@
           <li (click)="showChart('ph-descarga-fabrica')">PH Descarga Fábrica</li>
           <li (click)="showChart('pol-agua-torre')">POL Agua Torre</li>
           <li (click)="showChart('ph-agua-torre')">PH Agua Torre</li>
-
+          <li (click)="showChart('ton-pol-perdidas')">ton-pol-perdidas</li>
+          <li (click)="showChart('frescura-rsd')">frescura-rsd</li>
+          <li (click)="showChart('ton-cana-imbibicion')">ton-cana-imbibicion</li>
+          <li (click)="showChart('cana-mayor')">cana-mayor</li>
+          <li (click)="showChart('cana-accidentada')">cana-accidentada</li>
+          <li (click)="showChart('cana-corralon')">cana-corralon</li>
         </ul>
       </li>
     </ul>
@@ -165,6 +170,12 @@
       <app-ph-descarga-fabrica *ngIf="currentChart === 'ph-descarga-fabrica'"></app-ph-descarga-fabrica>
       <app-pol-agua-torre *ngIf="currentChart === 'pol-agua-torre'"></app-pol-agua-torre>
       <app-ph-agua-torre *ngIf="currentChart === 'ph-agua-torre'"></app-ph-agua-torre>
+      <app-ton-pol-perdidas *ngIf="currentChart === 'ton-pol-perdidas'"></app-ton-pol-perdidas>
+      <app-frescura-rsd *ngIf="currentChart === 'frescura-rsd'"></app-frescura-rsd>
+      <app-ton-cana-imbibicion *ngIf="currentChart === 'ton-cana-imbibicion'"></app-ton-cana-imbibicion>
+      <app-cana-mayor *ngIf="currentChart === 'cana-mayor'"></app-cana-mayor>
+      <app-cana-accidentada *ngIf="currentChart === 'cana-accidentada'"></app-cana-accidentada>
+      <app-cana-corralon *ngIf="currentChart === 'cana-corralon'"></app-cana-corralon>
     </div>
   </div>
 </div>

@@ -33,40 +33,34 @@ interface Limit {
 }
 
 @Component({
-  selector: 'app-pol-agua-torre',
+  selector: 'app-ton-pol-perdidas',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './pol-agua-torre.component.html',
-  styleUrls: ['./pol-agua-torre.component.css']
+  templateUrl: './ton-pol-perdidas.component.html',
+  styleUrls: ['./ton-pol-perdidas.component.css']
 })
-export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
+export class TonPolPerdidasComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef<HTMLDivElement>;
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
   public originalData: any[] = [];
   public filteredData: any[] = [];
   public isBrowser: boolean;
   public errorMessage: string = '';
-  public selectedDate: string = '';
-  public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 4, name: 'Hume', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    // Aquí puedes agregar tus límites si los tienes
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
-  public fixedHours: string[] = [
-    '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
-    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
-    '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
-    '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
-  ];
+  public rightSideDataType: string = ''; // Nueva propiedad para el dato a mostrar a la derecha
 
   private colorPalette = [
-    'rgba(255, 99, 132, 1)',    
-    'rgba(54, 162, 235, 1)',     
-    'rgba(255, 206, 86, 1)',     
-    'rgba(75, 192, 192, 1)',
+    'rgba(255, 99, 132, 0.7)', 
+    'rgba(54, 162, 235, 0.7)',     
+    'rgba(75, 192, 192, 0.7)',
+    'rgb(86, 255, 213)',     
     'rgba(153, 102, 255, 1)',
     'rgba(255, 159, 64, 1)'
   ];
@@ -90,6 +84,12 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadInitialData(): void {
     this.checkApiConnection();
     this.loadLimitValues();
+    
+    setTimeout(() => {
+      if (!this.dataLoaded) {
+        this.apiConnectionStatus = 'Conexión lenta, intentando recuperar datos...';
+      }
+    }, 5000);
   }
 
   ngAfterViewInit(): void {
@@ -136,6 +136,72 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private formatDate(dateString: string | Date): string {
+    if (typeof dateString === 'string') {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+      date.setDate(date.getDate() + 1);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      return `${day}/${month}`;
+    } else if (dateString instanceof Date) {
+      const newDate = new Date(dateString);
+      newDate.setDate(newDate.getDate() + 1);
+      const day = newDate.getDate().toString().padStart(2, '0');
+      const month = (newDate.getMonth() + 1).toString().padStart(2, '0');
+      return `${day}/${month}`;
+    }
+    return '';
+  }
+
+  checkApiConnection(): void {
+    this.dataLoaded = false;
+    this.http.get('http://localhost:3000/api/datosdia').subscribe({
+      next: (response) => {
+        this.apiConnectionStatus = ' ';
+        this.originalData = this.preserveOriginalTimes(response as any[]);
+        this.filteredData = [...this.originalData];
+        this.extractDataTypes();
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
+        }
+      },
+      error: (error) => {
+        this.apiConnectionStatus = 'Error al conectar con la API ';
+        this.errorMessage = error.message;
+        console.error('Error:', error);
+        this.dataLoaded = true;
+        if (this.limitsLoaded) {
+          this.initChartIfReady();
+        }
+      }
+    });
+  }
+
+  private preserveOriginalTimes(rawData: any[]): any[] {
+    return rawData
+      .filter(item => item.apartado === 'Ton pol y pérdidas descarga de agua')
+      .map(item => {
+        let horaOriginal = '';
+        if (item.hora) {
+          horaOriginal = this.formatTimeToHHMM(item.hora);
+        }
+
+        return {
+          ...item,
+          HORA_ORIGINAL: horaOriginal || '00:00',
+          valor: item.valor !== null ? Number(item.valor) : null,
+          justificacion: item.justificacion || '',
+          fechaDate: new Date(item.fecha),
+          formattedDate: this.formatDate(item.fecha)
+        };
+      })
+      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+  }
+
   private formatTimeToHHMM(timeString: string | Date): string {
     if (typeof timeString === 'string') {
       if (timeString.includes('T')) {
@@ -154,145 +220,75 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
     return '00:00';
   }
 
-  checkApiConnection(): void {
-    this.dataLoaded = false;
-    this.http.get('http://localhost:3000/api/datoshora').subscribe({
-      next: (response) => {
-        this.apiConnectionStatus = ' ';
-        this.originalData = this.preserveOriginalTimes(response as any[]);
-        this.extractAvailableDates();
-        this.extractDataTypes();
-        if (this.availableDates.length > 0) {
-          this.selectedDate = this.availableDates[this.availableDates.length - 1];
-          this.filterDataByDate();
-        }
-        this.dataLoaded = true;
-        if (this.limitsLoaded) {
-          this.initChartIfReady();
-        }
-      },
-      error: (error) => {
-        this.apiConnectionStatus = 'Error al conectar con la API ';
-        this.errorMessage = error.message;
-        console.error('Error:', error);
-        this.dataLoaded = true;
-        if (this.limitsLoaded) {
-          this.initChartIfReady();
-        }
-      }
-    });
-  }
-
-  private extractAvailableDates(): void {
-    const uniqueDates = new Set<string>();
-    this.originalData.forEach(item => {
-      if (item.fecha) {
-        const date = new Date(item.fecha);
-        if (!isNaN(date.getTime())) {
-          const dateStr = date.toISOString().split('T')[0];
-          uniqueDates.add(dateStr);
-        }
-      }
-    });
-    this.availableDates = Array.from(uniqueDates).sort((a, b) => {
-      return new Date(a).getTime() - new Date(b).getTime();
-    });
-  }
-
   private extractDataTypes(): void {
     const uniqueTypes = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.dato && item.apartado === 'Pol agua entrada a la torre') {
+      if (item.dato && item.apartado === 'Ton pol y pérdidas descarga de agua') {
         uniqueTypes.add(item.dato);
       }
     });
     this.dataTypes = Array.from(uniqueTypes);
-  }
-
-  filterDataByDate(): void {
-    if (!this.selectedDate) {
-      this.filteredData = [...this.originalData];
-      return;
+    
+    // Establecer el primer tipo de dato como el que se muestra a la derecha por defecto
+    if (this.dataTypes.length > 0) {
+      this.rightSideDataType = this.dataTypes[0];
     }
-
-    this.filteredData = this.originalData.filter(item => {
-      if (!item.fecha) return false;
-      const itemDate = new Date(item.fecha);
-      if (isNaN(itemDate.getTime())) return false;
-      const itemDateStr = itemDate.toISOString().split('T')[0];
-      return itemDateStr === this.selectedDate;
-    });
-
-    this.filteredData.sort((a, b) => {
-      const timeA = this.timeToMinutes(a.HORA_ORIGINAL);
-      const timeB = this.timeToMinutes(b.HORA_ORIGINAL);
-      return timeA - timeB;
-    });
-
-    if (this.chart) {
-      this.updateChartData();
-    } else if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
-      this.initChart();
-    }
-  }
-
-  private timeToMinutes(timeStr: string): number {
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return hours * 60 + minutes;
-  }
-
-  private preserveOriginalTimes(rawData: any[]): any[] {
-    return rawData
-      .filter(item => item.apartado === 'Pol agua entrada a la torre')
-      .map(item => {
-        let horaOriginal = '';
-        if (item.hora) {
-          horaOriginal = this.formatTimeToHHMM(item.hora);
-        }
-
-        return {
-          ...item,
-          HORA_ORIGINAL: horaOriginal || '00:00',
-          valor: item.valor !== null ? Number(item.valor) : null,
-          justificacion: item.justificacion || ''
-        };
-      });
   }
 
   private initChart(): void {
-    if (!this.isBrowser || !this.chartCanvas?.nativeElement) return;
+    if (!this.isBrowser || !this.chartCanvas?.nativeElement || !this.chartContainer?.nativeElement) return;
 
     this.destroyChart();
 
     try {
       const canvas = this.chartCanvas.nativeElement;
       const ctx = canvas.getContext('2d');
+      const container = this.chartContainer.nativeElement;
       
       if (!ctx) {
         throw new Error('No se pudo obtener el contexto del canvas');
       }
       
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
+      const visibleDataPoints = 10;
+      const baseWidthPerPoint = 80; 
+      const scrollWidthPerPoint = 30; 
       
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
+      const showScroll = this.filteredData.length > visibleDataPoints;
+      const chartWidth = showScroll 
+        ? this.filteredData.length * scrollWidthPerPoint 
+        : Math.max(this.filteredData.length * baseWidthPerPoint, 800);
+      
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = chartWidth * dpr;
+      canvas.height = 400 * dpr;
+      canvas.style.width = `${chartWidth}px`;
+      canvas.style.height = `400px`;
       ctx.scale(dpr, dpr);
 
-      const labels = this.fixedHours;
+      const uniqueDates = [...new Set(this.filteredData.map(item => item.formattedDate))];
       
       const datasets = this.dataTypes.map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
+        
+        const data = uniqueDates.map(date => {
+          const itemsForDate = this.filteredData.filter(
+            item => item.formattedDate === date && item.dato === type
+          );
+          
+          if (itemsForDate.length === 0) return null;
+          
+          const sum = itemsForDate.reduce((total, item) => total + (item.valor || 0), 0);
+          return sum / itemsForDate.length;
+        });
+
         return {
           label: type,
-          data: this.mapDataToFixedHours(type),
+          data: data,
           borderColor: color,
           backgroundColor: color.replace('1)', '0.2)'),
           borderWidth: 2,
           tension: 0.1,
-          yAxisID: 'y'
+          yAxisID: type === this.rightSideDataType ? 'y-right' : 'y-left' // Asignar eje derecho o izquierdo
         };
       });
 
@@ -321,27 +317,47 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
       this.chart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: labels,
+          labels: uniqueDates,
           datasets: datasets
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            y: {
+            'y-left': {
               type: 'linear',
               display: true,
               position: 'left',
               title: {
                 display: true,
-                text: 'Imbibicion'
+                text: 'Consumo de agua (lts)'
               },
-              min: 0
+              min: 0,
+              grid: {
+                drawOnChartArea: true,
+              }
+            },
+            'y-right': {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              title: {
+                display: true,
+                text: this.rightSideDataType
+              },
+              min: 0,
+              grid: {
+                drawOnChartArea: false, // No dibujar líneas de grid para el eje derecho
+              },
+              // Asegurar que el eje derecho no se solape con el izquierdo
+              afterFit: (scaleInstance) => {
+                scaleInstance.width = 80; // Ancho fijo para el eje derecho
+              }
             },
             x: {
               title: {
                 display: true,
-                text: 'Hora del turno'
+                text: 'Fechas'
               },
               ticks: {
                 autoSkip: false,
@@ -356,21 +372,34 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
                 label: (context: any) => {
                   const label = context.dataset.label || '';
                   const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/D';
-                  return `${label}: ${value}`;
+                  return `${label}: ${value} lts`;
                 },
                 afterLabel: (context: any) => {
-                  const hour = labels[context.dataIndex];
-                  const dataItem = this.findDataItemByHour(hour, context.dataset.label);
+                  const date = uniqueDates[context.dataIndex];
+                  const dataType = context.dataset.label;
                   
-                  if (!dataItem) return 'No hay datos para esta hora';
+                  const dateData = this.filteredData.filter(item => 
+                    item.formattedDate === date && item.dato === dataType
+                  );
                   
-                  const justificacion = dataItem.justificacion || 'No hay justificación registrada';
+                  if (dateData.length === 0) return 'No hay datos para esta fecha';
+                  
+                  const justificaciones = new Set<string>();
+                  dateData.forEach(item => {
+                    if (item.justificacion) {
+                      justificaciones.add(item.justificacion);
+                    }
+                  });
+                  
+                  const justText = justificaciones.size > 0 
+                    ? Array.from(justificaciones).join('\n') 
+                    : 'No hay justificación registrada';
                   
                   return [
                     `─────────────────────`,
-                    `Hora: ${hour}`,
-                    `Justificación:`,
-                    `${justificacion}`
+                    `Fecha: ${date}`,
+                    `Justificaciones:`,
+                    `${justText}`
                   ];
                 }
               },
@@ -382,7 +411,11 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
               bodySpacing: 4
             },
             legend: {
-              position: 'top'
+              position: 'top',
+              onClick: (e, legendItem, legend) => {
+                // Deshabilitar la funcionalidad de ocultar/mostrar al hacer clic en la leyenda
+                return;
+              }
             },
             annotation: {
               annotations: annotations
@@ -394,7 +427,7 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
           beforeDraw: (chart: any) => {
             const {ctx, chartArea, scales} = chart;
             
-            if (!ctx || !chartArea || !scales?.['y']) return;
+            if (!ctx || !chartArea || !scales?.['y-left']) return;
             
             ctx.save();
             ctx.translate(0.5, 0.5);
@@ -430,6 +463,13 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
         }]
       });
 
+      // Desplazar al final del gráfico después de que se renderice
+      setTimeout(() => {
+        if (container && container.scrollWidth > container.clientWidth) {
+          container.scrollLeft = container.scrollWidth - container.clientWidth;
+        }
+      }, 100);
+
     } catch (error) {
       console.error('Error al crear el gráfico:', error);
       this.apiConnectionStatus = 'Error al renderizar el gráfico';
@@ -437,76 +477,12 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private mapDataToFixedHours(dataType: string): (number | null)[] {
-    return this.fixedHours.map(hour => {
-      const dataItem = this.findDataItemByHour(hour, dataType);
-      return dataItem ? dataItem.valor : null;
-    });
-  }
-
-  private findDataItemByHour(hour: string, dataType?: string): any | null {
-    const targetMinutes = this.timeToMinutes(hour);
-    let closestItem = null;
-    let smallestDiff = Infinity;
-
-    for (const item of this.filteredData) {
-      if (dataType && item.dato !== dataType) continue;
-      
-      const itemMinutes = this.timeToMinutes(item.HORA_ORIGINAL);
-      const diff = Math.abs(itemMinutes - targetMinutes);
-      
-      if (diff < 30 && diff < smallestDiff) {
-        smallestDiff = diff;
-        closestItem = item;
-      }
+  // Método para cambiar qué dato se muestra en el eje derecho
+  public setRightSideDataType(dataType: string): void {
+    this.rightSideDataType = dataType;
+    if (this.chart) {
+      this.initChart(); // Recrear el gráfico con la nueva configuración
     }
-
-    return closestItem;
-  }
-
-  public updateChartData(): void {
-    if (!this.chart) return;
-  
-    this.chart.data.datasets = this.dataTypes.map((type, index) => {
-      const color = this.colorPalette[index % this.colorPalette.length];
-      return {
-        label: type,
-        data: this.mapDataToFixedHours(type),
-        borderColor: color,
-        backgroundColor: color.replace('1)', '0.2)'),
-        borderWidth: 2,
-        tension: 0.1,
-        yAxisID: 'y'
-      };
-    });
-
-    const annotations: ChartAnnotations = {};
-    
-    this.limits.forEach(limit => {
-      if (limit.value !== null) {
-        annotations[`${limit.name}LimitLine`] = {
-          type: 'line',
-          yMin: limit.value,
-          yMax: limit.value,
-          borderColor: limit.color,
-          borderWidth: 2,
-          borderDash: [6, 6],
-          label: {
-            content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
-            enabled: true,
-            position: 'end',
-            backgroundColor: 'rgba(255,255,255,0.8)'
-          },
-          yAxisID: limit.axis
-        };
-      }
-    });
-
-    if (this.chart.options?.plugins?.annotation) {
-      this.chart.options.plugins.annotation.annotations = annotations;
-    }
-  
-    this.chart.update();
   }
 
   private destroyChart(): void {
@@ -517,7 +493,7 @@ export class PolAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   refreshData(): void {
-    this.apiConnectionStatus = 'Verificando conexión...';
+    this.apiConnectionStatus = 'Actualizando datos...';
     this.errorMessage = '';
     this.dataLoaded = false;
     this.limitsLoaded = false;
