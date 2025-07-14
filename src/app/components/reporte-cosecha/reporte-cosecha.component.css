@@ -1,0 +1,43 @@
+.container {
+  padding: 20px;
+}
+
+.tabla-datos {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.tabla-datos th, .tabla-datos td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.tabla-datos th {
+  background-color: #f2f2f2;
+}
+
+.tabla-datos tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.tabla-datos tr:hover {
+  background-color: #f1f1f1;
+}
+
+.cargando, .error {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+}
+
+.cargando {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+.error {
+  background-color: #fff2f0;
+  color: #ff4d4f;
+}

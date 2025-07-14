@@ -102,6 +102,7 @@
           <li (click)="showChart('color-icumsa')">color-icumsa</li>
           <li (click)="showChart('silos')">silos </li>
           <li (click)="showChart('tamano-grano')">tamano-grano</li>
+          <li (click)="showChart('reporte-cosecha')">reporte-cosecha</li>
         </ul>
       </li>
     </ul>
@@ -186,6 +187,7 @@
       <app-color-icumsa *ngIf="currentChart === 'color-icumsa'"></app-color-icumsa>
       <app-silos *ngIf="currentChart === 'silos'"></app-silos>
       <app-tamano-grano *ngIf="currentChart === 'tamano-grano'"></app-tamano-grano>
+      <app-reporte-cosecha *ngIf="currentChart === 'reporte-cosecha'"></app-reporte-cosecha>
     </div>
   </div>
 </div>

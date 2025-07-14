@@ -76,6 +76,9 @@ import { TonPolCachazaComponent } from '../components/ton-pol-cachaza/ton-pol-ca
 import { ColorIcumsaComponent } from '../components/color-icumsa/color-icumsa.component';
 import { SilosComponent } from '../components/silos/silos.component';
 import { TamanoGranoComponent } from '../components/tamano-grano/tamano-grano.component';
+import { ReporteCosechaComponent } from '../components/reporte-cosecha/reporte-cosecha.component';
+
+
 @Component({
   selector: 'app-main-page',
   standalone: true,
@@ -156,7 +159,8 @@ import { TamanoGranoComponent } from '../components/tamano-grano/tamano-grano.co
     TonPolCachazaComponent,
     ColorIcumsaComponent,
     SilosComponent,
-    TamanoGranoComponent
+    TamanoGranoComponent,
+    ReporteCosechaComponent
 
 ],
   templateUrl: './main-page.component.html',
