@@ -77,6 +77,7 @@ import { ColorIcumsaComponent } from '../components/color-icumsa/color-icumsa.co
 import { SilosComponent } from '../components/silos/silos.component';
 import { TamanoGranoComponent } from '../components/tamano-grano/tamano-grano.component';
 import { ReporteCosechaComponent } from '../components/reporte-cosecha/reporte-cosecha.component';
+import { RangosFrescuraComponent } from '../components/rangos-frescura/rangos-frescura.component';
 
 
 @Component({
@@ -160,7 +161,8 @@ import { ReporteCosechaComponent } from '../components/reporte-cosecha/reporte-c
     ColorIcumsaComponent,
     SilosComponent,
     TamanoGranoComponent,
-    ReporteCosechaComponent
+    ReporteCosechaComponent,
+    RangosFrescuraComponent
 
 ],
   templateUrl: './main-page.component.html',
