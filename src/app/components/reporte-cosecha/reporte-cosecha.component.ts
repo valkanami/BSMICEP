@@ -42,12 +42,14 @@ export class ReporteCosechaComponent implements OnInit {
     this.http.get<any[]>('http://localhost:3000/api/datostablas')
       .subscribe({
         next: (data) => {
-
           const datosFiltrados = data.filter(item => item.Apartado === this.APARTADO_FILTRADO);
           
-          
-          this.fechasDisponibles = [...new Set(datosFiltrados.map(item => item.Fecha))]
-            .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+          // Procesar fechas: añadir UN día a cada fecha
+          this.fechasDisponibles = [...new Set(datosFiltrados.map(item => {
+            const fechaOriginal = new Date(item.Fecha);
+            fechaOriginal.setDate(fechaOriginal.getDate() + 1); // Solo +1 día
+            return this.formatDate(fechaOriginal);
+          }))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
           
           this.datosOriginales = datosFiltrados;
           
@@ -67,13 +69,14 @@ export class ReporteCosechaComponent implements OnInit {
   }
 
   procesarDatos(): void {
-    const datosFiltrados = this.datosOriginales.filter(
-      item => item.Fecha === this.fechaSeleccionada
-    );
-    
+    const datosFiltrados = this.datosOriginales.filter(item => {
+      // Ajustar la fecha original sumando 1 día para comparar
+      const fechaOriginal = new Date(item.Fecha);
+      fechaOriginal.setDate(fechaOriginal.getDate() + 1);
+      return this.formatDate(fechaOriginal) === this.fechaSeleccionada;
+    });
     
     this.todosCampos = [...new Set(datosFiltrados.map(item => item.Dato))];
-    
     
     const categoriasUnicas = [...new Set(datosFiltrados.map(item => item.Categoria))];
     
@@ -97,5 +100,13 @@ export class ReporteCosechaComponent implements OnInit {
 
   aplicarFiltro(): void {
     this.procesarDatos();
+  }
+
+  // Función mejorada para formatear fechas
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }
