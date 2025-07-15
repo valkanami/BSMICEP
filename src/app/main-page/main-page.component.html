@@ -104,6 +104,13 @@
           <li (click)="showChart('tamano-grano')">tamano-grano</li>
           <li (click)="showChart('reporte-cosecha')">reporte-cosecha</li>
           <li (click)="showChart('rangos-frescura')">rangos-frescura </li>
+          <li (click)="showChart('tabla-frescura')">tabla-frescura</li>
+          <li (click)="showChart('reporte-cana-accidental')">reporte-cana-accidental</li>
+          <li (click)="showChart('rezasurina')">rezasurina </li>
+          <li (click)="showChart('columnas-carbon')">columnas-carbon</li>
+          <li (click)="showChart('tabla-rendimiento-cyr')">tabla-rendimiento-cyr</li>
+          <li (click)="showChart('calidad-azucar')">calidad-azucar</li>
+          <li (click)="showChart('datos-calderas')">datos-calderas</li>
         </ul>
       </li>
     </ul>
@@ -190,6 +197,13 @@
       <app-tamano-grano *ngIf="currentChart === 'tamano-grano'"></app-tamano-grano>
       <app-reporte-cosecha *ngIf="currentChart === 'reporte-cosecha'"></app-reporte-cosecha>
       <app-rangos-frescura *ngIf="currentChart === 'rangos-frescura'"></app-rangos-frescura>
+      <app-tabla-frescura *ngIf="currentChart === 'tabla-frescura'"></app-tabla-frescura>
+      <app-reporte-cana-accidental *ngIf="currentChart === 'reporte-cana-accidental'"></app-reporte-cana-accidental>
+      <app-rezasurina *ngIf="currentChart === 'rezasurina'"></app-rezasurina>
+      <app-columnas-carbon *ngIf="currentChart === 'columnas-carbon'"></app-columnas-carbon>
+      <app-tabla-rendimiento-cyr *ngIf="currentChart === 'tabla-rendimiento-cyr'"></app-tabla-rendimiento-cyr>
+      <app-calidad-azucar *ngIf="currentChart === 'calidad-azucar'"></app-calidad-azucar>
+      <app-datos-calderas *ngIf="currentChart === 'datos-calderas'"></app-datos-calderas>
     </div>
   </div>
 </div>

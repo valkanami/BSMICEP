@@ -14,13 +14,13 @@ interface GrupoCategoria {
 }
 
 @Component({
-  selector: 'app-rangos-frescura',
+  selector: 'app-reporte-cana-accidental',
   standalone: true,
   imports: [CommonModule, HttpClientModule, FormsModule],
-  templateUrl: './rangos-frescura.component.html',
-  styleUrls: ['./rangos-frescura.component.css']
+  templateUrl: './reporte-cana-accidental.component.html',
+  styleUrls: ['./reporte-cana-accidental.component.css']
 })
-export class RangosFrescuraComponent implements OnInit {
+export class ReporteCanaAccidentalComponent implements OnInit {
   datosOriginales: any[] = [];
   gruposCategoria: GrupoCategoria[] = [];
   todosCampos: string[] = [];
@@ -29,7 +29,7 @@ export class RangosFrescuraComponent implements OnInit {
   errorMessage = '';
   fechaSeleccionada = '';
 
-  readonly APARTADO_FILTRADO = 'Rangos de frescura por zona';
+  readonly APARTADO_FILTRADO = 'Reporte de caña accidental';
 
   constructor(private http: HttpClient) {}
 

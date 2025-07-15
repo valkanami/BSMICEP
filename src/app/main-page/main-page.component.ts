@@ -78,7 +78,13 @@ import { SilosComponent } from '../components/silos/silos.component';
 import { TamanoGranoComponent } from '../components/tamano-grano/tamano-grano.component';
 import { ReporteCosechaComponent } from '../components/reporte-cosecha/reporte-cosecha.component';
 import { RangosFrescuraComponent } from '../components/rangos-frescura/rangos-frescura.component';
-
+import { TablaFrescuraComponent } from '../components/tabla-frescura/tabla-frescura.component';
+import { ReporteCanaAccidentalComponent } from '../components/reporte-cana-accidental/reporte-cana-accidental.component';
+import { RezasurinaComponent } from '../components/rezasurina/rezasurina.component';
+import { ColumnasCarbonComponent } from '../components/columnas-carbon/columnas-carbon.component';
+import { TablaRendimientoCyrComponent } from '../components/tabla-rendimiento-cyr/tabla-rendimiento-cyr.component';
+import { CalidadAzucarComponent } from '../components/calidad-azucar/calidad-azucar.component';
+import { DatosCalderasComponent } from '../components/datos-calderas/datos-calderas.component';
 
 @Component({
   selector: 'app-main-page',
@@ -162,7 +168,14 @@ import { RangosFrescuraComponent } from '../components/rangos-frescura/rangos-fr
     SilosComponent,
     TamanoGranoComponent,
     ReporteCosechaComponent,
-    RangosFrescuraComponent
+    RangosFrescuraComponent,
+    TablaFrescuraComponent,
+    ReporteCanaAccidentalComponent,
+    RezasurinaComponent,
+    ColumnasCarbonComponent,
+    TablaRendimientoCyrComponent,
+    CalidadAzucarComponent,
+    DatosCalderasComponent,
 
 ],
   templateUrl: './main-page.component.html',

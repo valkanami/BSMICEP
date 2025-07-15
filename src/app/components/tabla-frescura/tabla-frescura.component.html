@@ -2,7 +2,7 @@
   <div class="reporte-header">
     <h2 class="reporte-title">
       <i class="icon icon-data"></i>
-      Rangos de frescura por zona
+      Frescura por hora
     </h2>
     
     <div class="loading-indicator" *ngIf="isLoading">
@@ -31,7 +31,7 @@
     <table class="tabla-datos">
       <thead>
         <tr>
-          <th>Zona</th>
+          <th>Categoría</th>
           <th *ngFor="let campo of todosCampos">{{ campo }}</th>
         </tr>
       </thead>
