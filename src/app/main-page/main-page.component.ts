@@ -85,6 +85,8 @@ import { ColumnasCarbonComponent } from '../components/columnas-carbon/columnas-
 import { TablaRendimientoCyrComponent } from '../components/tabla-rendimiento-cyr/tabla-rendimiento-cyr.component';
 import { CalidadAzucarComponent } from '../components/calidad-azucar/calidad-azucar.component';
 import { DatosCalderasComponent } from '../components/datos-calderas/datos-calderas.component';
+import { CalderasDatosDiaComponent } from '../components/calderas-datos-dia/calderas-datos-dia.component';
+import { RellenoTorreComponent } from '../components/relleno-torre/relleno-torre.component';
 
 @Component({
   selector: 'app-main-page',
@@ -176,6 +178,8 @@ import { DatosCalderasComponent } from '../components/datos-calderas/datos-calde
     TablaRendimientoCyrComponent,
     CalidadAzucarComponent,
     DatosCalderasComponent,
+    CalderasDatosDiaComponent,
+    RellenoTorreComponent,
 
 ],
   templateUrl: './main-page.component.html',

@@ -111,6 +111,8 @@
           <li (click)="showChart('tabla-rendimiento-cyr')">tabla-rendimiento-cyr</li>
           <li (click)="showChart('calidad-azucar')">calidad-azucar</li>
           <li (click)="showChart('datos-calderas')">datos-calderas</li>
+          <li (click)="showChart('calderas-datos-dia')">calderas-datos-dia </li>
+          <li (click)="showChart('relleno-torre')">relleno-torre </li>
         </ul>
       </li>
     </ul>
@@ -204,6 +206,8 @@
       <app-tabla-rendimiento-cyr *ngIf="currentChart === 'tabla-rendimiento-cyr'"></app-tabla-rendimiento-cyr>
       <app-calidad-azucar *ngIf="currentChart === 'calidad-azucar'"></app-calidad-azucar>
       <app-datos-calderas *ngIf="currentChart === 'datos-calderas'"></app-datos-calderas>
+      <app-calderas-datos-dia *ngIf="currentChart === 'calderas-datos-dia'"></app-calderas-datos-dia>
+      <app-relleno-torre *ngIf="currentChart === 'relleno-torre'"></app-relleno-torre>
     </div>
   </div>
 </div>
