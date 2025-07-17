@@ -2,7 +2,7 @@
   <div class="reporte-header">
     <h2 class="reporte-title">
       <i class="icon icon-data"></i>
-      Rangos de frescura por zona
+      Rezasurina
     </h2>
     
     <div class="loading-indicator" *ngIf="isLoading">
@@ -31,15 +31,15 @@
     <table class="tabla-datos">
       <thead>
         <tr>
-          <th>Zona</th>
+          <th>Muestra</th>
           <th *ngFor="let campo of todosCampos">{{ campo }}</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let grupo of gruposCategoria">
           <td class="categoria-cell">{{ grupo.categoria }}</td>
-          <td *ngFor="let campo of grupo.campos" class="valor-cell">
-            {{ campo.valor | number:'1.2-4' }}
+          <td *ngFor="let campo of grupo.campos" class="valor-cell" [class.valor-vacio]="!campo.valor">
+            {{ campo.valor || '-' }}
           </td>
         </tr>
       </tbody>

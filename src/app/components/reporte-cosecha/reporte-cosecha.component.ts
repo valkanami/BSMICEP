@@ -44,10 +44,10 @@ export class ReporteCosechaComponent implements OnInit {
         next: (data) => {
           const datosFiltrados = data.filter(item => item.Apartado === this.APARTADO_FILTRADO);
           
-          // Procesar fechas: añadir UN día a cada fecha
+          
           this.fechasDisponibles = [...new Set(datosFiltrados.map(item => {
             const fechaOriginal = new Date(item.Fecha);
-            fechaOriginal.setDate(fechaOriginal.getDate() + 1); // Solo +1 día
+            fechaOriginal.setDate(fechaOriginal.getDate() + 1); 
             return this.formatDate(fechaOriginal);
           }))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
           
@@ -70,7 +70,7 @@ export class ReporteCosechaComponent implements OnInit {
 
   procesarDatos(): void {
     const datosFiltrados = this.datosOriginales.filter(item => {
-      // Ajustar la fecha original sumando 1 día para comparar
+      
       const fechaOriginal = new Date(item.Fecha);
       fechaOriginal.setDate(fechaOriginal.getDate() + 1);
       return this.formatDate(fechaOriginal) === this.fechaSeleccionada;
@@ -102,7 +102,7 @@ export class ReporteCosechaComponent implements OnInit {
     this.procesarDatos();
   }
 
-  // Función mejorada para formatear fechas
+  
   private formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');

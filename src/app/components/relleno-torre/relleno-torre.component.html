@@ -1,0 +1,44 @@
+<div class="reporte-container">
+  <div class="reporte-header">
+    <h2 class="reporte-title">
+      <i class="icon icon-data"></i>
+      Reporte de relleno de torre
+    </h2>
+    
+    <div class="loading-indicator" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <span>Cargando datos...</span>
+    </div>
+    
+    <div class="error-message" *ngIf="errorMessage">
+      <i class="icon icon-warning"></i>
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <div class="tabla-container">
+    <table class="tabla-datos">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Nombre de supervisor de zona</th>
+          <th *ngFor="let campo of todosCampos">{{ campo }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let fila of filasDatos">
+          <td class="fecha-cell">{{ fila.fecha | date:'dd/MM/yyyy' }}</td>
+          <td class="categoria-cell">{{ fila.categoria }}</td>
+          <td *ngFor="let campo of fila.campos" class="valor-cell">
+            {{ campo.valor | number:'1.2-4' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="filasDatos.length === 0 && !isLoading" class="no-results">
+    <i class="icon icon-search"></i>
+    No se encontraron registros para el apartado seleccionado
+  </div>
+</div>

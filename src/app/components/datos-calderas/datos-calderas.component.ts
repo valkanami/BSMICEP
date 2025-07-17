@@ -14,13 +14,13 @@ interface GrupoCategoria {
 }
 
 @Component({
-  selector: 'app-rangos-frescura',
+  selector: 'app-datos-calderas',
   standalone: true,
   imports: [CommonModule, HttpClientModule, FormsModule],
-  templateUrl: './rangos-frescura.component.html',
-  styleUrls: ['./rangos-frescura.component.css']
+  templateUrl: './datos-calderas.component.html',
+  styleUrls: ['./datos-calderas.component.css']
 })
-export class RangosFrescuraComponent implements OnInit {
+export class DatosCalderasComponent implements OnInit {
   datosOriginales: any[] = [];
   gruposCategoria: GrupoCategoria[] = [];
   todosCampos: string[] = [];
@@ -29,7 +29,7 @@ export class RangosFrescuraComponent implements OnInit {
   errorMessage = '';
   fechaSeleccionada = '';
 
-  readonly APARTADO_FILTRADO = 'Rangos de frescura por zona';
+  readonly APARTADO_FILTRADO = 'Datos calderas';
 
   constructor(private http: HttpClient) {}
 

@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 
 interface DatoCampo {
   nombre: string;
-  valor: number;
+  valor: string; // Cambiado de number a string
 }
 
 interface GrupoCategoria {
@@ -14,13 +14,13 @@ interface GrupoCategoria {
 }
 
 @Component({
-  selector: 'app-rangos-frescura',
+  selector: 'app-calidad-azucar',
   standalone: true,
   imports: [CommonModule, HttpClientModule, FormsModule],
-  templateUrl: './rangos-frescura.component.html',
-  styleUrls: ['./rangos-frescura.component.css']
+  templateUrl: './calidad-azucar.component.html',
+  styleUrls: ['./calidad-azucar.component.css']
 })
-export class RangosFrescuraComponent implements OnInit {
+export class CalidadAzucarComponent implements OnInit {
   datosOriginales: any[] = [];
   gruposCategoria: GrupoCategoria[] = [];
   todosCampos: string[] = [];
@@ -29,7 +29,7 @@ export class RangosFrescuraComponent implements OnInit {
   errorMessage = '';
   fechaSeleccionada = '';
 
-  readonly APARTADO_FILTRADO = 'Rangos de frescura por zona';
+  readonly APARTADO_FILTRADO = 'Calidad del azucar';
 
   constructor(private http: HttpClient) {}
 
@@ -43,7 +43,6 @@ export class RangosFrescuraComponent implements OnInit {
       .subscribe({
         next: (data) => {
           const datosFiltrados = data.filter(item => item.Apartado === this.APARTADO_FILTRADO);
-          
           
           this.fechasDisponibles = [...new Set(datosFiltrados.map(item => {
             const fechaOriginal = new Date(item.Fecha);
@@ -70,7 +69,6 @@ export class RangosFrescuraComponent implements OnInit {
 
   procesarDatos(): void {
     const datosFiltrados = this.datosOriginales.filter(item => {
-      
       const fechaOriginal = new Date(item.Fecha);
       fechaOriginal.setDate(fechaOriginal.getDate() + 1);
       return this.formatDate(fechaOriginal) === this.fechaSeleccionada;
@@ -87,7 +85,7 @@ export class RangosFrescuraComponent implements OnInit {
         const dato = datosCategoria.find(item => item.Dato === nombreCampo);
         return {
           nombre: nombreCampo,
-          valor: dato ? dato.Valor : 0 
+          valor: dato ? dato.Valor.toString() : '' // Aseguramos que sea string y usamos '' como valor por defecto
         };
       });
       
@@ -102,11 +100,15 @@ export class RangosFrescuraComponent implements OnInit {
     this.procesarDatos();
   }
 
-  
   private formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  // Método auxiliar para convertir a número si es necesario
+  convertirANumero(valor: string): number {
+    return parseFloat(valor) || 0;
   }
 }
