@@ -41,8 +41,4 @@ testem.log
 .DS_Store
 Thumbs.db
 
-tsconfig.json
-package.json
-package-lock.json
 
-package-lock.json
