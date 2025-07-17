@@ -87,7 +87,16 @@ import { CalidadAzucarComponent } from '../components/calidad-azucar/calidad-azu
 import { DatosCalderasComponent } from '../components/datos-calderas/datos-calderas.component';
 import { CalderasDatosDiaComponent } from '../components/calderas-datos-dia/calderas-datos-dia.component';
 import { RellenoTorreComponent } from '../components/relleno-torre/relleno-torre.component';
-
+import { TanqueComponent } from '../components/tanque/tanque.component';  
+import { ComparativoBbComponent } from '../components/comparativo-bb/comparativo-bb.component';
+import { ConsumoMedidorComponent } from '../components/consumo-medidor/consumo-medidor.component';
+import { MuestreoComponent } from '../components/muestreo/muestreo.component';
+import { DatosCanaComponent } from '../components/datos-cana/datos-cana.component';
+import { CachazaClarificadoresComponent } from '../components/cachaza-clarificadores/cachaza-clarificadores.component';
+import { RendimientoTurnoComponent } from '../components/rendimiento-turno/rendimiento-turno.component';
+import { ProduccionFnComponent } from '../components/produccion-fn/produccion-fn.component';
+import { ProduccionOficialComponent } from '../components/produccion-oficial/produccion-oficial.component';
+import { AzucarRefundidaComponent } from '../components/azucar-refundida/azucar-refundida.component';
 @Component({
   selector: 'app-main-page',
   standalone: true,
@@ -180,6 +189,16 @@ import { RellenoTorreComponent } from '../components/relleno-torre/relleno-torre
     DatosCalderasComponent,
     CalderasDatosDiaComponent,
     RellenoTorreComponent,
+    TanqueComponent,
+    ComparativoBbComponent,
+    ConsumoMedidorComponent,
+    MuestreoComponent,
+    DatosCanaComponent,
+    CachazaClarificadoresComponent,
+    RendimientoTurnoComponent,
+    ProduccionFnComponent,
+    ProduccionOficialComponent,
+    AzucarRefundidaComponent,
 
 ],
   templateUrl: './main-page.component.html',

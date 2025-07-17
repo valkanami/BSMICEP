@@ -1,9 +1,11 @@
+
 .reporte-container {
   font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
+
 
 .reporte-header {
   margin-bottom: 20px;
@@ -18,27 +20,17 @@
   margin: 0 0 15px 0;
 }
 
-/* Contenedor principal de la tabla con scroll */
-.tabla-scroll-container {
-  overflow: hidden;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-top: 20px;
-}
 
-/* Wrapper que permite el scroll */
-.tabla-wrapper {
+.tabla-container {
   overflow-x: auto;
-  max-height: 600px; /* Altura máxima antes de scroll vertical */
-  position: relative;
+  margin-top: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
 }
 
-/* Estilos de la tabla */
 .tabla-datos {
-  width: auto;
-  min-width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  width: 100%;
+  border-collapse: collapse;
   font-size: 14px;
 }
 
@@ -48,34 +40,17 @@
   padding: 12px 15px;
   font-weight: 500;
   text-align: center;
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
 .tabla-datos td {
   padding: 12px 15px;
   border-bottom: 1px solid #e0e0e0;
   text-align: center;
-  white-space: nowrap;
-}
-
-/* Columnas pegajosas (fecha y categoría) */
-.sticky-column {
-  position: sticky;
-  left: 0;
-  z-index: 5;
-  background-color: white;
-}
-
-.tabla-datos thead .sticky-column {
-  z-index: 15; /* Mayor que el z-index de las otras cabeceras */
-  background-color: #34495e;
 }
 
 .categoria-cell {
   font-weight: 500;
-  background-color: #f8f9fa !important;
+  background-color: #f8f9fa;
   text-align: left !important;
 }
 
@@ -88,30 +63,32 @@
   background-color: #f5f7fa;
 }
 
-.tabla-datos tbody tr:hover .sticky-column {
-  background-color: #f5f7fa;
+
+.filtro-container {
+  margin-bottom: 20px;
 }
 
-/* Barra de scroll personalizada */
-.tabla-wrapper::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
+.filtro-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-.tabla-wrapper::-webkit-scrollbar-track {
-  background: #f1f1f1;
+.filtro-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #34495e;
 }
 
-.tabla-wrapper::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+.filtro-select {
+  padding: 8px 15px;
+  border: 1px solid #ddd;
   border-radius: 4px;
+  font-size: 14px;
+  min-width: 200px;
 }
 
-.tabla-wrapper::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* Resto de estilos (mantenidos igual) */
+/* Estados */
 .loading-indicator {
   display: flex;
   align-items: center;
@@ -146,6 +123,7 @@
   align-items: center;
   margin-top: 20px;
 }
+
 
 .icon {
   display: inline-block;

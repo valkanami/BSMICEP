@@ -15,20 +15,20 @@ interface FilaDatos {
 }
 
 @Component({
-  selector: 'app-relleno-torre',
+  selector: 'app-comparativo-bb',
   standalone: true,
   imports: [CommonModule, HttpClientModule, FormsModule],
-  templateUrl: './relleno-torre.component.html',
-  styleUrls: ['./relleno-torre.component.css']
+  templateUrl: './comparativo-bb.component.html',
+  styleUrls: ['./comparativo-bb.component.css']
 })
-export class RellenoTorreComponent implements OnInit {
+export class ComparativoBbComponent implements OnInit {
   datosOriginales: any[] = [];
   filasDatos: FilaDatos[] = [];
   todosCampos: string[] = [];
   isLoading = true;
   errorMessage = '';
 
-  readonly APARTADO_FILTRADO = 'Relleno torre';
+  readonly APARTADO_FILTRADO = 'Consumo bagazo/biomasa';
 
   constructor(private http: HttpClient) {}
 
@@ -57,7 +57,7 @@ export class RellenoTorreComponent implements OnInit {
   procesarDatos(): void {
     this.todosCampos = [...new Set(this.datosOriginales.map(item => item.Dato))];
     
-
+    
     const fechasUnicas = [...new Set(this.datosOriginales.map(item => {
       const fechaOriginal = new Date(item.Fecha);
       fechaOriginal.setDate(fechaOriginal.getDate() + 1);

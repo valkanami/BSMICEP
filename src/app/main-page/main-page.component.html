@@ -113,6 +113,16 @@
           <li (click)="showChart('datos-calderas')">datos-calderas</li>
           <li (click)="showChart('calderas-datos-dia')">calderas-datos-dia </li>
           <li (click)="showChart('relleno-torre')">relleno-torre </li>
+          <li (click)="showChart('tanque')">tanque 99</li>
+          <li (click)="showChart('comparativo-bb')">comparativo-bb </li>
+          <li (click)="showChart('consumo-medidor')">consumo agua medidor</li>
+          <li (click)="showChart('muestreo')">muestreo</li>
+          <li (click)="showChart('datos-cana')">datos-cana</li>
+          <li (click)="showChart('cachaza-clarificadores')">cachaza-clarificadores</li>
+          <li (click)="showChart('rendimiento-turno')">rendimiento-turno</li>
+          <li (click)="showChart('produccion-fn')">produccion-fn</li>
+          <li (click)="showChart('produccion-oficial')">produccion-oficial</li>
+          <li (click)="showChart('azucar-refundida')">azucar-refundida</li>
         </ul>
       </li>
     </ul>
@@ -208,6 +218,16 @@
       <app-datos-calderas *ngIf="currentChart === 'datos-calderas'"></app-datos-calderas>
       <app-calderas-datos-dia *ngIf="currentChart === 'calderas-datos-dia'"></app-calderas-datos-dia>
       <app-relleno-torre *ngIf="currentChart === 'relleno-torre'"></app-relleno-torre>
+      <app-tanque *ngIf="currentChart === 'tanque'"></app-tanque>
+      <app-comparativo-bb *ngIf="currentChart === 'comparativo-bb'"></app-comparativo-bb>
+      <app-consumo-medidor *ngIf="currentChart === 'consumo-medidor'"></app-consumo-medidor>
+      <app-muestreo *ngIf="currentChart === 'muestreo'"></app-muestreo>
+      <app-datos-cana *ngIf="currentChart === 'datos-cana'"></app-datos-cana>
+      <app-cachaza-clarificadores *ngIf="currentChart === 'cachaza-clarificadores'"></app-cachaza-clarificadores>
+      <app-rendimiento-turno *ngIf="currentChart === 'rendimiento-turno'"></app-rendimiento-turno>
+      <app-produccion-fn *ngIf="currentChart === 'produccion-fn'"></app-produccion-fn>
+      <app-produccion-oficial *ngIf="currentChart === 'produccion-oficial'"></app-produccion-oficial>
+      <app-azucar-refundida *ngIf="currentChart === 'azucar-refundida'"></app-azucar-refundida>
     </div>
   </div>
 </div>
