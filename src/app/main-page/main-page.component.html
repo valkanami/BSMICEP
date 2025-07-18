@@ -10,24 +10,7 @@
     
     <ul class="menu">
       
-      <li class="menu-item">
-        <div class="menu-header" (click)="toggleMenu('prueba')">
-          <span>Prueba</span>
-          <span class="menu-icon">{{ isMenuOpen('prueba') ? '▼' : '►' }}</span>
-        </div>
-        <ul class="submenu" [class.open]="isMenuOpen('prueba')">
-          <li (click)="showChart('bar')">Bar Chart</li>
-          <li (click)="showChart('line')">Line Chart</li>
-          <li (click)="showChart('column')">Column Chart</li>
-          <li (click)="showChart('combo')">Combo Chart</li>
-          <li (click)="showChart('table')">Table</li>
-          <li (click)="showChart('new-bar')">New Bar Chart</li>
-          <li (click)="showChart('new-line')">New Line Chart</li>
-          <li (click)="showChart('multi-chart')">Multi Chart</li>
-          <li (click)="showChart('new-table')">New table</li>
-          <li (click)="showChart('stacked-bar-chart')">Stacked-bar-chart</li>
-        </ul>
-      </li>
+      
       
       
       <li class="menu-item">
@@ -36,7 +19,8 @@
           <span class="menu-icon">{{ isMenuOpen('clima') ? '▼' : '►' }}</span>
         </div>
         <ul class="submenu" [class.open]="isMenuOpen('clima')">
-          <li (click)="showChart('clima')">Componente Clima</li>
+          <li (click)="showChart('clima-dia')">clima-dia</li>
+          <li (click)="showChart('clima-semana')">clima-semana</li>
           <li (click)="showChart('turbidez-jugo-claro')">Turbidez Jugo Claro</li>
           <li (click)="showChart('rsd')">RSD</li>
           <li (click)="showChart('rendimiento-cristales')">Rendimiento Cristales</li>
@@ -64,8 +48,6 @@
           <li (click)="showChart('ph-fcr')">ph-fcr</li>
           <li (click)="showChart('ton-vapor-cana')">ton-vapor-cana</li>
           <li (click)="showChart('turbidez-azucar')">turbidez-azucar</li>
-          <li (click)="showChart('clima-dia')">clima-dia</li>
-          <li (click)="showChart('clima-semana')">clima-semana</li>
           <li (click)="showChart('eficiencia-fabrica')">eficiencia-fabrica</li>
           <li (click)="showChart('cachaza-cana')">cachaza-cana</li>
           <li (click)="showChart('cana-molida')">cana-molida</li>
@@ -131,7 +113,6 @@
 
   <div class="content" [class.full-width]="isSidebarHidden">
     <div class="content-container">
-      <app-bar-chart *ngIf="currentChart === 'bar'"></app-bar-chart>
       <app-line-chart *ngIf="currentChart === 'line'"></app-line-chart>
       <app-column-chart *ngIf="currentChart === 'column'"></app-column-chart>
       <app-combo-chart *ngIf="currentChart === 'combo'"></app-combo-chart>
@@ -141,7 +122,6 @@
       <app-multi-chart *ngIf="currentChart === 'multi-chart'"></app-multi-chart>
       <app-new-table *ngIf="currentChart === 'new-table'"></app-new-table>
       <app-stacked-bar-chart *ngIf="currentChart === 'stacked-bar-chart'"></app-stacked-bar-chart>
-      <app-clima *ngIf="currentChart === 'clima'"></app-clima>
       <app-turbidez-jugo-claro-chart *ngIf="currentChart === 'turbidez-jugo-claro'"></app-turbidez-jugo-claro-chart>
       <app-rsd *ngIf="currentChart === 'rsd'"></app-rsd>
       <app-rendimiento-cristales *ngIf="currentChart === 'rendimiento-cristales'"></app-rendimiento-cristales>

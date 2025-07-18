@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Chart, registerables, ChartType } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -49,9 +49,12 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
   public isBrowser: boolean;
   public errorMessage: string = '';
   public dataTypes: string[] = [];
-  public limits: Limit[] = [];
+  public limits: Limit[] = [
+    
+  ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
+  public rightSideDataType: string = ''; 
 
   private colorPalette = [
     'rgba(255, 99, 132, 0.7)', 
@@ -180,7 +183,7 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData
-      .filter(item => item.apartado === 'Caña accidentada')
+      .filter(item => item.apartado === 'Tamaño medio de grano')
       .map(item => {
         let horaOriginal = '';
         if (item.hora) {
@@ -220,11 +223,16 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
   private extractDataTypes(): void {
     const uniqueTypes = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.dato && item.apartado === 'Caña accidentada') {
+      if (item.dato && item.apartado === 'Tamaño medio de grano') {
         uniqueTypes.add(item.dato);
       }
     });
     this.dataTypes = Array.from(uniqueTypes);
+    
+    
+    if (this.dataTypes.length > 0) {
+      this.rightSideDataType = this.dataTypes[0];
+    }
   }
 
   private initChart(): void {
@@ -242,8 +250,8 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       
       const visibleDataPoints = 10;
-      const baseWidthPerPoint = 80;
-      const scrollWidthPerPoint = 30;
+      const baseWidthPerPoint = 80; 
+      const scrollWidthPerPoint = 30; 
       
       const showScroll = this.filteredData.length > visibleDataPoints;
       const chartWidth = showScroll 
@@ -273,32 +281,15 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
           return sum / itemsForDate.length;
         });
 
-        const isFirstDataset = index === 0;
-        
-        if (isFirstDataset) {
-          return {
-            label: type,
-            data: data,
-            borderColor: color,
-            backgroundColor: color,
-            borderWidth: 1,
-            yAxisID: 'y',
-            type: 'bar' as const,
-            barPercentage: 0.8,
-            categoryPercentage: 0.9
-          };
-        } else {
-          return {
-            label: type,
-            data: data,
-            borderColor: color,
-            backgroundColor: color.replace('1)', '0.2)'),
-            borderWidth: 2,
-            tension: 0.1,
-            yAxisID: 'y',
-            type: 'line' as const
-          };
-        }
+        return {
+          label: type,
+          data: data,
+          borderColor: color,
+          backgroundColor: color.replace('1)', '0.2)'),
+          borderWidth: 2,
+          tension: 0.1,
+          yAxisID: type === this.rightSideDataType ? 'y-right' : 'y-left' // Asignar eje derecho o izquierdo
+        };
       });
 
       const annotations: ChartAnnotations = {};
@@ -333,7 +324,7 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            y: {
+            'y-left': {
               type: 'linear',
               display: true,
               position: 'left',
@@ -342,7 +333,26 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
                 text: 'Consumo de agua (lts)'
               },
               min: 0,
-              stacked: false
+              grid: {
+                drawOnChartArea: true,
+              }
+            },
+            'y-right': {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              title: {
+                display: true,
+                text: this.rightSideDataType
+              },
+              min: 0,
+              grid: {
+                drawOnChartArea: false, 
+              },
+              
+              afterFit: (scaleInstance) => {
+                scaleInstance.width = 80; 
+              }
             },
             x: {
               title: {
@@ -353,9 +363,6 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
                 autoSkip: false,
                 maxRotation: 45,
                 minRotation: 45
-              },
-              grid: {
-                offset: true
               }
             }
           },
@@ -404,7 +411,11 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
               bodySpacing: 4
             },
             legend: {
-              position: 'top'
+              position: 'top',
+              onClick: (e, legendItem, legend) => {
+                
+                return;
+              }
             },
             annotation: {
               annotations: annotations
@@ -416,7 +427,7 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
           beforeDraw: (chart: any) => {
             const {ctx, chartArea, scales} = chart;
             
-            if (!ctx || !chartArea || !scales?.['y']) return;
+            if (!ctx || !chartArea || !scales?.['y-left']) return;
             
             ctx.save();
             ctx.translate(0.5, 0.5);
@@ -427,7 +438,7 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
                 
                 ctx.beginPath();
                 ctx.strokeStyle = limit.color;
-                ctx.lineWidth; 2
+                ctx.lineWidth = 2;
                 ctx.setLineDash([6, 6]);
                 ctx.moveTo(Math.floor(chartArea.left), yPixel);
                 ctx.lineTo(Math.floor(chartArea.right), yPixel);
@@ -452,6 +463,7 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
         }]
       });
 
+      
       setTimeout(() => {
         if (container && container.scrollWidth > container.clientWidth) {
           container.scrollLeft = container.scrollWidth - container.clientWidth;
@@ -462,6 +474,14 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
       console.error('Error al crear el gráfico:', error);
       this.apiConnectionStatus = 'Error al renderizar el gráfico';
       this.errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    }
+  }
+
+  
+  public setRightSideDataType(dataType: string): void {
+    this.rightSideDataType = dataType;
+    if (this.chart) {
+      this.initChart(); 
     }
   }
 

@@ -339,7 +339,7 @@ export class TurbidezJugoClaroComponent implements OnInit, AfterViewInit, OnDest
               position: 'left',
               title: {
                 display: true,
-                text: 'Turbidez (NTU)'
+                text: 'Turbidez '
               },
               min: 0
             },

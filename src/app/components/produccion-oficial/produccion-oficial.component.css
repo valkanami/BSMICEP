@@ -1,0 +1,140 @@
+
+.reporte-container {
+  font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+
+.reporte-header {
+  margin-bottom: 20px;
+}
+
+.reporte-title {
+  color: #2c3e50;
+  font-weight: 500;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  margin: 0 0 15px 0;
+}
+
+
+.tabla-container {
+  overflow-x: auto;
+  margin-top: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+}
+
+.tabla-datos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabla-datos th {
+  background-color: #34495e;
+  color: white;
+  padding: 12px 15px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.tabla-datos td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.categoria-cell {
+  font-weight: 500;
+  background-color: #f8f9fa;
+  text-align: left !important;
+}
+
+.valor-cell {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.tabla-datos tbody tr:hover {
+  background-color: #f5f7fa;
+}
+
+
+.filtro-container {
+  margin-bottom: 20px;
+}
+
+.filtro-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.filtro-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #34495e;
+}
+
+.filtro-select {
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 200px;
+}
+
+/* Estados */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  color: #3498db;
+  font-size: 14px;
+}
+
+.loading-indicator .spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(52, 152, 219, 0.2);
+  border-top-color: #3498db;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.no-results {
+  text-align: center;
+  padding: 30px;
+  color: #7f8c8d;
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+
+.icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

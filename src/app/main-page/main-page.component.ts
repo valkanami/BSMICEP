@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BarChartComponent } from '../bar-chart/bar-chart.component';
 import { LineChartComponent } from '../line-chart/line-chart.component';
 import { ColumnChartComponent } from '../column-chart/column-chart.component';
 import { ComboChartComponent } from '../combo-chart/combo-chart.component';
@@ -10,7 +9,6 @@ import { NewLineChartComponent } from '../new-line-chart/new-line-chart.componen
 import { MultiChartComponent } from '../multi-chart/multi-chart.component';
 import { NewTableComponent } from '../new-table/new-table.component'; 
 import { StackedBarChartComponent } from '../stacked-bar-chart/stacked-bar-chart.component';
-import { ClimaComponent } from '../clima/clima.component';
 import { TurbidezJugoClaroComponent } from '../components/turbidez-jugo-claro/turbidez-jugo-claro.component';
 import { RsdComponent } from '../components/rsd/rsd.component';
 import { RendimientoCristalesComponent } from '../components/rendimiento-cristales/rendimiento-cristales.component';
@@ -102,7 +100,6 @@ import { AzucarRefundidaComponent } from '../components/azucar-refundida/azucar-
   standalone: true,
   imports: [
     CommonModule,
-    BarChartComponent,
     LineChartComponent,
     ColumnChartComponent,
     ComboChartComponent,
@@ -112,7 +109,6 @@ import { AzucarRefundidaComponent } from '../components/azucar-refundida/azucar-
     MultiChartComponent,
     NewTableComponent,
     StackedBarChartComponent,
-    ClimaComponent,
     TurbidezJugoClaroComponent,
     RsdComponent,
     RendimientoCristalesComponent,

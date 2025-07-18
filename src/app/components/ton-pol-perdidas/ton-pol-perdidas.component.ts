@@ -50,11 +50,11 @@ export class TonPolPerdidasComponent implements OnInit, AfterViewInit, OnDestroy
   public errorMessage: string = '';
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    // Aquí puedes agregar tus límites si los tienes
+    
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
-  public rightSideDataType: string = ''; // Nueva propiedad para el dato a mostrar a la derecha
+  public rightSideDataType: string = ''; 
 
   private colorPalette = [
     'rgba(255, 99, 132, 0.7)', 
@@ -229,7 +229,7 @@ export class TonPolPerdidasComponent implements OnInit, AfterViewInit, OnDestroy
     });
     this.dataTypes = Array.from(uniqueTypes);
     
-    // Establecer el primer tipo de dato como el que se muestra a la derecha por defecto
+    
     if (this.dataTypes.length > 0) {
       this.rightSideDataType = this.dataTypes[0];
     }
@@ -288,7 +288,7 @@ export class TonPolPerdidasComponent implements OnInit, AfterViewInit, OnDestroy
           backgroundColor: color.replace('1)', '0.2)'),
           borderWidth: 2,
           tension: 0.1,
-          yAxisID: type === this.rightSideDataType ? 'y-right' : 'y-left' // Asignar eje derecho o izquierdo
+          yAxisID: type === this.rightSideDataType ? 'y-right' : 'y-left' 
         };
       });
 
@@ -347,11 +347,11 @@ export class TonPolPerdidasComponent implements OnInit, AfterViewInit, OnDestroy
               },
               min: 0,
               grid: {
-                drawOnChartArea: false, // No dibujar líneas de grid para el eje derecho
+                drawOnChartArea: false, 
               },
-              // Asegurar que el eje derecho no se solape con el izquierdo
+              
               afterFit: (scaleInstance) => {
-                scaleInstance.width = 80; // Ancho fijo para el eje derecho
+                scaleInstance.width = 80; 
               }
             },
             x: {
@@ -413,7 +413,7 @@ export class TonPolPerdidasComponent implements OnInit, AfterViewInit, OnDestroy
             legend: {
               position: 'top',
               onClick: (e, legendItem, legend) => {
-                // Deshabilitar la funcionalidad de ocultar/mostrar al hacer clic en la leyenda
+                
                 return;
               }
             },
@@ -463,7 +463,7 @@ export class TonPolPerdidasComponent implements OnInit, AfterViewInit, OnDestroy
         }]
       });
 
-      // Desplazar al final del gráfico después de que se renderice
+      
       setTimeout(() => {
         if (container && container.scrollWidth > container.clientWidth) {
           container.scrollLeft = container.scrollWidth - container.clientWidth;
@@ -477,11 +477,11 @@ export class TonPolPerdidasComponent implements OnInit, AfterViewInit, OnDestroy
     }
   }
 
-  // Método para cambiar qué dato se muestra en el eje derecho
+  
   public setRightSideDataType(dataType: string): void {
     this.rightSideDataType = dataType;
     if (this.chart) {
-      this.initChart(); // Recrear el gráfico con la nueva configuración
+      this.initChart(); 
     }
   }
 
