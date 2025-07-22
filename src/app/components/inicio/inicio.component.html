@@ -1,0 +1,24 @@
+<div class="container">
+  <!-- Imagen en la parte superior izquierda -->
+  <div class="top-left">
+    <img 
+      src="https://via.placeholder.com/100" 
+      alt="Logo" 
+      class="logo"
+      (click)="changeWeek()"
+    >
+  </div>
+
+  <!-- Texto en el centro -->
+  <div class="center-content">
+    <h1 class="welcome-text">Bienvenido</h1>
+    <div class="week-display">
+      <h2>Semana {{ currentWeek }}</h2>
+    </div>
+  </div>
+
+  <!-- Fecha en la parte inferior -->
+  <div class="bottom-date">
+    <p>{{ currentDate | date:'fullDate' }}</p>
+  </div>
+</div>

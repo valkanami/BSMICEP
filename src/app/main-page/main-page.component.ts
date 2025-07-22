@@ -95,6 +95,11 @@ import { RendimientoTurnoComponent } from '../components/rendimiento-turno/rendi
 import { ProduccionFnComponent } from '../components/produccion-fn/produccion-fn.component';
 import { ProduccionOficialComponent } from '../components/produccion-oficial/produccion-oficial.component';
 import { AzucarRefundidaComponent } from '../components/azucar-refundida/azucar-refundida.component';
+import { InicioComponent } from '../components/inicio/inicio.component';
+import { ProductosQuimicosComponent } from '../components/productos-quimicos/productos-quimicos.component';
+import { CondensadosImpurosComponent } from '../components/condensados-impuros/condensados-impuros.component';
+
+
 @Component({
   selector: 'app-main-page',
   standalone: true,
@@ -195,6 +200,9 @@ import { AzucarRefundidaComponent } from '../components/azucar-refundida/azucar-
     ProduccionFnComponent,
     ProduccionOficialComponent,
     AzucarRefundidaComponent,
+    InicioComponent,
+    ProductosQuimicosComponent,
+    CondensadosImpurosComponent,
 
 ],
   templateUrl: './main-page.component.html',
