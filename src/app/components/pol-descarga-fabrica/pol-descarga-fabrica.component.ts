@@ -334,7 +334,7 @@ export class PolDescargaFabricaComponent implements OnInit, AfterViewInit, OnDes
               position: 'left',
               title: {
                 display: true,
-                text: 'Imbibicion'
+                text: ''
               },
               min: 0
             },

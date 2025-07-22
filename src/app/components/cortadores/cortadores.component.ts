@@ -393,7 +393,7 @@ export class CortadoresComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: 'Molienda'
+                text: 'Cortadores'
               },
               min: 0
             },

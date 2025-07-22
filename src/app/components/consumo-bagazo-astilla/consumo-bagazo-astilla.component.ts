@@ -432,7 +432,7 @@ export class ConsumoBagazoAstillaComponent implements OnInit, AfterViewInit, OnD
               position: 'left',
               title: {
                 display: true,
-                text: 'Molienda'
+                text: ''
               },
               min: 0
             },

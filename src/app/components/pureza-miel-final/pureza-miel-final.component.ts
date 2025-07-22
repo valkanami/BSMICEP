@@ -333,7 +333,7 @@ export class PurezaMielFinalComponent implements OnInit, AfterViewInit, OnDestro
               position: 'left',
               title: {
                 display: true,
-                text: 'Molienda'
+                text: 'Pureza'
               },
               min: 0
             },

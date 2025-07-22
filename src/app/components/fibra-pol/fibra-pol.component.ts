@@ -327,7 +327,7 @@ export class FibraPolComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: 'Consumo de agua (lts)'
+                text: ''
               },
               min: 0
             },

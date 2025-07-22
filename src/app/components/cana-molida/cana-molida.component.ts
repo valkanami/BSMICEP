@@ -393,7 +393,7 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: 'Molienda'
+                text: 'Caña molida'
               },
               min: 0
             },

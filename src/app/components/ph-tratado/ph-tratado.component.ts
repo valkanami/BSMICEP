@@ -333,7 +333,7 @@ export class PhTratadoComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: 'Imbibicion'
+                text: 'pH'
               },
               min: 0
             },

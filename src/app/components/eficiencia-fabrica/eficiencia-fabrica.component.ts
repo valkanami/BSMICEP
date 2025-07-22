@@ -393,7 +393,7 @@ export class EficienciaFabricaComponent implements OnInit, AfterViewInit, OnDest
               position: 'left',
               title: {
                 display: true,
-                text: 'Molienda'
+                text: ''
               },
               min: 0
             },

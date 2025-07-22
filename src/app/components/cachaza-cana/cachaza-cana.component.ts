@@ -394,7 +394,7 @@ export class CachazaCanaComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: 'Molienda'
+                text: ''
               },
               min: 0
             },

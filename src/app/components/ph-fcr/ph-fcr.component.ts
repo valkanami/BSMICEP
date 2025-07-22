@@ -336,7 +336,7 @@ export class PhFcrComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: 'Molienda'
+                text: 'pH'
               },
               min: 0
             },

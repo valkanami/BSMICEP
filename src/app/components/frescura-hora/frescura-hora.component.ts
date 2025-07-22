@@ -334,7 +334,7 @@ export class FrescuraHoraComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: 'Imbibicion'
+                text: 'Frescura'
               },
               min: 0
             },

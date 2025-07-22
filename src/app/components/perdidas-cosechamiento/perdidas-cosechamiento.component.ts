@@ -392,7 +392,7 @@ export class PerdidasCosechamientoComponent implements OnInit, AfterViewInit, On
               position: 'left',
               title: {
                 display: true,
-                text: 'Molienda'
+                text: ''
               },
               min: 0,
               stacked: true // Eje Y apilado

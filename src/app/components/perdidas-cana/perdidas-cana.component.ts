@@ -410,7 +410,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: 'Molienda'
+                text: ''
               },
               min: 0,
               stacked: true // Solo afecta a las barras

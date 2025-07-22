@@ -334,7 +334,7 @@ export class PhAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: 'Imbibicion'
+                text: ''
               },
               min: 0
             },

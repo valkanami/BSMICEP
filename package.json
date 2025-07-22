@@ -25,6 +25,7 @@
     "@angular/ssr": "19.2.9",
     "@types/highcharts": "^5.0.44",
     "angular-highcharts": "^17.0.1",
+    "chartjs-plugin-datalabels": "^2.2.0",
     "express": "^4.21.2",
     "highcharts": "^12.2.0",
     "highcharts-angular": "^4.0.1",

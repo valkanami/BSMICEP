@@ -327,7 +327,7 @@ export class DescargaGralAguaComponent implements OnInit, AfterViewInit, OnDestr
               position: 'left',
               title: {
                 display: true,
-                text: 'Consumo de agua (lts)'
+                text: 'Descarga de agua (lts)'
               },
               min: 0
             },

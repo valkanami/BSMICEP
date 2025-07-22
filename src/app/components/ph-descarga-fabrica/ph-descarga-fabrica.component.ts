@@ -334,7 +334,7 @@ export class PhDescargaFabricaComponent implements OnInit, AfterViewInit, OnDest
               position: 'left',
               title: {
                 display: true,
-                text: 'Imbibicion'
+                text: ''
               },
               min: 0
             },

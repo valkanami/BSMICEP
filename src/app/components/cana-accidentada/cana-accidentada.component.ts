@@ -339,7 +339,7 @@ export class CanaAccidentadaComponent implements OnInit, AfterViewInit, OnDestro
               position: 'left',
               title: {
                 display: true,
-                text: 'Consumo de agua (lts)'
+                text: ''
               },
               min: 0,
               stacked: false

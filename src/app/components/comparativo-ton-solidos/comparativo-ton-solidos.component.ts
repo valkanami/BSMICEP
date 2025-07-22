@@ -393,7 +393,7 @@ export class ComparativoTonSolidosComponent implements OnInit, AfterViewInit, On
               position: 'left',
               title: {
                 display: true,
-                text: 'Molienda'
+                text: ''
               },
               min: 0,
               stacked: false // Para barras agrupadas (no apiladas)
