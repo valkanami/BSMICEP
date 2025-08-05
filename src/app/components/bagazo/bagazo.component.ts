@@ -32,6 +32,16 @@ interface Limit {
   unit: string;
 }
 
+interface DatoCampo {
+  nombre: string;
+  valor: number;
+}
+
+interface GrupoCategoria {
+  categoria: string;
+  campos: DatoCampo[];
+}
+
 @Component({
   selector: 'app-bagazo',
   standalone: true,
@@ -63,6 +73,16 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
     '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
   ];
 
+  // Variables para la tabla de reporte
+  public datosOriginalesTabla: any[] = [];
+  public gruposCategoria: GrupoCategoria[] = [];
+  public todosCampos: string[] = [];
+  public fechasDisponiblesTabla: string[] = [];
+  public isLoadingTabla = true;
+  public errorMessageTabla = '';
+  public fechaSeleccionadaTabla = '';
+  public readonly APARTADO_FILTRADO = 'Cuadro caña molida1';
+
   private colorPalette = [
     'rgba(255, 99, 132, 1)',    
     'rgba(54, 162, 235, 1)',     
@@ -85,12 +105,83 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     if (this.isBrowser) {
       this.loadInitialData();
+      this.loadTableData();
     }
   }
 
   private loadInitialData(): void {
     this.checkApiConnection();
     this.loadLimitValues();
+  }
+
+  private loadTableData(): void {
+    this.isLoadingTabla = true;
+    this.http.get<any[]>('http://localhost:3000/api/datoscuadros')
+      .subscribe({
+        next: (data) => {
+          const datosFiltrados = data.filter(item => item.Apartado === this.APARTADO_FILTRADO);
+          
+          this.fechasDisponiblesTabla = [...new Set(datosFiltrados.map(item => {
+            const fechaOriginal = new Date(item.Fecha);
+            fechaOriginal.setDate(fechaOriginal.getDate() + 1); 
+            return this.formatDate(fechaOriginal);
+          }))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+          
+          this.datosOriginalesTabla = datosFiltrados;
+          
+          if (this.fechasDisponiblesTabla.length > 0) {
+            this.fechaSeleccionadaTabla = this.fechasDisponiblesTabla[0];
+            this.procesarDatosTabla();
+          }
+          
+          this.isLoadingTabla = false;
+        },
+        error: (err) => {
+          this.errorMessageTabla = 'Error al cargar los datos de la tabla';
+          this.isLoadingTabla = false;
+          console.error(err);
+        }
+      });
+  }
+
+  private procesarDatosTabla(): void {
+    const datosFiltrados = this.datosOriginalesTabla.filter(item => {
+      const fechaOriginal = new Date(item.Fecha);
+      fechaOriginal.setDate(fechaOriginal.getDate() + 1);
+      return this.formatDate(fechaOriginal) === this.fechaSeleccionadaTabla;
+    });
+    
+    this.todosCampos = [...new Set(datosFiltrados.map(item => item.Dato))];
+    
+    const categoriasUnicas = [...new Set(datosFiltrados.map(item => item.Categoria))];
+    
+    this.gruposCategoria = categoriasUnicas.map(categoria => {
+      const datosCategoria = datosFiltrados.filter(item => item.Categoria === categoria);
+      
+      const campos: DatoCampo[] = this.todosCampos.map(nombreCampo => {
+        const dato = datosCategoria.find(item => item.Dato === nombreCampo);
+        return {
+          nombre: nombreCampo,
+          valor: dato ? dato.Valor : 0 
+        };
+      });
+      
+      return {
+        categoria,
+        campos
+      };
+    });
+  }
+
+  aplicarFiltroTabla(): void {
+    this.procesarDatosTabla();
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   ngAfterViewInit(): void {
@@ -299,7 +390,6 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const annotations: ChartAnnotations = {};
       
-      
       this.limits.forEach(limit => {
         if (limit.value !== null) {
           annotations[`${limit.name}LimitLine`] = {
@@ -415,7 +505,6 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
             
             ctx.save();
             ctx.translate(0.5, 0.5);
-            
             
             this.limits.forEach(limit => {
               if (limit.value !== null && scales[limit.axis]) {
@@ -540,5 +629,10 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dataLoaded = false;
     this.limitsLoaded = false;
     this.loadInitialData();
+    
+    // También refrescamos los datos de la tabla
+    this.errorMessageTabla = '';
+    this.isLoadingTabla = true;
+    this.loadTableData();
   }
 }

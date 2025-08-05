@@ -341,7 +341,8 @@ export class PerdidasCosechamientoComponent implements OnInit, AfterViewInit, On
 
       const labels = this.daysOfWeek;
       
-      const datasets = this.dataTypes.map((type, index) => {
+      // Datasets para todos los tipos excepto el último
+      const datasets = this.dataTypes.slice(0, -1).map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
         return {
           label: type,
@@ -350,9 +351,13 @@ export class PerdidasCosechamientoComponent implements OnInit, AfterViewInit, On
           borderColor: color,
           borderWidth: 1,
           yAxisID: 'y',
-          stack: 'stack1' // Mismo stack para todas las barras
+          stack: 'stack1'
         };
       });
+
+      // Obtenemos los datos del último tipo para las etiquetas
+      const lastDataType = this.dataTypes[this.dataTypes.length - 1];
+      const lastDatasetValues = this.mapDataToDaysOfWeek(lastDataType);
 
       const annotations: ChartAnnotations = {};
       
@@ -395,7 +400,7 @@ export class PerdidasCosechamientoComponent implements OnInit, AfterViewInit, On
                 text: ''
               },
               min: 0,
-              stacked: true // Eje Y apilado
+              stacked: true
             },
             x: {
               title: {
@@ -407,7 +412,7 @@ export class PerdidasCosechamientoComponent implements OnInit, AfterViewInit, On
                 maxRotation: 45,
                 minRotation: 45
               },
-              stacked: true // Eje X apilado
+              stacked: true
             }
           },
           plugins: {
@@ -463,45 +468,96 @@ export class PerdidasCosechamientoComponent implements OnInit, AfterViewInit, On
             }
           }
         },
-        plugins: [{
-          id: 'limitLine',
-          beforeDraw: (chart: any) => {
-            const {ctx, chartArea, scales} = chart;
-            
-            if (!ctx || !chartArea || !scales?.['y']) return;
-            
-            ctx.save();
-            ctx.translate(0.5, 0.5);
-            
-            this.limits.forEach(limit => {
-              if (limit.value !== null && scales[limit.axis]) {
-                const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
+        plugins: [
+          {
+            id: 'limitLine',
+            beforeDraw: (chart: any) => {
+              const {ctx, chartArea, scales} = chart;
+              
+              if (!ctx || !chartArea || !scales?.['y']) return;
+              
+              ctx.save();
+              ctx.translate(0.5, 0.5);
+              
+              this.limits.forEach(limit => {
+                if (limit.value !== null && scales[limit.axis]) {
+                  const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
+                  
+                  ctx.beginPath();
+                  ctx.strokeStyle = limit.color;
+                  ctx.lineWidth = 2;
+                  ctx.setLineDash([6, 6]);
+                  ctx.moveTo(Math.floor(chartArea.left), yPixel);
+                  ctx.lineTo(Math.floor(chartArea.right), yPixel);
+                  ctx.stroke();
+                  
+                  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                  ctx.fillRect(
+                    Math.floor(chartArea.right - 150), 
+                    Math.floor(yPixel - 15), 
+                    150, 
+                    20
+                  );
+                  
+                  ctx.fillStyle = limit.color;
+                  ctx.textAlign = 'right';
+                  ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
+                }
+              });
+              
+              ctx.restore();
+            }
+          },
+          {
+            id: 'lastValueLabels',
+            afterDatasetsDraw: (chart: any) => {
+              const ctx = chart.ctx;
+              const datasets = chart.data.datasets;
+              
+              // Calculamos la suma acumulada de valores para cada día
+              const dailyTotals = this.daysOfWeek.map((_, dayIndex) => {
+  return datasets.reduce((total: number, dataset: { data: (number | null)[] }) => {
+    const value = dataset.data[dayIndex];
+    return total + (value !== null && value !== undefined ? value : 0);
+  }, 0);
+});
+              
+              // Obtenemos los valores del último dataset
+              const lastDataType = this.dataTypes[this.dataTypes.length - 1];
+              const lastDatasetValues = this.mapDataToDaysOfWeek(lastDataType);
+              
+              // Dibujamos las etiquetas
+              chart.getDatasetMeta(0).data.forEach((bar: any, index: number) => {
+                const value = lastDatasetValues[index];
+                if (value === null || value === undefined) return;
                 
-                ctx.beginPath();
-                ctx.strokeStyle = limit.color;
-                ctx.lineWidth = 2;
-                ctx.setLineDash([6, 6]);
-                ctx.moveTo(Math.floor(chartArea.left), yPixel);
-                ctx.lineTo(Math.floor(chartArea.right), yPixel);
-                ctx.stroke();
+                const xPos = bar.x;
+                const yPos = chart.scales.y.getPixelForValue(dailyTotals[index]) - 5;
                 
-                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                // Estilo mejorado para las etiquetas
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                
+                // Fondo para mejor legibilidad
+                const text = value.toFixed(2);
+                const textWidth = ctx.measureText(text).width;
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
                 ctx.fillRect(
-                  Math.floor(chartArea.right - 150), 
-                  Math.floor(yPixel - 15), 
-                  150, 
+                  xPos - textWidth / 2 - 5,
+                  yPos - 20,
+                  textWidth + 10,
                   20
                 );
                 
-                ctx.fillStyle = limit.color;
-                ctx.textAlign = 'right';
-                ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
-              }
-            });
-            
-            ctx.restore();
+                // Texto
+                ctx.fillStyle = '#000';
+                ctx.fillText(text, xPos, yPos);
+              });
+            }
           }
-        }]
+        ]
       });
 
     } catch (error) {
@@ -529,7 +585,8 @@ export class PerdidasCosechamientoComponent implements OnInit, AfterViewInit, On
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets = this.dataTypes.map((type, index) => {
+    // Actualizamos solo los datasets visibles (excluyendo el último)
+    this.chart.data.datasets = this.dataTypes.slice(0, -1).map((type, index) => {
       const color = this.colorPalette[index % this.colorPalette.length];
       return {
         label: type,
@@ -538,7 +595,7 @@ export class PerdidasCosechamientoComponent implements OnInit, AfterViewInit, On
         borderColor: color,
         borderWidth: 1,
         yAxisID: 'y',
-        stack: 'stack1' // Mantener el mismo stack
+        stack: 'stack1'
       };
     });
 

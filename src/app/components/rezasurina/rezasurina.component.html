@@ -36,7 +36,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let grupo of gruposCategoria">
+        <tr *ngFor="let grupo of gruposCategoria; let i = index" [class.fila-par]="i % 2 === 0">
           <td class="categoria-cell">{{ grupo.categoria }}</td>
           <td *ngFor="let campo of grupo.campos" class="valor-cell" [class.valor-vacio]="!campo.valor">
             {{ campo.valor || '-' }}

@@ -31,15 +31,15 @@
     <table class="tabla-datos">
       <thead>
         <tr>
-          <th>Medidor</th>
+          <th>Especificación</th>
           <th *ngFor="let campo of todosCampos">{{ campo }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let grupo of gruposCategoria">
+        <tr *ngFor="let grupo of gruposCategoria; let i = index" [class.fila-par]="i % 2 === 0">
           <td class="categoria-cell">{{ grupo.categoria }}</td>
-          <td *ngFor="let campo of grupo.campos" class="valor-cell">
-            {{ campo.valor | number:'1.2-4' }}
+          <td *ngFor="let campo of grupo.campos" class="valor-cell" [class.valor-vacio]="!campo.valor">
+            {{ campo.valor || '-' }}
           </td>
         </tr>
       </tbody>

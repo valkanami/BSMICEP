@@ -9,115 +9,22 @@
     </div>
     
     <ul class="menu">
-      
-      
-      
-      
       <li class="menu-item">
         <div class="menu-header" (click)="toggleMenu('clima')">
-          <span>Clima</span>
+          <span>Graficas</span>
           <span class="menu-icon">{{ isMenuOpen('clima') ? '▼' : '►' }}</span>
         </div>
         <ul class="submenu" [class.open]="isMenuOpen('clima')">
-          <li (click)="showChart('inicio')">inicio</li>
-          <li (click)="showChart('clima-dia')">clima-dia</li>
-          <li (click)="showChart('clima-semana')">clima-semana</li>
-          <li (click)="showChart('reporte-cosecha')">reporte-cosecha</li>
-          <li (click)="showChart('reporte-cana-accidental')">reporte-cana-accidental</li>
-          <li (click)="showChart('cortadores')">cortadores</li>
-          <li (click)=" showChart('frescura-hora')">frescura-hora</li>
-          <li (click)="showChart('tabla-frescura')">tabla-frescura</li>
-          <li (click)="showChart('rangos-frescura')">rangos-frescura </li>
-          <li (click)="showChart('perdidas-cosechamiento')">perdidas-cosechamiento</li>
-          <li (click)="showChart('cana-molida')">cana-molida</li>
-          <li (click)="showChart('dextranas-brix')">dextranas-brix</li>
-          <li (click)="showChart('bagazo')">Bagazo</li>
-          <li (click)="showChart('pol-cana')">pol-cana</li>
-          <li (click)="showChart('eficiencia-fabrica')">eficiencia-fabrica</li>
-          <li (click)="showChart('reductores')">Reductores</li>
-          <li (click)="showChart('ph-desmenuzado-mezclado')">PH Desmenuzado Mezclado</li>
-          <li (click)="showChart('ph-acm')">ph-acm</li>
-          <li (click)="showChart('ph-claro-filtrado')">PH Claro Filtrado</li>
-          <li (click)="showChart('ph-promedio')">PH Promedio</li>
-          <li (click)="showChart('reductores-claro-meladura')">Reductores Claro Meladura</li>
-          <li (click)="showChart('reductores-promedio')">Reductores Promedio</li>
-          <li (click)="showChart('turbidez-jugo-claro')">Turbidez Jugo Claro</li>
-          <li (click)="showChart('brix-meladura')">Brix Meladura</li>
-          <li (click)="showChart('pureza-miel-final')">Pureza Miel Final</li>
-          <li (click)="showChart('pza-jugo-mezclado-tierra')">pza-jugo-mezclado-tierra</li>
-          <li (click)="showChart('cachaza-cana')">cachaza-cana</li>
-          <li (click)="showChart('perdidas-cana')">perdidas-cana</li>
-          <li (click)="showChart('ph-fcr')">ph-fcr</li>
-          <li (click)="showChart('ph-tratado')">ph-tratado</li>
-          <li (click)="showChart('color-fcr')">color-fcr</li>
-          <li (click)="showChart('rsd')">RSD</li>
-          <li (click)="showChart('rezasurina')">rezasurina </li>
-          <li (click)="showChart('productos-quimicos')">productos-quimicos </li>
-          <li (click)="showChart('columnas-carbon')">columnas-carbon</li>
-          <li (click)="showChart('tabla-rendimiento-cyr')">tabla-rendimiento-cyr</li>
-          <li (click)="showChart('calidad-azucar')">calidad-azucar</li>
-
-          <li (click)="showChart('datos-calderas')">datos-calderas</li>
-          <li (click)="showChart('comparativo-abl')">Comparativo ABL</li>
-          <li (click)="showChart('comparativo-ton-solidos')">Comparativo Ton Sólidos</li>
-          <li (click)="showChart('consumo-bagazo-astilla')">Consumo Bagazo/Astilla</li>
-          <li (click)="showChart('calderas-datos-dia')">calderas-datos-dia </li>
-          <li (click)="showChart('relleno-torre')">relleno-torre </li>
-          <li (click)="showChart('tanque')">tanque 99</li>
-          <li (click)="showChart('comparativo-bb')">comparativo-bb </li>
-          <li (click)="showChart('condensados-impuros')">condensados-impuros/li>
-          <li (click)="showChart('consumo-agua-m3')">Consumo Agua m3</li>
-          <li (click)="showChart('consumo-agua-lts')">Consumo Agua lts</li>
-          <li (click)="showChart('consumo-medidor')">consumo agua medidor</li>
-          <li (click)="showChart('consumo-gral-agua')">Consumo General Agua</li>
-          <li (click)="showChart('descarga-gral-agua')">Descarga General Agua</li>
-          <li (click)="showChart('pol-descarga-fabrica')">POL Descarga Fábrica</li>
-          <li (click)="showChart('ph-descarga-fabrica')">PH Descarga Fábrica</li>
-          <li (click)="showChart('pol-agua-torre')">POL Agua Torre</li>
-          <li (click)="showChart('ph-agua-torre')">PH Agua Torre</li>
-          <li (click)="showChart('muestreo')">muestreo</li>
-          <li (click)="showChart('ton-pol-perdidas')">ton-pol-perdidas</li>
-          <li (click)="showChart('datos-cana')">datos-cana</li>
-          <li (click)="showChart('frescura-rsd')">frescura-rsd</li>
-          <li (click)="showChart('cana-mayor')">cana-mayor</li>
-          <li (click)="showChart('ton-cana-imbibicion')">ton-cana-imbibicion</li>
-          <li (click)="showChart('cana-accidentada')">cana-accidentada</li>
-          <li (click)="showChart('cana-corralon')">cana-corralon</li>
-          <li (click)="showChart('cachaza-clarificadores')">cachaza-clarificadores</li>
-          <li (click)="showChart('fibra-pol')">fibra-pol</li>
-          <li (click)="showChart('ton-pol-cachaza')">ton-pol-cachaza</li>
-          <li (click)="showChart('color-icumsa')">color-icumsa</li>
-          <li (click)="showChart('bx-pza-miel-final')">bx-pza-miel-final</li>
-          <li (click)="showChart('silos')">silos </li>
-          <li (click)="showChart('tamano-grano')">tamano-grano</li>
-          <li (click)="showChart('rendimiento-turno')">rendimiento-turno</li>
-          <li (click)="showChart('produccion-fn')">produccion-fn</li>
-          <li (click)="showChart('produccion-oficial')">produccion-oficial</li>
-          <li (click)="showChart('azucar-refundida')">azucar-refundida</li>
-
-          <li (click)="showChart('rendimiento-cristales')">Rendimiento Cristales</li>
-          <li (click)="showChart('molienda')">Molienda</li>
-          <li (click)="showChart('imbibicion')">Imbibición</li>
-          <li (click)="showChart('molida-produccion')">Molida Producción</li>
-          <li (click)="showChart('molida-rendimiento')">Molida Rendimiento</li>
-          <li (click)="showChart('sedimentos')">sedimentos</li>
-          <li (click)="showChart('pureza-jugo')">pureza-jugo</li>
-          <li (click)="showChart('rendimiento-cristales-dia')">rendimiento-cristales-dia</li>
-          <li (click)="showChart('color')">Color</li>
-          <li (click)="showChart('dextranas-solidos')">dextranas-solidos</li>
-          <li (click)="showChart('ton-vapor-cana')">ton-vapor-cana</li>
-          <li (click)="showChart('turbidez-azucar')">turbidez-azucar</li>
-          <li (click)="showChart('masa-cocida')">masa-cocida</li>
-          <li (click)="showChart('rendimiento-cristales-semana')">rendimiento-cristales-semana</li>
-          <li (click)="showChart('recirculacion')">recirculacion</li>
-          <li (click)="showChart('reporte-cana-accidental')">reporte-cana-accidental</li>
-
+          <li *ngFor="let item of menuItems; let i = index" 
+              [class.selected]="selectedIndex === i"
+              (click)="showChart(item)">
+            {{ getDisplayName(item) }}
+          </li>
         </ul>
       </li>
     </ul>
   </div>
   
-
   <div class="content" [class.full-width]="isSidebarHidden">
     <div class="content-container">
       <app-inicio *ngIf="currentChart === 'inicio'"></app-inicio>

@@ -2,7 +2,7 @@
   <div class="reporte-header">
     <h2 class="reporte-title">
       <i class="icon icon-data"></i>
-      Reporte de Cosecha
+      Reporte de cosecha
     </h2>
     
     <div class="loading-indicator" *ngIf="isLoading">
@@ -36,7 +36,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let grupo of gruposCategoria">
+        <tr *ngFor="let grupo of gruposCategoria; let i = index" [class.fila-par]="i % 2 === 0">
           <td class="categoria-cell">{{ grupo.categoria }}</td>
           <td *ngFor="let campo of grupo.campos" class="valor-cell">
             {{ campo.valor | number:'1.2-4' }}

@@ -16,26 +16,28 @@
     </div>
   </div>
 
-  <div class="tabla-scroll-container">
-    <div class="tabla-wrapper">
-      <table class="tabla-datos">
-        <thead>
-          <tr>
-            <th class="sticky-column">Fecha</th>
-            <th class="sticky-column"></th>
-            <th *ngFor="let campo of todosCampos">{{ campo }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let fila of filasDatos">
-            <td class="fecha-cell sticky-column">{{ fila.fecha | date:'dd/MM/yyyy' }}</td>
-            <td class="categoria-cell sticky-column">{{ fila.categoria }}</td>
-            <td *ngFor="let campo of fila.campos" class="valor-cell">
-              {{ campo.valor | number:'1.2-4' }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <div class="tabla-container">
+    <div class="tabla-scroll-container">
+      <div class="tabla-wrapper">
+        <table class="tabla-datos">
+          <thead>
+            <tr>
+              <th class="sticky-column">Fecha</th>
+              <th class="sticky-column">Categoría</th>
+              <th *ngFor="let campo of todosCampos">{{ campo }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let fila of filasDatos; let i = index" [class.fila-par]="i % 2 === 0">
+              <td class="fecha-cell sticky-column">{{ fila.fecha | date:'dd/MM/yyyy' }}</td>
+              <td class="categoria-cell sticky-column">{{ fila.categoria }}</td>
+              <td *ngFor="let campo of fila.campos" class="valor-cell">
+                {{ campo.valor | number:'1.2-4' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 

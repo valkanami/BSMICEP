@@ -1,3 +1,4 @@
+/* Estilos existentes (se mantienen igual) */
 .chart-container {
   width: 100%;
   max-width: 900px;
@@ -98,5 +99,154 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+  }
+}
+
+/* Nuevos estilos para la tabla (se añaden al final sin modificar lo existente) */
+
+/* Contenedor del reporte */
+.reporte-container {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Encabezado del reporte */
+.reporte-header {
+  margin-bottom: 20px;
+}
+
+.reporte-title {
+  color: #333;
+  font-size: 1.3rem;
+  margin: 0 0 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Filtros */
+.filtro-container {
+  margin-bottom: 15px;
+}
+
+.filtro-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filtro-group label {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.filtro-select {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  font-size: 0.9rem;
+}
+
+/* Tabla de datos */
+.tabla-container {
+  overflow-x: auto;
+  margin-top: 15px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.tabla-datos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.tabla-datos th, .tabla-datos td {
+  padding: 10px 12px;
+  text-align: left;
+  border: 1px solid #e0e0e0;
+}
+
+.tabla-datos th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+}
+
+.tabla-datos tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.tabla-datos tr:hover {
+  background-color: #f0f0f0;
+}
+
+.categoria-cell {
+  font-weight: 600;
+  background-color: #f5f5f5 !important;
+}
+
+.valor-cell {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+}
+
+/* Estados de carga y mensajes */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.spinner {
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top: 2px solid #3498db;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  color: #d32f2f;
+  background-color: #fde8e8;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.no-results {
+  padding: 15px;
+  text-align: center;
+  color: #666;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* Responsive para la tabla */
+@media (max-width: 768px) {
+  .filtro-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .tabla-datos th, .tabla-datos td {
+    padding: 8px 10px;
+    font-size: 0.8rem;
   }
 }

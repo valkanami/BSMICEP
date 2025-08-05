@@ -1,44 +1,44 @@
-
 <div class="loading" *ngIf="isLoading">
   <p>Cargando datos meteorológicos...</p>
 </div>
 
-<div class="locations-container">
-  <div class="weather-container" *ngFor="let item of weatherDataList">
+<div class="compact-weather-grid">
+  <div class="compact-weather-card" *ngFor="let item of weatherDataList">
     <div *ngIf="item.error" class="error-message">
       {{ item.error }}
     </div>
 
-    <div *ngIf="item.data" class="current-weather">
-      <h2>{{ item.data.city }}, Veracruz</h2>
-      <p class="data-date"> {{ formatDate(item.data.timestamp) }} a las {{ formatTime(item.data.timestamp) }}</p>
-      <div class="weather-main">
-        <div class="weather-icon">
+    <div *ngIf="item.data" class="compact-weather-content">
+      <div class="compact-header">
+        <h3>{{ item.data.city }}, Veracruz</h3>
+        <p class="compact-date">{{ formatDate(item.data.timestamp) }} {{ formatTime(item.data.timestamp) }}</p>
+      </div>
+      
+      <div class="compact-current">
+        <div class="compact-main">
           <img [src]="getWeatherIconUrl(item.data.icon)" [alt]="item.data.description">
-          <p>{{ capitalize(item.data.description) }}</p>
+          <div class="compact-temp">
+            <h2>{{ item.data.temperature | number:'1.0-0' }}°C</h2>
+            <small>{{ capitalize(item.data.description) }}</small>
+          </div>
         </div>
-        <div class="weather-temp">
-          <h1>{{ item.data.temperature | number:'1.0-0' }}°C</h1>
-          <p>Sensación: {{ item.data.feelsLike | number:'1.0-0' }}°C</p>
-        </div>
-        <div class="weather-details">
-          <p><i class="fas fa-tint"></i> Humedad: {{ item.data.humidity }}%</p>
-          <p><i class="fas fa-wind"></i> Viento: {{ item.data.windSpeed }} m/s</p>
-          <p><i class="fas fa-tachometer-alt"></i> Presión: {{ item.data.pressure }} hPa</p>
+        
+        <div class="compact-details">
+          <div><i class="fas fa-temperature-low"></i> {{ item.data.feelsLike | number:'1.0-0' }}°C</div>
+          <div><i class="fas fa-tint"></i> {{ item.data.humidity }}%</div>
+          <div><i class="fas fa-wind"></i> {{ item.data.windSpeed }} m/s</div>
+          <div><i class="fas fa-tachometer-alt"></i> {{ item.data.pressure }} hPa</div>
         </div>
       </div>
 
-      <div class="forecast">
-        <h3>Pronóstico para el {{ formatDate(item.data.periodos.madrugada.timestamp) }}</h3>
-        <div class="periods">
-          <div class="period" *ngFor="let period of periods">
-            <h4>{{ capitalize(period) }} ({{ formatTime(item.data.periodos[period].timestamp) }})</h4>
+      <div class="compact-forecast">
+        <h4>Pronóstico {{ formatDate(item.data.periodos.madrugada.timestamp) }}</h4>
+        <div class="compact-periods">
+          <div class="compact-period" *ngFor="let period of periods">
+            <div class="period-time">{{ formatTime(item.data.periodos[period].timestamp) }}</div>
             <img [src]="getWeatherIconUrl(item.data.periodos[period].icon)" 
                  [alt]="item.data.periodos[period].description">
-            <p>{{ item.data.periodos[period].temperature | number:'1.0-0' }}°C</p>
-            <small>Sensación: {{ item.data.periodos[period].feelsLike | number:'1.0-0' }}°C</small>
-            <small>Humedad: {{ item.data.periodos[period].humidity }}%</small>
-            <small>Viento: {{ item.data.periodos[period].windSpeed }} m/s</small>
+            <div class="period-temp">{{ item.data.periodos[period].temperature | number:'1.0-0' }}°C</div>
           </div>
         </div>
       </div>

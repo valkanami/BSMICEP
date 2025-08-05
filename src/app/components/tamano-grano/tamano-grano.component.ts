@@ -330,7 +330,7 @@ export class TamanoGranoComponent implements OnInit, AfterViewInit, OnDestroy {
               position: 'left',
               title: {
                 display: true,
-                text: ''
+                text: '5'
               },
               min: 0,
               grid: {

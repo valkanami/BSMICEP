@@ -15,9 +15,21 @@
     </div>
   </div>
 
-  <div #chartContainer class="chart-scroll-container" style="width: 100%; overflow-x: auto;">
-    <div class="chart-wrapper" style="position: relative; height: 400px; min-width: 100%;">
-      <canvas #chartCanvas></canvas>
+  <div class="chart-content-wrapper">
+    <div #chartContainer class="chart-scroll-container">
+      <div class="chart-wrapper">
+        <canvas #chartCanvas></canvas>
+      </div>
+    </div>
+    
+    <div class="silo-container">
+      <div class="silo-visualization">
+        <canvas #siloCanvas width="120" height="180"></canvas>
+        <div class="silo-info">
+          <div class="silo-value">{{ getCurrentSiloValue() }}</div>
+          <div class="silo-label">Nivel actual</div>
+        </div>
+      </div>
     </div>
   </div>
 

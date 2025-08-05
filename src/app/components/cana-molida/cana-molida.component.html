@@ -14,6 +14,7 @@
       }">
         {{ apiConnectionStatus }}
       </div>
+       
     </div>
   </div>
 
@@ -21,11 +22,57 @@
     <canvas #chartCanvas></canvas>
   </div>
 
-  <div class="chart-footer">
-    <div class="data-info">
-      <ul>
-        <li><span class="limit-line-color"></span> Límite </li>
-      </ul>
+  
+
+
+  <div class="reporte-container">
+    <div class="reporte-header">
+      <h2 class="reporte-title">
+        Reporte de cosecha
+      </h2>
+      
+      <div class="loading-indicator" *ngIf="isLoadingTabla">
+        <div class="spinner"></div>
+        <span>Cargando datos...</span>
+      </div>
+      
+      <div class="error-message" *ngIf="errorMessageTabla">
+        {{ errorMessageTabla }}
+      </div>
+    </div>
+
+    <div class="filtro-container">
+      <div class="filtro-group">
+        <label for="fechaFilter">Fecha:</label>
+        <select id="fechaFilter" class="filtro-select" [(ngModel)]="fechaSeleccionadaTabla" (change)="aplicarFiltroTabla()">
+          <option *ngFor="let fecha of fechasDisponibles" [value]="fecha">
+            {{ fecha | date:'dd/MM/yyyy' }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="tabla-container" *ngIf="gruposCategoria.length > 0">
+      <table class="tabla-datos">
+        <thead>
+          <tr>
+            <th>Concepto</th>
+            <th *ngFor="let campo of todosCampos">{{ campo }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let grupo of gruposCategoria">
+            <td class="categoria-cell">{{ grupo.categoria }}</td>
+            <td *ngFor="let campo of grupo.campos" class="valor-cell">
+              {{ campo.valor | number:'1.2-4' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="gruposCategoria.length === 0 && !isLoadingTabla" class="no-results">
+      No se encontraron registros para la fecha seleccionada
     </div>
   </div>
 </div>

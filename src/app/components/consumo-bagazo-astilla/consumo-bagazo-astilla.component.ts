@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Chart, registerables } from 'chart.js';
+import { Chart, registerables, ChartDataset } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -32,6 +32,12 @@ interface Limit {
   unit: string;
 }
 
+type CustomChartDataset = ChartDataset<'bar' | 'line', (number | null)[]> & {
+  pointBackgroundColor?: string;
+  pointRadius?: number;
+  pointHoverRadius?: number;
+};
+
 @Component({
   selector: 'app-consumo-bagazo-astilla',
   standalone: true,
@@ -56,7 +62,6 @@ export class ConsumoBagazoAstillaComponent implements OnInit, AfterViewInit, OnD
   public daysOfWeek: string[] = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   public shortDays: string[] = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
   
-  // Propiedades para la tabla
   public productionData: any[] = [];
   public tableDataLoaded: boolean = false;
 
@@ -352,9 +357,7 @@ export class ConsumoBagazoAstillaComponent implements OnInit, AfterViewInit, OnD
   }
 
   private addSpecialRows(): void {
-    
-
-    
+    // ... (tu código existente para filas especiales)
   }
 
   private initChart(): void {
@@ -381,16 +384,23 @@ export class ConsumoBagazoAstillaComponent implements OnInit, AfterViewInit, OnD
 
       const labels = this.daysOfWeek;
       
-      const datasets = this.dataTypes.map((type, index) => {
+      const datasets: CustomChartDataset[] = this.dataTypes.map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
+        const isLastDataset = index === this.dataTypes.length - 1;
+        
         return {
           label: type,
           data: this.mapDataToDaysOfWeek(type),
           borderColor: color,
-          backgroundColor: color.replace('1)', '0.2)'),
+          backgroundColor: isLastDataset ? 'transparent' : color.replace('1)', '0.2)'),
           borderWidth: 2,
           tension: 0.1,
-          yAxisID: 'y'
+          yAxisID: 'y',
+          type: isLastDataset ? 'line' : 'bar',
+          pointBackgroundColor: isLastDataset ? color : undefined,
+          pointRadius: isLastDataset ? 4 : undefined,
+          pointHoverRadius: isLastDataset ? 6 : undefined,
+          fill: isLastDataset ? false : true
         };
       });
 
@@ -417,7 +427,7 @@ export class ConsumoBagazoAstillaComponent implements OnInit, AfterViewInit, OnD
       });
 
       this.chart = new Chart(ctx, {
-        type: 'bar',
+        type: 'bar', // Tipo base
         data: {
           labels: labels,
           datasets: datasets
@@ -567,16 +577,23 @@ export class ConsumoBagazoAstillaComponent implements OnInit, AfterViewInit, OnD
   public updateChartData(): void {
     if (!this.chart) return;
   
-    this.chart.data.datasets = this.dataTypes.map((type, index) => {
+    const datasets: CustomChartDataset[] = this.dataTypes.map((type, index) => {
       const color = this.colorPalette[index % this.colorPalette.length];
+      const isLastDataset = index === this.dataTypes.length - 1;
+      
       return {
         label: type,
         data: this.mapDataToDaysOfWeek(type),
         borderColor: color,
-        backgroundColor: color.replace('1)', '0.2)'),
+        backgroundColor: isLastDataset ? 'transparent' : color.replace('1)', '0.2)'),
         borderWidth: 2,
         tension: 0.1,
-        yAxisID: 'y'
+        yAxisID: 'y',
+        type: isLastDataset ? 'line' : 'bar',
+        pointBackgroundColor: isLastDataset ? color : undefined,
+        pointRadius: isLastDataset ? 4 : undefined,
+        pointHoverRadius: isLastDataset ? 6 : undefined,
+        fill: isLastDataset ? false : true
       };
     });
 
@@ -602,6 +619,8 @@ export class ConsumoBagazoAstillaComponent implements OnInit, AfterViewInit, OnD
       }
     });
 
+    this.chart.data.datasets = datasets;
+    
     if (this.chart.options?.plugins?.annotation) {
       this.chart.options.plugins.annotation.annotations = annotations;
     }

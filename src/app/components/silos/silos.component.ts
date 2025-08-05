@@ -41,7 +41,9 @@ interface Limit {
 })
 export class SilosComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas', { static: false }) chartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('siloCanvas', { static: false }) siloCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef<HTMLDivElement>;
+  
   public chart: Chart | null = null;
   public apiConnectionStatus: string = 'Verificando conexión...';
   public originalData: any[] = [];
@@ -49,9 +51,7 @@ export class SilosComponent implements OnInit, AfterViewInit, OnDestroy {
   public isBrowser: boolean;
   public errorMessage: string = '';
   public dataTypes: string[] = [];
-  public limits: Limit[] = [
-    
-  ];
+  public limits: Limit[] = [];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
 
@@ -80,6 +80,16 @@ export class SilosComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  ngAfterViewInit(): void {
+    if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
+      this.initChartIfReady();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroyChart();
+  }
+
   private loadInitialData(): void {
     this.checkApiConnection();
     this.loadLimitValues();
@@ -89,16 +99,6 @@ export class SilosComponent implements OnInit, AfterViewInit, OnDestroy {
         this.apiConnectionStatus = 'Conexión lenta, intentando recuperar datos...';
       }
     }, 5000);
-  }
-
-  ngAfterViewInit(): void {
-    if (this.isBrowser && this.dataLoaded && this.limitsLoaded) {
-      this.initChartIfReady();
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.destroyChart();
   }
 
   private loadLimitValues(): void {
@@ -132,7 +132,155 @@ export class SilosComponent implements OnInit, AfterViewInit, OnDestroy {
   private initChartIfReady(): void {
     if (this.isBrowser && this.dataLoaded && this.limitsLoaded && this.filteredData.length > 0) {
       this.initChart();
+      this.initSiloVisualization();
     }
+  }
+
+  getCurrentSiloValue(): string {
+    if (!this.filteredData.length) return 'N/D';
+    const lastValue = this.filteredData[this.filteredData.length - 1].valor;
+    return lastValue !== null ? lastValue.toFixed(1) : 'N/D';
+  }
+
+  private initSiloVisualization(): void {
+    if (!this.siloCanvas?.nativeElement) return;
+    
+    const canvas = this.siloCanvas.nativeElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const lastValue = this.filteredData.length ? 
+      this.filteredData[this.filteredData.length - 1].valor || 0 : 0;
+    const maxValue = Math.max(...this.filteredData.map(d => d.valor || 0), 100);
+
+    this.drawInvertedSilo(ctx, lastValue, maxValue);
+  }
+
+  private drawInvertedSilo(ctx: CanvasRenderingContext2D, value: number, maxValue: number): void {
+    const width = ctx.canvas.width;
+    const height = ctx.canvas.height;
+    const siloWidth = 80;
+    const siloHeight = 120;
+    const siloX = (width - siloWidth) / 2;
+    const siloY = 20; // Comienza más arriba para la punta hacia abajo
+
+    // Limpiar canvas
+    ctx.clearRect(0, 0, width, height);
+
+    // Dibujar silo invertido (punta hacia abajo)
+    ctx.beginPath();
+    // Comenzar desde la esquina inferior izquierda
+    ctx.moveTo(siloX, siloY + siloHeight); 
+    // Linea a esquina inferior derecha
+    ctx.lineTo(siloX + siloWidth, siloY + siloHeight);
+    // Linea hacia arriba por el lado derecho
+    ctx.lineTo(siloX + siloWidth, siloY + 15);
+    // Curva para la punta derecha
+    ctx.quadraticCurveTo(
+      siloX + siloWidth, siloY,
+      siloX + siloWidth - 15, siloY
+    );
+    // Linea horizontal superior
+    ctx.lineTo(siloX + 15, siloY);
+    // Curva para la punta izquierda
+    ctx.quadraticCurveTo(
+      siloX, siloY,
+      siloX, siloY + 15
+    );
+    // Cerrar el path volviendo al inicio
+    ctx.closePath();
+    
+    // Estilo del contorno del silo
+    ctx.fillStyle = '#f5f5f5';
+    ctx.fill();
+    ctx.strokeStyle = '#aaa';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Calcular el nivel de llenado
+    const fillHeight = Math.min((value / maxValue) * siloHeight, siloHeight);
+    const fillY = siloY + fillHeight;
+
+    // Dibujar el contenido del silo
+    ctx.beginPath();
+    // Comenzar desde la esquina inferior izquierda
+    ctx.moveTo(siloX, siloY + siloHeight);
+    // Linea a esquina inferior derecha
+    ctx.lineTo(siloX + siloWidth, siloY + siloHeight);
+    // Linea hacia arriba por el lado derecho hasta el nivel de llenado
+    ctx.lineTo(siloX + siloWidth, fillY + 15);
+    // Curva para la punta derecha
+    ctx.quadraticCurveTo(
+      siloX + siloWidth, fillY,
+      siloX + siloWidth - 15, fillY
+    );
+    // Linea horizontal superior
+    ctx.lineTo(siloX + 15, fillY);
+    // Curva para la punta izquierda
+    ctx.quadraticCurveTo(
+      siloX, fillY,
+      siloX, fillY + 15
+    );
+    // Cerrar el path
+    ctx.closePath();
+
+    // Gradiente vertical para el contenido
+    const gradient = ctx.createLinearGradient(0, siloY, 0, siloY + siloHeight);
+    gradient.addColorStop(0, '#FFD700'); // Dorado claro arriba
+    gradient.addColorStop(1, '#CD853F'); // Dorado oscuro abajo
+    
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    ctx.strokeStyle = '#8B7500';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Base del silo (parte inferior)
+    ctx.beginPath();
+    ctx.moveTo(siloX + 15, siloY + siloHeight);
+    ctx.lineTo(siloX + siloWidth/2, siloY + siloHeight + 25);
+    ctx.lineTo(siloX + siloWidth - 15, siloY + siloHeight);
+    ctx.closePath();
+    
+    ctx.fillStyle = '#ddd';
+    ctx.fill();
+    ctx.strokeStyle = '#999';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Escalera lateral (detalle decorativo)
+    ctx.beginPath();
+    ctx.strokeStyle = '#777';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 5; i++) {
+      const stepY = siloY + siloHeight - (i * 20);
+      ctx.moveTo(siloX + siloWidth + 5, stepY);
+      ctx.lineTo(siloX + siloWidth + 15, stepY);
+    }
+    ctx.stroke();
+
+    // Sombra del silo
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.ellipse(
+      siloX + siloWidth/2, 
+      siloY + siloHeight + 25, 
+      siloWidth/2 + 5, 
+      10, 
+      0, 0, Math.PI * 2
+    );
+    ctx.fill();
+
+    // Texto con el valor
+    ctx.fillStyle = '#333';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(`${value.toFixed(1)}`, width/2, siloY + siloHeight + 50);
+
+    // Texto "Nivel actual"
+    ctx.fillStyle = '#555';
+    ctx.font = 'italic 12px Arial';
+    ctx.fillText('Nivel actual', width/2, siloY + siloHeight + 65);
   }
 
   private formatDate(dateString: string | Date): string {
@@ -141,13 +289,11 @@ export class SilosComponent implements OnInit, AfterViewInit, OnDestroy {
       if (isNaN(date.getTime())) {
         return dateString;
       }
-      // Sumar un día a la fecha
       date.setDate(date.getDate() + 1);
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       return `${day}/${month}`;
     } else if (dateString instanceof Date) {
-      // Sumar un día a la fecha
       const newDate = new Date(dateString);
       newDate.setDate(newDate.getDate() + 1);
       const day = newDate.getDate().toString().padStart(2, '0');
@@ -245,7 +391,6 @@ export class SilosComponent implements OnInit, AfterViewInit, OnDestroy {
         throw new Error('No se pudo obtener el contexto del canvas');
       }
       
-
       const visibleDataPoints = 10;
       const baseWidthPerPoint = 80; 
       const scrollWidthPerPoint = 30; 
@@ -394,49 +539,9 @@ export class SilosComponent implements OnInit, AfterViewInit, OnDestroy {
               annotations: annotations
             }
           }
-        },
-        plugins: [{
-          id: 'limitLine',
-          beforeDraw: (chart: any) => {
-            const {ctx, chartArea, scales} = chart;
-            
-            if (!ctx || !chartArea || !scales?.['y']) return;
-            
-            ctx.save();
-            ctx.translate(0.5, 0.5);
-            
-            this.limits.forEach(limit => {
-              if (limit.value !== null && scales[limit.axis]) {
-                const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
-                
-                ctx.beginPath();
-                ctx.strokeStyle = limit.color;
-                ctx.lineWidth = 2;
-                ctx.setLineDash([6, 6]);
-                ctx.moveTo(Math.floor(chartArea.left), yPixel);
-                ctx.lineTo(Math.floor(chartArea.right), yPixel);
-                ctx.stroke();
-                
-                ctx.fillStyle = 'rgba(255,255,255,0.8)';
-                ctx.fillRect(
-                  Math.floor(chartArea.right - 150), 
-                  Math.floor(yPixel - 15), 
-                  150, 
-                  20
-                );
-                
-                ctx.fillStyle = limit.color;
-                ctx.textAlign = 'right';
-                ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
-              }
-            });
-            
-            ctx.restore();
-          }
-        }]
+        }
       });
 
-      // Desplazar al final del gráfico después de que se renderice
       setTimeout(() => {
         if (container && container.scrollWidth > container.clientWidth) {
           container.scrollLeft = container.scrollWidth - container.clientWidth;

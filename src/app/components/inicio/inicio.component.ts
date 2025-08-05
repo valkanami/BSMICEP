@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, registerLocaleData } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import localeEs from '@angular/common/locales/es';
+
+registerLocaleData(localeEs);
 
 @Component({
   selector: 'app-inicio',
@@ -10,26 +13,19 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./inicio.component.css']
 })
 export class InicioComponent implements OnInit {
-  currentDate: Date = new Date();
+  referenceDate: Date = new Date('2025-06-01');
   currentWeek: number = 0;
+  currentDate: Date = new Date();
 
   ngOnInit(): void {
-    this.calculateWeek();
+    this.calculateCurrentWeek();
   }
 
-  calculateWeek(): void {
-    // Fecha de referencia (puedes cambiarla según tus necesidades)
-    const referenceDate = new Date('2023-01-01');
-    const diffInTime = this.currentDate.getTime() - referenceDate.getTime();
-    const diffInDays = Math.floor(diffInTime / (1000 * 3600 * 24));
-    this.currentWeek = Math.floor(diffInDays / 7) + 1;
-  }
-
-  changeWeek(): void {
-    // Cambia la fecha actual (simulando selección de día)
-    const randomDays = Math.floor(Math.random() * 30) - 15; // +/- 15 días
-    this.currentDate = new Date();
-    this.currentDate.setDate(this.currentDate.getDate() + randomDays);
-    this.calculateWeek();
+  calculateCurrentWeek(): void {
+    const today = new Date();
+    this.currentDate = today;
+    const diffInMs = today.getTime() - this.referenceDate.getTime();
+    const diffInWeeks = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 7));
+    this.currentWeek = diffInWeeks + 1;
   }
 }

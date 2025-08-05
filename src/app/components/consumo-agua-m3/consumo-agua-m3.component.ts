@@ -81,6 +81,10 @@ export class ConsumoAguaM3Component implements OnInit, AfterViewInit, OnDestroy 
     }
   }
 
+  private formatNumberWithCommas(num: number): string {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
   ngOnInit(): void {
     if (this.isBrowser) {
       this.loadInitialData();
@@ -308,7 +312,7 @@ export class ConsumoAguaM3Component implements OnInit, AfterViewInit, OnDestroy 
             borderWidth: 2,
             borderDash: [6, 6],
             label: {
-              content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+              content: `Límite ${limit.name}: ${this.formatNumberWithCommas(limit.value)}${limit.unit}`,
               enabled: true,
               position: 'end',
               backgroundColor: 'rgba(255,255,255,0.8)'
@@ -354,16 +358,16 @@ export class ConsumoAguaM3Component implements OnInit, AfterViewInit, OnDestroy 
             tooltip: {
               callbacks: {
                 label: (context: any) => {
-                  const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/D';
+                  const value = context.parsed.y !== null ? Math.round(context.parsed.y).toString() : 'N/D';
                   const label = context.label;
                   
                   if (label === 'Descarga gral.') {
                     return `Consumo: ${value} m³`;
                   } else {
-                    const calculatedValue = context.parsed.y !== null ? (context.parsed.y * 21.80).toFixed(2) : 'N/D';
+                    const calculatedValue = context.parsed.y !== null ? Math.round(context.parsed.y * 21.80) : 0;
                     return [
                       `Consumo: ${value} m³`,
-                      `Precio: $${calculatedValue}`
+                      `Precio: ${this.formatNumberWithCommas(calculatedValue)}`
                     ];
                   }
                 },
@@ -431,7 +435,7 @@ export class ConsumoAguaM3Component implements OnInit, AfterViewInit, OnDestroy 
                 
                 ctx.fillStyle = limit.color;
                 ctx.textAlign = 'right';
-                ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
+                ctx.fillText(` ${limit.name}: ${this.formatNumberWithCommas(limit.value)}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
               }
             });
             
@@ -439,12 +443,14 @@ export class ConsumoAguaM3Component implements OnInit, AfterViewInit, OnDestroy 
           }
         }, {
           id: 'customDataLabels',
-          afterDatasetsDraw(chart: any) {
+          afterDatasetsDraw: (chart: any) => {
             const {ctx, data, chartArea, scales} = chart;
             
             if (!chartArea || !scales?.['y']) return;
             
             ctx.save();
+            
+            // 1. Valores calculados (precio) arriba de la barra
             ctx.font = 'bold 12px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
@@ -455,11 +461,31 @@ export class ConsumoAguaM3Component implements OnInit, AfterViewInit, OnDestroy 
               const label = data.labels[index];
               
               if (value !== null && label !== 'Descarga gral.') {
-                const calculatedValue = (value * 21.80).toFixed(2);
+                const calculatedValue = Math.round(value * 21.80);
+                const formattedValue = this.formatNumberWithCommas(calculatedValue);
                 ctx.fillText(
-                  `$${calculatedValue}`, 
+                  `${formattedValue}`, 
                   bar.x, 
                   bar.y - 5
+                );
+              }
+            });
+
+            // 2. Valores directos (consumo) dentro de la barra
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#000';
+            
+            chart.getDatasetMeta(0).data.forEach((bar: any, index: number) => {
+              const value = data.datasets[0].data[index];
+              if (value !== null) {
+                const formattedValue = this.formatNumberWithCommas(Math.round(value));
+                const yPosition = bar.y + (bar.height / 2);
+                ctx.fillText(
+                  `${formattedValue} m³`, 
+                  bar.x, 
+                  yPosition
                 );
               }
             });
@@ -506,7 +532,7 @@ export class ConsumoAguaM3Component implements OnInit, AfterViewInit, OnDestroy 
           borderWidth: 2,
           borderDash: [6, 6],
           label: {
-            content: `Límite ${limit.name}: ${limit.value}${limit.unit}`,
+            content: `Límite ${limit.name}: ${this.formatNumberWithCommas(limit.value)}${limit.unit}`,
             enabled: true,
             position: 'end',
             backgroundColor: 'rgba(255,255,255,0.8)'

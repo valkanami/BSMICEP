@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { catchError, map, of } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 
 interface DailyForecast {
   date: string;
@@ -29,7 +29,7 @@ interface WeatherForecast {
 })
 export class ClimaSemanaComponent {
   @Input() apiUrl: string = 'http://localhost:3000/api/weather/forecast/';
-  forecastData: WeatherForecast | null = null;
+  forecastsData: WeatherForecast[] = [];
   loading: boolean = false;
   error: string | null = null;
   locations = [
@@ -41,44 +41,48 @@ export class ClimaSemanaComponent {
     { name: 'Paso del Macho', id: 'paso del macho' },
     { name: 'Manlio Fabio Altamirano', id: 'manlio fabio altamirano' }
   ];
-  selectedLocation: string = 'atoyac';
 
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
-    this.loadForecast();
+    this.loadAllForecasts();
   }
 
-  loadForecast() {
+  loadAllForecasts() {
     this.loading = true;
     this.error = null;
-    this.http.get<WeatherForecast>(`${this.apiUrl}${this.selectedLocation}`)
-      .pipe(
+    this.forecastsData = [];
+    
+    // Crear un array de observables para todas las localidades
+    const requests = this.locations.map(location => 
+      this.http.get<WeatherForecast>(`${this.apiUrl}${location.id}`).pipe(
         catchError(error => {
-          this.error = 'Error al cargar los datos del pronóstico';
-          this.loading = false;
+          console.error(`Error loading data for ${location.name}`, error);
           return of(null);
         })
       )
-      .subscribe(data => {
-        this.forecastData = data;
-        this.loading = false;
-      });
-  }
+    );
 
-  onLocationChange(event: Event) {
-    const selectElement = event.target as HTMLSelectElement;
-    this.selectedLocation = selectElement.value;
-    this.loadForecast();
+    // Ejecutar todas las peticiones en paralelo
+    forkJoin(requests).subscribe(results => {
+      results.forEach((data, index) => {
+        if (data) {
+          // Asegurarnos de que tenemos el nombre de la localidad
+          data.city = data.city || this.locations[index].name;
+          this.forecastsData.push(data);
+        }
+      });
+      this.loading = false;
+    });
   }
 
   getWeatherIconUrl(iconCode: string): string {
     return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
   }
 
-  getSortedDailyForecasts(): DailyForecast[] {
-    if (!this.forecastData?.daily) return [];
-    return Object.values(this.forecastData.daily).sort((a, b) => 
+  getSortedDailyForecasts(dailyData: {[date: string]: DailyForecast}): DailyForecast[] {
+    if (!dailyData) return [];
+    return Object.values(dailyData).sort((a, b) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
   }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LineChartComponent } from '../line-chart/line-chart.component';
 import { ColumnChartComponent } from '../column-chart/column-chart.component';
@@ -7,7 +7,7 @@ import { TableComponent } from '../table/table.component';
 import { NewBarChartComponent } from '../new-bar-chart/new-bar-chart.component';
 import { NewLineChartComponent } from '../new-line-chart/new-line-chart.component';
 import { MultiChartComponent } from '../multi-chart/multi-chart.component';
-import { NewTableComponent } from '../new-table/new-table.component'; 
+import { NewTableComponent } from '../new-table/new-table.component';
 import { StackedBarChartComponent } from '../stacked-bar-chart/stacked-bar-chart.component';
 import { TurbidezJugoClaroComponent } from '../components/turbidez-jugo-claro/turbidez-jugo-claro.component';
 import { RsdComponent } from '../components/rsd/rsd.component';
@@ -85,7 +85,7 @@ import { CalidadAzucarComponent } from '../components/calidad-azucar/calidad-azu
 import { DatosCalderasComponent } from '../components/datos-calderas/datos-calderas.component';
 import { CalderasDatosDiaComponent } from '../components/calderas-datos-dia/calderas-datos-dia.component';
 import { RellenoTorreComponent } from '../components/relleno-torre/relleno-torre.component';
-import { TanqueComponent } from '../components/tanque/tanque.component';  
+import { TanqueComponent } from '../components/tanque/tanque.component';
 import { ComparativoBbComponent } from '../components/comparativo-bb/comparativo-bb.component';
 import { ConsumoMedidorComponent } from '../components/consumo-medidor/consumo-medidor.component';
 import { MuestreoComponent } from '../components/muestreo/muestreo.component';
@@ -98,7 +98,6 @@ import { AzucarRefundidaComponent } from '../components/azucar-refundida/azucar-
 import { InicioComponent } from '../components/inicio/inicio.component';
 import { ProductosQuimicosComponent } from '../components/productos-quimicos/productos-quimicos.component';
 import { CondensadosImpurosComponent } from '../components/condensados-impuros/condensados-impuros.component';
-
 
 @Component({
   selector: 'app-main-page',
@@ -202,23 +201,201 @@ import { CondensadosImpurosComponent } from '../components/condensados-impuros/c
     AzucarRefundidaComponent,
     InicioComponent,
     ProductosQuimicosComponent,
-    CondensadosImpurosComponent,
-
-],
+    CondensadosImpurosComponent
+  ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']
 })
 export class MainPageComponent {
-  currentChart: string = 'bar';
+  currentChart: string = 'inicio';
   openMenus: {[key: string]: boolean} = {
-    prueba: false,
-    clima: false
+    clima: true
   };
   isSidebarHidden = false;
   sidebarWidth = 220;
+  
+  menuItems = [
+    'inicio',
+    'clima-dia',
+    'clima-semana',
+    'reporte-cosecha',
+    'reporte-cana-accidental',
+    'cortadores',
+    'frescura-hora',
+    'tabla-frescura',
+    'rangos-frescura',
+    'perdidas-cosechamiento',
+    'cana-molida',
+    'dextranas-brix',
+    'bagazo',
+    'pol-cana',
+    'eficiencia-fabrica',
+    'reductores',
+    'ph-desmenuzado-mezclado',
+    'ph-acm',
+    'ph-claro-filtrado',
+    'ph-promedio',
+    'reductores-claro-meladura',
+    'reductores-promedio',
+    'turbidez-jugo-claro',
+    'brix-meladura',
+    'pureza-miel-final',
+    'pza-jugo-mezclado-tierra',
+    'cachaza-cana',
+    'perdidas-cana',
+    'ph-fcr',
+    'ph-tratado',
+    'color-fcr',
+    'rsd',
+    'rezasurina',
+    'productos-quimicos',
+    'columnas-carbon',
+    'tabla-rendimiento-cyr',
+    'calidad-azucar',
+    'datos-calderas',
+    'comparativo-abl',
+    'comparativo-ton-solidos',
+    'consumo-bagazo-astilla',
+    'calderas-datos-dia',
+    'relleno-torre',
+    'tanque',
+    'comparativo-bb',
+    'condensados-impuros',
+    'consumo-agua-m3',
+    'consumo-agua-lts',
+    'consumo-medidor',
+    'consumo-gral-agua',
+    'descarga-gral-agua',
+    'pol-descarga-fabrica',
+    'ph-descarga-fabrica',
+    'pol-agua-torre',
+    'ph-agua-torre',
+    'muestreo',
+    'ton-pol-perdidas',
+    'datos-cana',
+    'frescura-rsd',
+    'cana-mayor',
+    'ton-cana-imbibicion',
+    'cana-accidentada',
+    'cana-corralon',
+    'cachaza-clarificadores',
+    'fibra-pol',
+    'ton-pol-cachaza',
+    'color-icumsa',
+    'bx-pza-miel-final',
+    'silos',
+    'tamano-grano',
+    'rendimiento-turno',
+    'produccion-fn',
+    'produccion-oficial',
+    'azucar-refundida',
+    'rendimiento-cristales',
+    'molienda',
+    'imbibicion',
+    'molida-produccion',
+    'molida-rendimiento',
+    'sedimentos',
+    'pureza-jugo',
+    'rendimiento-cristales-dia',
+    'color',
+    'dextranas-solidos',
+    'ton-vapor-cana',
+    'turbidez-azucar',
+    'masa-cocida',
+    'rendimiento-cristales-semana',
+    'recirculacion'
+  ];
+  
+  selectedIndex = 0;
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    switch (event.key) {
+      case 'ArrowUp':
+        event.preventDefault();
+        this.navigateUp();
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        this.navigateDown();
+        break;
+      case 'Enter':
+        event.preventDefault();
+        this.selectCurrentItem();
+        break;
+      case 'Escape':
+        this.toggleSidebar();
+        break;
+      case 'Home':
+        event.preventDefault();
+        this.goToFirstItem();
+        break;
+      case 'End':
+        event.preventDefault();
+        this.goToLastItem();
+        break;
+    }
+  }
+
+  navigateUp() {
+    this.selectedIndex = Math.max(0, this.selectedIndex - 1);
+    if (!this.isSidebarHidden) {
+      this.scrollToSelectedItem();
+    }
+    this.updateChart();
+  }
+
+  navigateDown() {
+    this.selectedIndex = Math.min(this.menuItems.length - 1, this.selectedIndex + 1);
+    if (!this.isSidebarHidden) {
+      this.scrollToSelectedItem();
+    }
+    this.updateChart();
+  }
+
+  goToFirstItem() {
+    this.selectedIndex = 0;
+    this.updateChart();
+    if (!this.isSidebarHidden) {
+      this.scrollToSelectedItem();
+    }
+  }
+
+  goToLastItem() {
+    this.selectedIndex = this.menuItems.length - 1;
+    this.updateChart();
+    if (!this.isSidebarHidden) {
+      this.scrollToSelectedItem();
+    }
+  }
+
+  selectCurrentItem() {
+    this.updateChart();
+    if (window.innerWidth < 768) {
+      this.toggleSidebarWithDelay();
+    }
+  }
+
+  private updateChart() {
+    const selectedItem = this.menuItems[this.selectedIndex];
+    this.currentChart = selectedItem;
+    document.title = `App - ${this.getDisplayName(selectedItem)}`;
+  }
+
+  scrollToSelectedItem() {
+    const element = document.querySelector(`.submenu li:nth-child(${this.selectedIndex + 1})`);
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest'
+      });
+    }
+  }
 
   showChart(chartType: string): void {
     this.currentChart = chartType;
+    this.selectedIndex = this.menuItems.indexOf(chartType);
+    document.title = `App - ${this.getDisplayName(chartType)}`;
     if (window.innerWidth < 768) {
       this.toggleSidebarWithDelay();
     }
@@ -239,13 +416,7 @@ export class MainPageComponent {
   }
 
   toggleSidebar(): void {
-    if (this.isSidebarHidden) {
-      setTimeout(() => {
-        this.isSidebarHidden = false;
-      }, 50);
-    } else {
-      this.isSidebarHidden = true;
-    }
+    this.isSidebarHidden = !this.isSidebarHidden;
   }
 
   private toggleSidebarWithDelay(): void {
@@ -254,17 +425,98 @@ export class MainPageComponent {
     }, 100);
   }
 
-  private closeAllMenus(): void {
-    Object.keys(this.openMenus).forEach(key => {
-      this.openMenus[key] = false;
-    });
-  }
-
-  private closeOtherMenus(menuKey: string): void {
-    Object.keys(this.openMenus).forEach(key => {
-      if (key !== menuKey) {
-        this.openMenus[key] = false;
-      }
-    });
+  getDisplayName(item: string): string {
+    const names: {[key: string]: string} = {
+      'inicio': 'Inicio',
+      'clima-dia': 'Clima día',
+      'clima-semana': 'Clima semana',
+      'reporte-cosecha': 'Reporte cosecha',
+      'reporte-cana-accidental': 'Reporte caña accidental',
+      'cortadores': 'Cortadores',
+      'frescura-hora': 'Frescura por hora',
+      'tabla-frescura': 'Tabla de frescura',
+      'rangos-frescura': 'Rangos de frescura',
+      'perdidas-cosechamiento': 'Pérdidas de cosechamiento',
+      'cana-molida': 'Caña molida',
+      'dextranas-brix': 'Dextranas brix',
+      'bagazo': 'Bagazo',
+      'pol-cana': 'Pol caña',
+      'eficiencia-fabrica': 'Eficiencia fábrica',
+      'reductores': 'Reductores',
+      'ph-desmenuzado-mezclado': 'pH desmenuzado mezclado',
+      'ph-acm': 'pH ACM',
+      'ph-claro-filtrado': 'pH claro filtrado',
+      'ph-promedio': 'pH promedio',
+      'reductores-claro-meladura': 'Reductores claro meladura',
+      'reductores-promedio': 'Reductores promedio',
+      'turbidez-jugo-claro': 'Turbidez jugo claro',
+      'brix-meladura': 'Brix meladura',
+      'pureza-miel-final': 'Pureza miel final',
+      'pza-jugo-mezclado-tierra': 'Pureza jugo mezclado tierra',
+      'cachaza-cana': 'Cachaza caña',
+      'perdidas-cana': 'Pérdidas caña',
+      'ph-fcr': 'pH FCR',
+      'ph-tratado': 'pH tratado',
+      'color-fcr': 'Color FCR',
+      'rsd': 'RSD',
+      'rezasurina': 'Rezasurina',
+      'productos-quimicos': 'Productos químicos',
+      'columnas-carbon': 'Columnas carbón',
+      'tabla-rendimiento-cyr': 'Tabla rendimiento CYR',
+      'calidad-azucar': 'Calidad azúcar',
+      'datos-calderas': 'Datos calderas',
+      'comparativo-abl': 'Comparativo ABL',
+      'comparativo-ton-solidos': 'Comparativo ton sólidos',
+      'consumo-bagazo-astilla': 'Consumo bagazo/astilla',
+      'calderas-datos-dia': 'Calderas datos día',
+      'relleno-torre': 'Relleno torre',
+      'tanque': 'Tanque 99',
+      'comparativo-bb': 'Comparativo BB',
+      'condensados-impuros': 'Condensados impuros',
+      'consumo-agua-m3': 'Consumo agua m³',
+      'consumo-agua-lts': 'Consumo agua lts',
+      'consumo-medidor': 'Consumo agua medidor',
+      'consumo-gral-agua': 'Consumo general agua',
+      'descarga-gral-agua': 'Descarga general agua',
+      'pol-descarga-fabrica': 'POL descarga fábrica',
+      'ph-descarga-fabrica': 'pH descarga fábrica',
+      'pol-agua-torre': 'POL agua torre',
+      'ph-agua-torre': 'pH agua torre',
+      'muestreo': 'Muestreo',
+      'ton-pol-perdidas': 'Ton POL pérdidas',
+      'datos-cana': 'Datos caña',
+      'frescura-rsd': 'Frescura RSD',
+      'cana-mayor': 'Caña mayor',
+      'ton-cana-imbibicion': 'Ton caña imbibición',
+      'cana-accidentada': 'Caña accidentada',
+      'cana-corralon': 'Caña corralón',
+      'cachaza-clarificadores': 'Cachaza clarificadores',
+      'fibra-pol': 'Fibra POL',
+      'ton-pol-cachaza': 'Ton POL cachaza',
+      'color-icumsa': 'Color ICUMSA',
+      'bx-pza-miel-final': 'Bx pureza miel final',
+      'silos': 'Silos',
+      'tamano-grano': 'Tamaño grano',
+      'rendimiento-turno': 'Rendimiento turno',
+      'produccion-fn': 'Producción FN',
+      'produccion-oficial': 'Producción oficial',
+      'azucar-refundida': 'Azúcar refundida',
+      'rendimiento-cristales': 'Rendimiento cristales',
+      'molienda': 'Molienda',
+      'imbibicion': 'Imbibición',
+      'molida-produccion': 'Molida producción',
+      'molida-rendimiento': 'Molida rendimiento',
+      'sedimentos': 'Sedimentos',
+      'pureza-jugo': 'Pureza jugo',
+      'rendimiento-cristales-dia': 'Rendimiento cristales día',
+      'color': 'Color',
+      'dextranas-solidos': 'Dextranas sólidos',
+      'ton-vapor-cana': 'Ton vapor caña',
+      'turbidez-azucar': 'Turbidez azúcar',
+      'masa-cocida': 'Masa cocida',
+      'rendimiento-cristales-semana': 'Rendimiento cristales semana',
+      'recirculacion': 'Recirculación'
+    };
+    return names[item] || item;
   }
 }

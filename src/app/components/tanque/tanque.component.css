@@ -2,65 +2,81 @@
   font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 25px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .reporte-header {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
 }
 
 .reporte-title {
   color: #2c3e50;
-  font-weight: 500;
-  font-size: 22px;
+  font-weight: 600;
+  font-size: 24px;
   display: flex;
   align-items: center;
   margin: 0 0 15px 0;
 }
 
-/* Contenedor principal de la tabla con scroll */
-.tabla-scroll-container {
+.tabla-container {
+  margin-top: 25px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
   overflow: hidden;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-top: 20px;
 }
 
-/* Wrapper que permite el scroll */
+.tabla-scroll-container {
+  overflow: hidden;
+}
+
 .tabla-wrapper {
   overflow-x: auto;
-  max-height: 600px; /* Altura máxima antes de scroll vertical */
+  max-height: 600px;
   position: relative;
 }
 
-/* Estilos de la tabla */
 .tabla-datos {
   width: auto;
   min-width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   font-size: 14px;
 }
 
 .tabla-datos th {
-  background-color: #34495e;
+  background-color: #2c3e50;
   color: white;
-  padding: 12px 15px;
-  font-weight: 500;
+  padding: 14px 16px;
+  font-weight: 600;
   text-align: center;
   position: sticky;
   top: 0;
   z-index: 10;
+  border-right: 1px solid #3a5169;
+}
+
+.tabla-datos th:last-child {
+  border-right: none;
 }
 
 .tabla-datos td {
-  padding: 12px 15px;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 12px 16px;
+  border-bottom: 1px solid #d1d5db;
   text-align: center;
+  border-right: 1px solid #e5e7eb;
   white-space: nowrap;
 }
 
-/* Columnas pegajosas (fecha y categoría) */
+.tabla-datos td:last-child {
+  border-right: none;
+}
+
+/* Columnas pegajosas */
 .sticky-column {
   position: sticky;
   left: 0;
@@ -69,27 +85,39 @@
 }
 
 .tabla-datos thead .sticky-column {
-  z-index: 15; /* Mayor que el z-index de las otras cabeceras */
-  background-color: #34495e;
+  z-index: 15;
+  background-color: #2c3e50;
+  border-right: 1px solid #3a5169;
+}
+
+.fecha-cell {
+  font-weight: 500;
 }
 
 .categoria-cell {
-  font-weight: 500;
-  background-color: #f8f9fa !important;
+  font-weight: 600;
   text-align: left !important;
+  background-color: transparent !important;
+  color: #1e3a8a;
+  border-right: 2px solid #d1d5db !important;
 }
 
 .valor-cell {
   font-weight: 500;
-  color: #2c3e50;
+  color: #1f2937;
+}
+
+.tabla-datos tbody tr.fila-par {
+  background-color: #f0f4f8;
 }
 
 .tabla-datos tbody tr:hover {
-  background-color: #f5f7fa;
+  background-color: #dbeafe !important;
+  transition: background-color 0.2s ease;
 }
 
 .tabla-datos tbody tr:hover .sticky-column {
-  background-color: #f5f7fa;
+  background-color: #dbeafe !important;
 }
 
 /* Barra de scroll personalizada */
@@ -111,50 +139,64 @@
   background: #a8a8a8;
 }
 
-/* Resto de estilos (mantenidos igual) */
+/* Estilos para mensajes */
 .loading-indicator {
   display: flex;
   align-items: center;
-  color: #3498db;
-  font-size: 14px;
+  color: #1d4ed8;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 10px 15px;
+  background-color: #dbeafe;
+  border-radius: 6px;
+  border: 1px solid #bfdbfe;
 }
 
 .loading-indicator .spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(52, 152, 219, 0.2);
-  border-top-color: #3498db;
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(29, 78, 216, 0.2);
+  border-top-color: #1d4ed8;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin-right: 8px;
+  margin-right: 10px;
 }
 
 .error-message {
-  color: #e74c3c;
-  font-size: 14px;
+  color: #b91c1c;
+  font-size: 15px;
+  font-weight: 500;
   display: flex;
   align-items: center;
+  background-color: #fee2e2;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
 }
 
 .no-results {
   text-align: center;
   padding: 30px;
-  color: #7f8c8d;
+  color: #4b5563;
   font-size: 16px;
+  font-weight: 500;
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: 20px;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  border: 1px dashed #d1d5db;
 }
 
 .icon {
   display: inline-block;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  margin-right: 8px;
+  margin-right: 10px;
 }
 
 @keyframes spin {

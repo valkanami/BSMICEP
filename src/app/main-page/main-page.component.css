@@ -154,9 +154,24 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  position: relative;
 }
 
-.submenu li:hover {
+.submenu li.selected {
+  background-color: #4a5d6e;
+  font-weight: bold;
+  border-left: 3px solid #3498db;
+  padding-left: 27px;
+}
+
+.submenu li.selected::after {
+  content: '→';
+  position: absolute;
+  right: 10px;
+  font-weight: bold;
+}
+
+.submenu li:hover:not(.selected) {
   background: #4a5d6e;
   padding-left: 35px;
 }
