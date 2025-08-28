@@ -50,7 +50,7 @@ export class DescargaGralAguaComponent implements OnInit, AfterViewInit, OnDestr
   public errorMessage: string = '';
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    
+        { id: 50, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;

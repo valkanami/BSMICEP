@@ -29,7 +29,7 @@ export class ReporteCosechaComponent implements OnInit {
   errorMessage = '';
   fechaSeleccionada = '';
 
-  readonly APARTADO_FILTRADO = 'Cuadro caña molida1';
+  readonly APARTADO_FILTRADO = 'Reporte de cosecha';
 
   constructor(private http: HttpClient) {}
 
@@ -39,7 +39,7 @@ export class ReporteCosechaComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
-    this.http.get<any[]>('http://localhost:3000/api/datoscuadros')
+    this.http.get<any[]>('http://localhost:3000/api/datostablas')
       .subscribe({
         next: (data) => {
           const datosFiltrados = data.filter(item => item.Apartado === this.APARTADO_FILTRADO);

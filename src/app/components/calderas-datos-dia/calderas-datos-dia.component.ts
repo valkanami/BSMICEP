@@ -29,7 +29,7 @@ export class CalderasDatosDiaComponent implements OnInit {
   errorMessage = '';
   fechaSeleccionada = '';
 
-  readonly APARTADO_FILTRADO = 'Calderas datos del dia';
+  readonly APARTADO_FILTRADO = 'Calderas datos del día';
 
   constructor(private http: HttpClient) {}
 

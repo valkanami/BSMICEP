@@ -28,7 +28,7 @@ export class CondensadosImpurosComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
 
-  readonly APARTADO_FILTRADO = 'Tanque condensados impuros';
+  readonly APARTADO_FILTRADO = 'Condensados impuros';
 
   constructor(private http: HttpClient) {}
 

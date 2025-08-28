@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 
 interface DatoCampo {
   nombre: string;
-  valor: string; // Cambiado de number a string
+  valor: string;
 }
 
 interface GrupoCategoria {
@@ -85,7 +85,7 @@ export class RezasurinaComponent implements OnInit {
         const dato = datosCategoria.find(item => item.Dato === nombreCampo);
         return {
           nombre: nombreCampo,
-          valor: dato ? dato.Valor.toString() : '' // Aseguramos que sea string y usamos '' como valor por defecto
+          valor: dato ? dato.Valor.toString() : ''
         };
       });
       
@@ -100,6 +100,18 @@ export class RezasurinaComponent implements OnInit {
     this.procesarDatos();
   }
 
+  getSemaforoClass(valor: string): string {
+    if (!valor) return 'desconocido';
+    
+    const valorLower = valor.toLowerCase().trim();
+    
+    if (valorLower.includes('bueno')) return 'bueno';
+    if (valorLower.includes('regular')) return 'regular';
+    if (valorLower.includes('malo')) return 'malo';
+    
+    return 'desconocido';
+  }
+
   private formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -107,7 +119,6 @@ export class RezasurinaComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  // Método auxiliar para convertir a número si es necesario
   convertirANumero(valor: string): number {
     return parseFloat(valor) || 0;
   }

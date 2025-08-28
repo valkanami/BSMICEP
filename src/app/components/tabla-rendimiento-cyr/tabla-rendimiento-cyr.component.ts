@@ -29,7 +29,7 @@ export class TablaRendimientoCyrComponent implements OnInit {
   errorMessage = '';
   fechaSeleccionada = '';
 
-  readonly APARTADO_FILTRADO = 'Rendimiento cristales y recirculacion';
+  readonly APARTADO_FILTRADO = 'Rendimiento Cristales y Recirculación';
 
   constructor(private http: HttpClient) {}
 

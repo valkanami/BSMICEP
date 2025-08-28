@@ -1,28 +1,39 @@
 .container {
-  position: relative;
-  height: 100vh;
-  width: 100%;
+  height: auto; /* Cambiado de min-height: 100vh */
+  min-height: 80vh; /* Altura mínima reducida */
+  max-height: 90vh; /* Altura máxima para prevenir desbordamiento */
+  width: 90%; /* Ancho reducido */
+  margin: 20px auto; /* Centrado con margen */
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   text-align: center;
-  padding: 20px;
+  padding: 15px;
   box-sizing: border-box;
+  position: relative;
+  overflow: hidden; /* Previene cualquier desbordamiento */
 }
 
+/* El resto de tus estilos pueden mantenerse igual */
 .top-left {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: 15px;
+  left: 15px;
 }
 
 .logo {
   filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+  width: 80px;
 }
 
-.centered-text {
-  margin-bottom: 100px;
+.content {
+  margin-top: 60px; /* Espacio para el logo */
+  margin-bottom: 60px; /* Espacio para la sección inferior */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .blue-text {
@@ -36,19 +47,19 @@
 }
 
 .bottom-section {
-  position: absolute;
-  bottom: 20px;
   width: 100%;
   text-align: center;
+  position: absolute;
+  bottom: 15px;
 }
 
 .week-display {
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: #333;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
 .date-display {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #666;
 }

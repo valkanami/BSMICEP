@@ -73,7 +73,7 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
     '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
   ];
 
-  // Variables para la tabla de reporte
+ 
   public datosOriginalesTabla: any[] = [];
   public gruposCategoria: GrupoCategoria[] = [];
   public todosCampos: string[] = [];

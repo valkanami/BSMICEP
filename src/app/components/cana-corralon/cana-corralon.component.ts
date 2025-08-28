@@ -50,7 +50,7 @@ export class CanaCorralonComponent implements OnInit, AfterViewInit, OnDestroy {
   public errorMessage: string = '';
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-        { id: 47, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+        { id: 57, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;

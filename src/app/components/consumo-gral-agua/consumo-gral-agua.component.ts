@@ -50,7 +50,7 @@ export class ConsumoGralAguaComponent implements OnInit, AfterViewInit, OnDestro
   public errorMessage: string = '';
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    
+   { id: 49, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;

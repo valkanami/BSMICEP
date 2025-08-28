@@ -29,7 +29,7 @@ export class ProductosQuimicosComponent implements OnInit {
   errorMessage = '';
   fechaSeleccionada = '';
 
-  readonly APARTADO_FILTRADO = 'Productos quimicos';
+  readonly APARTADO_FILTRADO = 'Productos químicos';
 
   constructor(private http: HttpClient) {}
 

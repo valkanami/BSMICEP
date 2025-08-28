@@ -29,7 +29,7 @@ export class ColumnasCarbonComponent implements OnInit {
   errorMessage = '';
   fechaSeleccionada = '';
 
-  readonly APARTADO_FILTRADO = 'Columnas de carbon';
+  readonly APARTADO_FILTRADO = 'Columnas de Carbón';
 
   constructor(private http: HttpClient) {}
 

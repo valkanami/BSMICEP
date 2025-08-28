@@ -51,7 +51,7 @@ export class PhAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
   public availableDates: string[] = [];
   public dataTypes: string[] = [];
   public limits: Limit[] = [
-    { id: 4, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
+    { id: 54, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
@@ -202,7 +202,7 @@ export class PhAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
   private extractDataTypes(): void {
     const uniqueTypes = new Set<string>();
     this.originalData.forEach(item => {
-      if (item.dato && item.apartado === 'Ph agua entrada a la torre') {
+      if (item.dato && item.apartado === 'Pol agua entrada a la torre') {
         uniqueTypes.add(item.dato);
       }
     });
@@ -243,7 +243,7 @@ export class PhAguaTorreComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData
-      .filter(item => item.apartado === 'Ph agua entrada a la torre')
+      .filter(item => item.apartado === 'Pol agua entrada a la torre')
       .map(item => {
         let horaOriginal = '';
         if (item.hora) {

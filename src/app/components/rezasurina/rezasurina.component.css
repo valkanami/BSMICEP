@@ -191,6 +191,38 @@
   margin-right: 10px;
 }
 
+/* Estilos para el semáforo de estado */
+.estado-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.semaforo-estado {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 4px rgba(0,0,0,0.2);
+}
+
+.semaforo-estado.bueno {
+  background-color: #10B981; /* Verde */
+}
+
+.semaforo-estado.regular {
+  background-color: #F59E0B; /* Amarillo */
+}
+
+.semaforo-estado.malo {
+  background-color: #EF4444; /* Rojo */
+}
+
+.semaforo-estado.desconocido {
+  background-color: #9CA3AF; /* Gris */
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }

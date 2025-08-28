@@ -28,7 +28,7 @@ export class AzucarRefundidaComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
 
-  readonly APARTADO_FILTRADO = 'Azucar refundida';
+  readonly APARTADO_FILTRADO = 'Azúcar refundida';
 
   constructor(private http: HttpClient) {}
 

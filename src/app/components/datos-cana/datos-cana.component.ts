@@ -29,7 +29,7 @@ export class DatosCanaComponent implements OnInit {
   errorMessage = '';
   fechaSeleccionada = '';
 
-  readonly APARTADO_FILTRADO = 'Datos Caña';
+  readonly APARTADO_FILTRADO = 'Datos caña';
 
   constructor(private http: HttpClient) {}
 

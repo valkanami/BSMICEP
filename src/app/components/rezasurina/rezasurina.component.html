@@ -39,7 +39,13 @@
         <tr *ngFor="let grupo of gruposCategoria; let i = index" [class.fila-par]="i % 2 === 0">
           <td class="categoria-cell">{{ grupo.categoria }}</td>
           <td *ngFor="let campo of grupo.campos" class="valor-cell" [class.valor-vacio]="!campo.valor">
-            {{ campo.valor || '-' }}
+            <ng-container *ngIf="campo.nombre === 'Estado'; else valorNormal">
+              <div class="estado-container">
+                <div class="semaforo-estado {{getSemaforoClass(campo.valor)}}"></div>
+                <span>{{ campo.valor || '-' }}</span>
+              </div>
+            </ng-container>
+            <ng-template #valorNormal>{{ campo.valor || '-' }}</ng-template>
           </td>
         </tr>
       </tbody>

@@ -29,7 +29,7 @@ export class MuestreoComponent implements OnInit {
   errorMessage = '';
   fechaSeleccionada = '';
 
-  readonly APARTADO_FILTRADO = 'Pol punto muestreo centrifugas y bombas de vacio';
+  readonly APARTADO_FILTRADO = 'Pol punto muestreo centrífugas y bombas de vacío';
 
   constructor(private http: HttpClient) {}
 

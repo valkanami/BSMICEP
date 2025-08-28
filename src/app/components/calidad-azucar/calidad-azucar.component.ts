@@ -29,7 +29,7 @@ export class CalidadAzucarComponent implements OnInit {
   errorMessage = '';
   fechaSeleccionada = '';
 
-  readonly APARTADO_FILTRADO = 'Calidad del azucar';
+  readonly APARTADO_FILTRADO = 'Calidad del azúcar';
 
   constructor(private http: HttpClient) {}
 

@@ -2,9 +2,7 @@
   <div class="chart-header">
     <h2>Caña accidentada</h2>
     <div class="chart-controls">
-      <button class="refresh-button" (click)="refreshData()">
-        <i class="refresh-icon"></i> Actualizar
-      </button>
+      
       <div class="api-status" [ngClass]="{
         'status-success': apiConnectionStatus.includes(' '),
         'status-error': apiConnectionStatus.includes('Error')
