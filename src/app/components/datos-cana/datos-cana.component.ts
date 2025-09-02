@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { ApiService } from '../../services/api.service';
 
 interface DatoCampo {
   nombre: string;
@@ -31,7 +32,7 @@ export class DatosCanaComponent implements OnInit {
 
   readonly APARTADO_FILTRADO = 'Datos caña';
 
-  constructor(private http: HttpClient) {}
+constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -39,8 +40,7 @@ export class DatosCanaComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
-    this.http.get<any[]>('http://localhost:3000/api/datostablas')
-      .subscribe({
+    this.apiService.getDatosTablas().subscribe({
         next: (data) => {
           const datosFiltrados = data.filter(item => item.Apartado === this.APARTADO_FILTRADO);
           
