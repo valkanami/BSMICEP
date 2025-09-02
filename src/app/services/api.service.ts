@@ -55,4 +55,14 @@ export class ApiService {
   getDatosCuadros(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/api/datoscuadros`);
   }
+
+  // 📌 /api/weather/current/:id
+  getWeatherCurrent(locationId: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/api/weather/current/${locationId}`);
+  }
+
+  // 📌 /api/weather/forecast/:id
+  getWeatherForecast(locationId: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/api/weather/forecast/${locationId}`);
+  }
 }

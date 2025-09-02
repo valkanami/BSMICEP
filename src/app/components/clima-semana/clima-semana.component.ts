@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { catchError, forkJoin, of } from 'rxjs';
+import { ApiService } from '../../services/api.service';
 
 interface DailyForecast {
   date: string;
@@ -42,7 +43,7 @@ export class ClimaSemanaComponent {
     { name: 'Manlio Fabio Altamirano', id: 'manlio fabio altamirano' }
   ];
 
-  constructor(private http: HttpClient) {}
+  constructor(private apiService: ApiService) {}
 
   ngOnInit() {
     this.loadAllForecasts();
@@ -55,7 +56,7 @@ export class ClimaSemanaComponent {
     
     // Crear un array de observables para todas las localidades
     const requests = this.locations.map(location => 
-      this.http.get<WeatherForecast>(`${this.apiUrl}${location.id}`).pipe(
+       this.apiService.getWeatherForecast(location.id).pipe(
         catchError(error => {
           console.error(`Error loading data for ${location.name}`, error);
           return of(null);

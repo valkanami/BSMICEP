@@ -2,6 +2,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { ApiService } from '../../services/api.service';
 
 type PeriodKey = 'madrugada' | 'mañana' | 'tarde' | 'noche';
 
@@ -51,7 +52,7 @@ export class ClimaDiaComponent {
     {id: 'manlio fabio altamirano', name: 'Manlio Fabio Altamirano'},
   ];
 
-  constructor(private http: HttpClient) {
+  constructor(private apiService: ApiService) {
     this.loadWeatherData();
   }
 
@@ -60,8 +61,7 @@ export class ClimaDiaComponent {
     this.weatherDataList = this.locations.map(loc => ({location: loc.id}));
     
     this.locations.forEach(location => {
-      const apiUrl = `http://localhost:3000/api/weather/current/${location.id}`;
-      this.http.get<WeatherData>(apiUrl).subscribe({
+      this.apiService.getWeatherCurrent(location.id).subscribe({
         next: (data) => {
           const index = this.weatherDataList.findIndex(item => item.location === location.id);
           if (index !== -1) {
