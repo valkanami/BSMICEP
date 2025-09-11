@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ApiService } from '../../services/api.service';
 
 interface RendimientoData {
   FECHA: Date;
@@ -43,14 +44,15 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
   private weekDays = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
   constructor(
-    private http: HttpClient,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {
-    this.isBrowser = isPlatformBrowser(platformId);
-    if (this.isBrowser) {
-      Chart.register(...registerables);
-    }
+  private http: HttpClient,
+  private apiService: ApiService,
+  @Inject(PLATFORM_ID) private platformId: Object
+) {
+  this.isBrowser = isPlatformBrowser(platformId);
+  if (this.isBrowser) {
+    Chart.register(...registerables);
   }
+}
 
   ngOnInit(): void {
     if (this.isBrowser) {

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ApiService } from '../../services/api.service';
 
 interface LimitLineAnnotation {
   type: 'line';
@@ -94,6 +95,7 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private http: HttpClient,
+    private apiService: ApiService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -116,8 +118,7 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private loadTableData(): void {
     this.isLoadingTabla = true;
-    this.http.get<any[]>('http://localhost:3000/api/datoscuadros')
-      .subscribe({
+    this.apiService.getDatosCuadros().subscribe({
         next: (data) => {
           const datosFiltrados = data.filter(item => item.Apartado === this.APARTADO_FILTRADO);
           
@@ -198,8 +199,9 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
     this.limitsLoaded = false;
     
     const limitRequests = this.limits.map(limit => 
-      this.http.get(`http://localhost:3000/api/limites/${limit.id}`).toPromise()
-    );
+  this.apiService.getLimiteById(limit.id).toPromise()
+);
+
 
     Promise.all(limitRequests)
       .then((responses: any[]) => {
@@ -248,7 +250,7 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
 
   checkApiConnection(): void {
     this.dataLoaded = false;
-    this.http.get('http://localhost:3000/api/registrozafra').subscribe({
+    this.apiService.getRegistroZafra().subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);

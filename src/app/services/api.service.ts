@@ -11,10 +11,11 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
-  // 📌 /api/limites
-  getLimites(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/api/limites`);
-  }
+  // 📌 /api/limites/:id
+getLimiteById(id: number | string): Observable<any> {
+  return this.http.get<any>(`${this.apiUrl}/api/limites/${id}`);
+}
+
 
   // 📌 /api/registrozafra
   getRegistroZafra(): Observable<any[]> {

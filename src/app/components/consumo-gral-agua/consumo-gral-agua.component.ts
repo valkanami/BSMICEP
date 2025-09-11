@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ApiService } from '../../services/api.service';
 
 interface LimitLineAnnotation {
   type: 'line';
@@ -65,14 +66,15 @@ export class ConsumoGralAguaComponent implements OnInit, AfterViewInit, OnDestro
   ];
 
   constructor(
-    private http: HttpClient,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {
-    this.isBrowser = isPlatformBrowser(platformId);
-    if (this.isBrowser) {
-      Chart.register(...registerables);
-    }
+  private http: HttpClient,
+  private apiService: ApiService,
+  @Inject(PLATFORM_ID) private platformId: Object
+) {
+  this.isBrowser = isPlatformBrowser(platformId);
+  if (this.isBrowser) {
+    Chart.register(...registerables);
   }
+}
 
   ngOnInit(): void {
     if (this.isBrowser) {
@@ -105,8 +107,9 @@ export class ConsumoGralAguaComponent implements OnInit, AfterViewInit, OnDestro
     this.limitsLoaded = false;
     
     const limitRequests = this.limits.map(limit => 
-      this.http.get(`http://localhost:3000/api/limites/${limit.id}`).toPromise()
-    );
+  this.apiService.getLimiteById(limit.id).toPromise()
+);
+
 
     Promise.all(limitRequests)
       .then((responses: any[]) => {
@@ -159,7 +162,7 @@ export class ConsumoGralAguaComponent implements OnInit, AfterViewInit, OnDestro
 
   checkApiConnection(): void {
     this.dataLoaded = false;
-    this.http.get('http://localhost:3000/api/datosdia').subscribe({
+    this.apiService.getDatosDia().subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
