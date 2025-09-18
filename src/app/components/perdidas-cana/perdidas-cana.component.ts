@@ -344,7 +344,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const labels = this.daysOfWeek;
       
-      // Crear datasets para barras (todos menos el último)
+      
       const barDatasets = this.dataTypes.slice(0, -1).map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
         return {
@@ -358,7 +358,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
         };
       });
 
-      // Crear dataset para línea (último dato)
+      
       const lineDataset = {
         label: this.dataTypes[this.dataTypes.length - 1],
         data: this.mapDataToDaysOfWeek(this.dataTypes[this.dataTypes.length - 1]),
@@ -398,7 +398,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
       this.chart = new Chart(ctx, {
-        type: 'bar', // Tipo principal sigue siendo bar
+        type: 'bar', 
         data: {
           labels: labels,
           datasets: datasets
@@ -416,7 +416,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
                 text: ''
               },
               min: 0,
-              stacked: true // Solo afecta a las barras
+              stacked: true 
             },
             x: {
               title: {
@@ -428,7 +428,7 @@ export class PerdidasCanaComponent implements OnInit, AfterViewInit, OnDestroy {
                 maxRotation: 45,
                 minRotation: 45
               },
-              stacked: true // Solo afecta a las barras
+              stacked: true 
             }
           },
           plugins: {

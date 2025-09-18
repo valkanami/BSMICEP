@@ -260,7 +260,7 @@ export class PhPromedioComponent implements OnInit, AfterViewInit, OnDestroy {
       canvas.style.height = `${rect.height}px`;
       ctx.scale(dpr, dpr);
 
-      // Datos principales (valores reales)
+      
       const mainDataset = {
         label: 'Valores de pH',
         data: this.dataTypes.map(type => {
@@ -277,7 +277,7 @@ export class PhPromedioComponent implements OnInit, AfterViewInit, OnDestroy {
         pointHoverRadius: 7
       };
 
-      // Datos de límites (como línea conectada)
+      
       const limitsDataset = {
         label: 'Límites',
         data: this.limits.map(limit => limit.value),
@@ -389,7 +389,7 @@ export class PhPromedioComponent implements OnInit, AfterViewInit, OnDestroy {
   public updateChartData(): void {
     if (!this.chart) return;
 
-    // Actualizar dataset principal
+    
     this.chart.data.datasets[0] = {
       label: 'Valores de pH',
       data: this.dataTypes.map(type => {
@@ -406,7 +406,7 @@ export class PhPromedioComponent implements OnInit, AfterViewInit, OnDestroy {
       pointHoverRadius: 7
     };
 
-    // Actualizar dataset de límites
+    
     this.chart.data.datasets[1] = {
       label: 'Límites',
       data: this.limits.map(limit => limit.value),
@@ -423,7 +423,7 @@ export class PhPromedioComponent implements OnInit, AfterViewInit, OnDestroy {
       fill: false
     };
 
-    // Actualizar labels
+    
     this.chart.data.labels = this.limits.map(limit => limit.name);
 
     this.chart.update();

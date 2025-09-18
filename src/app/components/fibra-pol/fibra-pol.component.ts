@@ -144,13 +144,13 @@ export class FibraPolComponent implements OnInit, AfterViewInit, OnDestroy {
       if (isNaN(date.getTime())) {
         return dateString;
       }
-      // Sumar un día a la fecha
+      
       date.setDate(date.getDate() + 1);
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       return `${day}/${month}`;
     } else if (dateString instanceof Date) {
-      // Sumar un día a la fecha
+      
       const newDate = new Date(dateString);
       newDate.setDate(newDate.getDate() + 1);
       const day = newDate.getDate().toString().padStart(2, '0');
@@ -439,7 +439,7 @@ export class FibraPolComponent implements OnInit, AfterViewInit, OnDestroy {
         }]
       });
 
-      // Desplazar al final del gráfico después de que se renderice
+      
       setTimeout(() => {
         if (container && container.scrollWidth > container.clientWidth) {
           container.scrollLeft = container.scrollWidth - container.clientWidth;

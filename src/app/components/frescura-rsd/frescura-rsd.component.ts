@@ -286,7 +286,7 @@ export class FrescuraRsdComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const labels = this.fixedHours;
       
-      // Asignamos el segundo dataset al eje derecho (y1)
+      
       const datasets = this.dataTypes.map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
         return {
@@ -296,7 +296,7 @@ export class FrescuraRsdComponent implements OnInit, AfterViewInit, OnDestroy {
           backgroundColor: color.replace('1)', '0.2)'),
           borderWidth: 2,
           tension: 0.1,
-          yAxisID: index === 1 ? 'y1' : 'y' // El segundo dataset va al eje derecho
+          yAxisID: index === 1 ? 'y1' : 'y' 
         };
       });
 
@@ -352,7 +352,7 @@ export class FrescuraRsdComponent implements OnInit, AfterViewInit, OnDestroy {
               },
               min: 0,
               grid: {
-                drawOnChartArea: false // No mostrar líneas de grid para el eje derecho
+                drawOnChartArea: false 
               }
             },
             x: {
@@ -493,7 +493,7 @@ export class FrescuraRsdComponent implements OnInit, AfterViewInit, OnDestroy {
         backgroundColor: color.replace('1)', '0.2)'),
         borderWidth: 2,
         tension: 0.1,
-        yAxisID: index === 1 ? 'y1' : 'y' // El segundo dataset va al eje derecho
+        yAxisID: index === 1 ? 'y1' : 'y' 
       };
     });
 
