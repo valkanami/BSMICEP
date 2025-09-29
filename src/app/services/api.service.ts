@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environments';
-import { HttpHeaders } from '@angular/common/http';
-
 
 @Injectable({
   providedIn: 'root'
@@ -13,91 +11,101 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
- // ================= LOGIN Y REGISTRO =================
-  registerUsuario(nombre: string, apellidos: string, email: string, password: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/api/usuarios/register`, {
-      nombre, apellidos, email, password
-    });
+  registerUsuario(
+    nombre: string,
+    apellidos: string,
+    email: string,
+    password: string,
+    headers?: HttpHeaders 
+  ): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/api/usuarios/register`,
+      { nombre, apellidos, email, password },
+      headers ? { headers } : {}
+    );
   }
 
   loginUsuario(email: string, password: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/api/usuarios/login`, {
-      email, password
-    });
+    return this.http.post<any>(`${this.apiUrl}/api/usuarios/login`, { email, password });
   }
 
-  // Guardar token en localStorage
+  loginAdmin(email: string, password: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/admins/login`, { email, password });
+  }
+
   saveToken(token: string) {
-    localStorage.setItem('token', token);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('token', token);
+    }
   }
 
   getToken(): string | null {
+  if (typeof localStorage !== 'undefined') {
     return localStorage.getItem('token');
   }
+  return null;
+}
+
 
   logout() {
     localStorage.removeItem('token');
   }
 
-  // ================= PETICIONES CON AUTENTICACIÓN =================
-  getPerfil(): Observable<any> {
-    const token = this.getToken();
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.get<any>(`${this.apiUrl}/api/usuarios/perfil`, { headers });
+  isAuthenticated(): boolean {
+    return !!this.getToken();
   }
 
-  // 📌 /api/limites/:id
-getLimiteById(id: number | string): Observable<any> {
-  return this.http.get<any>(`${this.apiUrl}/api/limites/${id}`);
-}
+  isAdminAuthenticated(): boolean {
+    const token = this.getToken();
+    return !!token;
+  }
 
+  getPerfil(): Observable<{ message: string; userId: number }> {
+    const token = this.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.http.get<{ message: string; userId: number }>(`${this.apiUrl}/api/usuarios/perfil`, { headers });
+  }
 
-  // 📌 /api/registrozafra
+  getLimiteById(id: number | string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/api/limites/${id}`);
+  }
+
   getRegistroZafra(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/api/registrozafra`);
   }
 
-  // 📌 /api/datosturno
   getDatosTurno(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/api/datosturno`);
   }
 
-  // 📌 /api/promedios
   getPromedios(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/api/promedios`);
   }
 
-  // 📌 /api/datossql
   getDatosSql(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/api/datossql`);
   }
 
-  // 📌 /api/datoshora
   getDatosHora(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/api/datoshora`);
   }
 
-  // 📌 /api/datosdia
   getDatosDia(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/api/datosdia`);
   }
 
-  // 📌 /api/datostablas
   getDatosTablas(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/api/datostablas`);
   }
 
-  // 📌 /api/datoscuadros
   getDatosCuadros(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/api/datoscuadros`);
   }
 
-  // 📌 /api/weather/current/:id
   getWeatherCurrent(locationId: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/api/weather/current/${locationId}`);
   }
 
-  // 📌 /api/weather/forecast/:id
   getWeatherForecast(locationId: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/api/weather/forecast/${locationId}`);
   }

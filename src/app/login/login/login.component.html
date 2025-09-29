@@ -1,1 +1,73 @@
-<p>login works!</p>
+<div class="login-container">
+  <div class="login-card">
+    <h2>🔒 Iniciar Sesión</h2>
+    <p class="subtitle">Accede a tu cuenta para continuar</p>
+
+    <form (ngSubmit)="onLogin()">
+      <label for="email">Correo electrónico</label>
+      <input 
+        type="email" 
+        id="email" 
+        [(ngModel)]="email" 
+        name="email" 
+        placeholder="ejemplo@correo.com" 
+        required 
+      />
+
+      <label for="password">Contraseña</label>
+      <input 
+        type="password" 
+        id="password" 
+        [(ngModel)]="password" 
+        name="password" 
+        placeholder="********" 
+        required 
+      />
+
+     
+      <p *ngIf="error" class="error">{{ error }}</p>
+
+      <button type="submit">Entrar</button>
+    </form>
+
+    <p class="register">
+      ¿Quieres crear una cuenta?  
+      <button type="button" class="btn-admin" (click)="openAdminModal()">Ir a Registro</button>
+    </p>
+  </div>
+</div>
+
+<div class="modal" *ngIf="showAdminModal">
+  <div class="modal-content">
+    <h3>🔑 Acceso Administrador</h3>
+    <p>Introduce tus credenciales para continuar</p>
+
+    <label for="adminEmail">Correo electrónico</label>
+    <input
+      type="email"
+      id="adminEmail"
+      [(ngModel)]="adminEmail"
+      name="adminEmail"
+      placeholder="admin@correo.com"
+      required
+    />
+
+    <label for="adminPassword">Contraseña</label>
+    <input
+      type="password"
+      id="adminPassword"
+      [(ngModel)]="adminPassword"
+      name="adminPassword"
+      placeholder="********"
+      required
+    />
+
+    <p *ngIf="adminError" class="error">{{ adminError }}</p>
+
+    <div class="modal-buttons">
+      <button (click)="checkAdminCredentials()">Confirmar</button>
+      <button class="btn-cancel" (click)="closeAdminModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
