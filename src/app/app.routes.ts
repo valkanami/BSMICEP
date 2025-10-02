@@ -13,5 +13,5 @@ export const routes: Routes = [
   { path: '', component: MainPageComponent },    
   { path: '**', redirectTo: '' }
 ];
-//$2b$10$2UnAednMYnyxS7Hk9ik0EOOeRyk6dOExfSn0DsBXusWHkZXaW0xXq
+//$2a$10$uZPzIuJmXcoTSo37pnoybeYqJb2eK2e7EBDZBQQxuqX0AueyP93fi
  
