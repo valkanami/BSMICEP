@@ -20,28 +20,32 @@ export class RegisterComponent implements OnDestroy {
 
   error = '';
   success = '';
-  showModal = false; 
+  showModal = false;
 
   constructor(private api: ApiService, private router: Router) {}
+
+  ngOnDestroy(): void {
+    // 🔒 Al salir de /register, limpiar el token
+    this.api.removeToken();
+  }
 
   onRegister() {
     this.error = '';
     this.success = '';
 
-    if (!this.api.isAdminAuthenticated()) {
-      this.error = '❌ Debes iniciar sesión como administrador para registrar usuarios';
-      this.api.logout();
+    const token = this.api.getToken();
+    if (!token) {
+      this.error = '❌ Debes iniciar sesión como admin para registrar usuarios';
       return;
     }
 
-    const token = this.api.getToken()!;
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 
     this.api.registerUsuario(this.nombre, this.apellidos, this.email, this.password, headers)
       .subscribe({
         next: () => {
           this.success = '✅ Registro exitoso';
-          this.showModal = true; 
+          this.showModal = true;
         },
         error: (err) => {
           this.error = err.error?.message || '❌ Error al registrar el usuario';
@@ -60,11 +64,6 @@ export class RegisterComponent implements OnDestroy {
 
   goHome() {
     this.showModal = false;
-    this.router.navigate(['/login']); 
-  }
-
-  ngOnDestroy(): void {
-    // 🔒 Al salir de /register, borro el token
-    this.api.logout();
+    this.router.navigate(['/login']);
   }
 }

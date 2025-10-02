@@ -38,22 +38,26 @@ export class ApiService {
 
   // ================== TOKEN ==================
   saveToken(token: string) {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('token', token);
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('token', token); // 🔑 Usar sessionStorage
     }
   }
 
   getToken(): string | null {
-    if (typeof localStorage !== 'undefined') {
-      return localStorage.getItem('token');
+    if (typeof sessionStorage !== 'undefined') {
+      return sessionStorage.getItem('token'); // 🔑 Usar sessionStorage
     }
     return null;
   }
 
-  logout() {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('token');
+  removeToken() {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('token');
     }
+  }
+
+  logout() {
+    this.removeToken(); // limpiar token
     this.router.navigate(['/login']); // 🔒 Redirigir al login
   }
 
@@ -68,10 +72,10 @@ export class ApiService {
 
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-
       const now = Math.floor(Date.now() / 1000); // ⏰ en segundos
+
       if (payload.exp < now) {
-        this.logout(); // limpiar token vencido y redirigir
+        this.removeToken(); // limpiar token vencido
         return false;
       }
 
