@@ -68,19 +68,20 @@ export class LoginComponent {
   // Verificar credenciales de administrador (correo + contraseña)
   checkAdminCredentials() {
   this.api.loginAdmin(this.adminEmail, this.adminPassword).subscribe({
-    next: (res) => {
-      if (res.token) {
-        this.api.saveToken(res.token); // guardar token admin
-        this.closeAdminModal();
-        this.router.navigate(['/register']);
-      } else {
-        this.adminError = 'Correo o contraseña de admin incorrectos';
-      }
-    },
-    error: () => {
-      this.adminError = 'Error en la validación del servidor';
+  next: (res) => {
+    if (res.token) {
+      this.api.saveToken(res.token); // ⬅️ Aquí se guarda el token
+      this.closeAdminModal();
+      this.router.navigate(['/register']);
+    } else {
+      this.adminError = 'Correo o contraseña de admin incorrectos';
     }
-  });
+  },
+  error: () => {
+    this.adminError = 'Error en la validación del servidor';
+  }
+});
+
 }
 
 }

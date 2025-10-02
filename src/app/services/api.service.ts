@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environments';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -9,8 +10,9 @@ import { environment } from '../../environments/environments';
 export class ApiService {
   private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
+  // ================== USUARIOS ==================
   registerUsuario(
     nombre: string,
     apellidos: string,
@@ -29,10 +31,12 @@ export class ApiService {
     return this.http.post<any>(`${this.apiUrl}/api/usuarios/login`, { email, password });
   }
 
+  // ================== ADMIN ==================
   loginAdmin(email: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/api/admins/login`, { email, password });
   }
 
+  // ================== TOKEN ==================
   saveToken(token: string) {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('token', token);
@@ -40,26 +44,44 @@ export class ApiService {
   }
 
   getToken(): string | null {
-  if (typeof localStorage !== 'undefined') {
-    return localStorage.getItem('token');
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('token');
+    }
+    return null;
   }
-  return null;
-}
-
 
   logout() {
-    localStorage.removeItem('token');
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('token');
+    }
+    this.router.navigate(['/login']); // 🔒 Redirigir al login
   }
 
+  // ================== VALIDACIONES ==================
   isAuthenticated(): boolean {
     return !!this.getToken();
   }
 
   isAdminAuthenticated(): boolean {
     const token = this.getToken();
-    return !!token;
+    if (!token) return false;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      const now = Math.floor(Date.now() / 1000); // ⏰ en segundos
+      if (payload.exp < now) {
+        this.logout(); // limpiar token vencido y redirigir
+        return false;
+      }
+
+      return payload.role === 'admin';
+    } catch {
+      return false;
+    }
   }
 
+  // ================== PERFILES Y DEMÁS ==================
   getPerfil(): Observable<{ message: string; userId: number }> {
     const token = this.getToken();
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });

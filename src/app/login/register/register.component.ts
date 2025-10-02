@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -12,7 +12,7 @@ import { HttpHeaders } from '@angular/common/http';
   styleUrls: ['./register.component.css'],
   imports: [FormsModule, CommonModule]
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnDestroy {
   nombre = '';
   apellidos = '';
   email = '';
@@ -28,13 +28,13 @@ export class RegisterComponent {
     this.error = '';
     this.success = '';
 
-    
-    const token = this.api.getToken();
-    if (!token) {
-      this.error = '❌ Debes iniciar sesión como admin para registrar usuarios';
+    if (!this.api.isAdminAuthenticated()) {
+      this.error = '❌ Debes iniciar sesión como administrador para registrar usuarios';
+      this.api.logout();
       return;
     }
 
+    const token = this.api.getToken()!;
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 
     this.api.registerUsuario(this.nombre, this.apellidos, this.email, this.password, headers)
@@ -61,5 +61,10 @@ export class RegisterComponent {
   goHome() {
     this.showModal = false;
     this.router.navigate(['/login']); 
+  }
+
+  ngOnDestroy(): void {
+    // 🔒 Al salir de /register, borro el token
+    this.api.logout();
   }
 }
