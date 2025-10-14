@@ -10,8 +10,8 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent, canActivate: [adminGuard] }, 
   { path: 'perfil', component: PerfilComponent, canActivate: [authGuard] },
-  { path: '', component: MainPageComponent },    
+  { path: '', component: MainPageComponent, canActivate: [authGuard] },   
   { path: '**', redirectTo: '' }
 ];
-//$2a$10$txNWIuvsTXBJHZlFk8Ne/OwryOScqCnc3R3XLobdcEVx.QTHn1akW
+
  

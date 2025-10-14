@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environments';
 import { Router } from '@angular/router';
+import { jwtDecode } from "jwt-decode";
 
 @Injectable({
   providedIn: 'root'
@@ -39,13 +40,13 @@ export class ApiService {
   // ================== TOKEN ==================
   saveToken(token: string) {
     if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.setItem('token', token); // 🔑 Usar sessionStorage
+      sessionStorage.setItem('token', token);
     }
   }
 
   getToken(): string | null {
     if (typeof sessionStorage !== 'undefined') {
-      return sessionStorage.getItem('token'); // 🔑 Usar sessionStorage
+      return sessionStorage.getItem('token');
     }
     return null;
   }
@@ -57,28 +58,46 @@ export class ApiService {
   }
 
   logout() {
-    this.removeToken(); // limpiar token
-    this.router.navigate(['/login']); // 🔒 Redirigir al login
+    this.removeToken();
+    this.router.navigate(['/login']);
   }
 
   // ================== VALIDACIONES ==================
-  isAuthenticated(): boolean {
-    return !!this.getToken();
-  }
 
-  isAdminAuthenticated(): boolean {
+  /** ✅ Verifica si el token ha expirado */
+  isTokenExpired(): boolean {
     const token = this.getToken();
-    if (!token) return false;
+    if (!token) return true;
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const now = Math.floor(Date.now() / 1000); // ⏰ en segundos
+      const decoded: any = jwtDecode(token);
+      const now = Math.floor(Date.now() / 1000);
+      return decoded.exp < now; // true si ya expiró
+    } catch {
+      return true; // token malformado o inválido
+    }
+  }
 
-      if (payload.exp < now) {
-        this.removeToken(); // limpiar token vencido
-        return false;
-      }
+  /** ✅ Verifica si el usuario tiene un token válido */
+  isAuthenticated(): boolean {
+    const token = this.getToken();
+    if (!token || this.isTokenExpired()) {
+      this.logout();
+      return false;
+    }
+    return true;
+  }
 
+  /** ✅ Verifica si el token pertenece a un admin */
+  isAdminAuthenticated(): boolean {
+    const token = this.getToken();
+    if (!token || this.isTokenExpired()) {
+      this.logout();
+      return false;
+    }
+
+    try {
+      const payload: any = jwtDecode(token);
       return payload.role === 'admin';
     } catch {
       return false;
@@ -89,7 +108,10 @@ export class ApiService {
   getPerfil(): Observable<{ message: string; userId: number }> {
     const token = this.getToken();
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.get<{ message: string; userId: number }>(`${this.apiUrl}/api/usuarios/perfil`, { headers });
+    return this.http.get<{ message: string; userId: number }>(
+      `${this.apiUrl}/api/usuarios/perfil`, 
+      { headers }
+    );
   }
 
   getLimiteById(id: number | string): Observable<any> {
