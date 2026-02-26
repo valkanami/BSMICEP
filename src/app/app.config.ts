@@ -7,6 +7,7 @@ import { RegisterComponent } from './login/register/register.component';
 import { PerfilComponent } from './login/perfil/perfil.component';
 import { authGuard } from './auth.guard';
 import { adminGuard } from './adminAuth.guard'; 
+import { RegistroDatosComponent } from './registro-datos/registro-datos.component';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -15,6 +16,7 @@ export const appConfig: ApplicationConfig = {
       { path: 'register', component: RegisterComponent, canActivate: [adminGuard] }, 
       { path: 'perfil', component: PerfilComponent, canActivate: [authGuard] },
       { path: 'main-page', component: MainPageComponent, canActivate: [authGuard] },
+      { path: 'registro-datos', component: RegistroDatosComponent, canActivate: [authGuard] },
       { path: '', redirectTo: 'login', pathMatch: 'full' },
       { path: '**', redirectTo: 'login' }
     ]),

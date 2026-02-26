@@ -1,0 +1,122 @@
+<div class="contenedor">
+
+  <h2>Registro de Datos</h2>
+
+  <!-- ===============================
+       ZAFRA Y FECHA
+  ================================ -->
+  <div class="fila">
+    <div>
+      <label>Zafra</label>
+      <input type="text" [value]="zafra" disabled>
+    </div>
+
+    <div>
+      <label>Fecha</label>
+      <input type="date" [value]="fecha | date:'yyyy-MM-dd'" disabled>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ===============================
+       APARTADO
+  ================================ -->
+  <div class="fila">
+    <label>Apartado</label>
+    <select [(ngModel)]="apartadoSeleccionado" (change)="onApartadoChange()">
+      <option value="">Seleccione un apartado</option>
+      <option *ngFor="let a of apartados" [value]="a">
+        {{ a }}
+      </option>
+    </select>
+  </div>
+
+  <hr>
+
+  <!-- ===============================
+       TABLA TIPO EXCEL
+  ================================ -->
+  <table *ngIf="registros.length">
+    <thead>
+      <tr>
+        <th>Dato</th>
+        <th>Tiempo</th>
+        <th>Valor</th>
+        <th>Justificación</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let r of registros">
+
+        <!-- DATO -->
+        <td class="dato">
+          {{ r.Dato }}
+        </td>
+
+        <!-- TIEMPO DINÁMICO -->
+        <td>
+          <!-- DIA -->
+          <select *ngIf="detectarTipo(r.Dato) === 'dia'"
+                  [(ngModel)]="r.Dia">
+            <option value="">Seleccione día</option>
+            <option *ngFor="let d of dias" [value]="d">
+              {{ d }}
+            </option>
+          </select>
+
+          <!-- HORA -->
+          <select *ngIf="detectarTipo(r.Dato) === 'hora'"
+                  [(ngModel)]="r.Dia">
+            <option value="">Seleccione hora</option>
+            <option *ngFor="let h of horas" [value]="h">
+              {{ h }}
+            </option>
+          </select>
+
+          <!-- TURNO -->
+          <select *ngIf="detectarTipo(r.Dato) === 'turno'"
+                  [(ngModel)]="r.Dia">
+            <option value="">Seleccione turno</option>
+            <option *ngFor="let t of turnos" [value]="t">
+              {{ t }}
+            </option>
+          </select>
+
+          <!-- NADA -->
+          <span *ngIf="detectarTipo(r.Dato) === 'nada'">
+            —
+          </span>
+        </td>
+
+        <!-- VALOR -->
+        <td>
+          <input
+            type="number"
+            [(ngModel)]="r.Valor"
+            placeholder="Ingrese valor">
+        </td>
+
+        <!-- JUSTIFICACIÓN -->
+        <td>
+          <input
+            type="text"
+            [(ngModel)]="r.Justificacion"
+            placeholder="Justificación">
+        </td>
+
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===============================
+       GUARDAR
+  ================================ -->
+  <div class="acciones" *ngIf="registros.length">
+    <button (click)="guardarDatos()">
+      Guardar datos
+    </button>
+  </div>
+
+</div>

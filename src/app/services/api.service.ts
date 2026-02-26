@@ -157,4 +157,71 @@ export class ApiService {
   getWeatherForecast(locationId: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/api/weather/forecast/${locationId}`);
   }
+
+  // ================== INSERTAR DATOS ==================
+
+/** Datos SQL (ya existente) */
+insertDatosSQL(data: any): Observable<any> {
+  return this.http.post<any>(
+    `${this.apiUrl}/api/datos_sql`,
+    data
+  );
+}
+
+/** Registro Zafra */
+insertRegistroZafra(data: any): Observable<any> {
+  return this.http.post<any>(
+    `${this.apiUrl}/api/registro-zafra`,
+    data
+  );
+}
+
+/** Datos por Hora */
+insertDatosHora(data: any): Observable<any> {
+  return this.http.post<any>(
+    `${this.apiUrl}/api/datos-hora`,
+    data
+  );
+}
+
+/** Datos por Día */
+insertDatosDia(data: any): Observable<any> {
+  return this.http.post<any>(
+    `${this.apiUrl}/api/datos-dia`,
+    data
+  );
+}
+
+/** Datos por Turno */
+insertDatosTurno(data: any): Observable<any> {
+  return this.http.post<any>(
+    `${this.apiUrl}/api/datos-turno`,
+    data
+  );
+}
+
+/** Datos Tablas */
+insertDatosTablas(data: any): Observable<any> {
+  return this.http.post<any>(
+    `${this.apiUrl}/api/datos-tablas`,
+    data
+  );
+}
+
+/** Datos Cuadros */
+insertDatosCuadros(data: any): Observable<any> {
+  return this.http.post<any>(
+    `${this.apiUrl}/api/datos-cuadros`,
+    data
+  );
+}
+
+/** Promedios */
+insertPromedios(data: any): Observable<any> {
+  return this.http.post<any>(
+    `${this.apiUrl}/api/promedios`,
+    data
+  );
+}
+
 }

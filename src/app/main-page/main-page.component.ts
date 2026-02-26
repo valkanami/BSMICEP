@@ -98,7 +98,7 @@ import { AzucarRefundidaComponent } from '../components/azucar-refundida/azucar-
 import { InicioComponent } from '../components/inicio/inicio.component';
 import { ProductosQuimicosComponent } from '../components/productos-quimicos/productos-quimicos.component';
 import { CondensadosImpurosComponent } from '../components/condensados-impuros/condensados-impuros.component';
-
+import { PdfComponent } from '../components/pdf/pdf.component';
 @Component({
   selector: 'app-main-page',
   standalone: true,
@@ -201,7 +201,8 @@ import { CondensadosImpurosComponent } from '../components/condensados-impuros/c
     AzucarRefundidaComponent,
     InicioComponent,
     ProductosQuimicosComponent,
-    CondensadosImpurosComponent
+    CondensadosImpurosComponent,
+    PdfComponent
   ],
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']
@@ -303,7 +304,8 @@ export class MainPageComponent {
     'turbidez-azucar',
     'masa-cocida',
     'rendimiento-cristales-semana',
-    'recirculacion'
+    'recirculacion',
+    'pdf'
   ];
   
   selectedIndex = 0;
@@ -515,7 +517,8 @@ export class MainPageComponent {
       'turbidez-azucar': 'Turbidez azúcar',
       'masa-cocida': 'Masa cocida',
       'rendimiento-cristales-semana': 'Rendimiento cristales semana',
-      'recirculacion': 'Recirculación'
+      'recirculacion': 'Recirculación',
+      'pdf': 'Generador de PDF'
     };
     return names[item] || item;
   }
