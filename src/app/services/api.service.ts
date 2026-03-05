@@ -11,7 +11,7 @@ import { jwtDecode } from "jwt-decode";
 export class ApiService {
   private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   // ================== USUARIOS ==================
   registerUsuario(
@@ -19,11 +19,24 @@ export class ApiService {
     apellidos: string,
     email: string,
     password: string,
-    headers?: HttpHeaders 
+    headers?: HttpHeaders
   ): Observable<any> {
     return this.http.post<any>(
       `${this.apiUrl}/api/usuarios/register`,
       { nombre, apellidos, email, password },
+      headers ? { headers } : {}
+    );
+  }
+
+  registerAdmin(
+    nombre: string,
+    email: string,
+    password: string,
+    headers?: HttpHeaders
+  ): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/api/admins/register`,
+      { nombre, email, password },
       headers ? { headers } : {}
     );
   }
@@ -109,7 +122,7 @@ export class ApiService {
     const token = this.getToken();
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
     return this.http.get<{ message: string; userId: number }>(
-      `${this.apiUrl}/api/usuarios/perfil`, 
+      `${this.apiUrl}/api/usuarios/perfil`,
       { headers }
     );
   }
@@ -160,68 +173,68 @@ export class ApiService {
 
   // ================== INSERTAR DATOS ==================
 
-/** Datos SQL (ya existente) */
-insertDatosSQL(data: any): Observable<any> {
-  return this.http.post<any>(
-    `${this.apiUrl}/api/datos_sql`,
-    data
-  );
-}
+  /** Datos SQL (ya existente) */
+  insertDatosSQL(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/api/datos_sql`,
+      data
+    );
+  }
 
-/** Registro Zafra */
-insertRegistroZafra(data: any): Observable<any> {
-  return this.http.post<any>(
-    `${this.apiUrl}/api/registro-zafra`,
-    data
-  );
-}
+  /** Registro Zafra */
+  insertRegistroZafra(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/api/registro-zafra`,
+      data
+    );
+  }
 
-/** Datos por Hora */
-insertDatosHora(data: any): Observable<any> {
-  return this.http.post<any>(
-    `${this.apiUrl}/api/datos-hora`,
-    data
-  );
-}
+  /** Datos por Hora */
+  insertDatosHora(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/api/datos-hora`,
+      data
+    );
+  }
 
-/** Datos por Día */
-insertDatosDia(data: any): Observable<any> {
-  return this.http.post<any>(
-    `${this.apiUrl}/api/datos-dia`,
-    data
-  );
-}
+  /** Datos por Día */
+  insertDatosDia(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/api/datos-dia`,
+      data
+    );
+  }
 
-/** Datos por Turno */
-insertDatosTurno(data: any): Observable<any> {
-  return this.http.post<any>(
-    `${this.apiUrl}/api/datos-turno`,
-    data
-  );
-}
+  /** Datos por Turno */
+  insertDatosTurno(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/api/datos-turno`,
+      data
+    );
+  }
 
-/** Datos Tablas */
-insertDatosTablas(data: any): Observable<any> {
-  return this.http.post<any>(
-    `${this.apiUrl}/api/datos-tablas`,
-    data
-  );
-}
+  /** Datos Tablas */
+  insertDatosTablas(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/api/datos-tablas`,
+      data
+    );
+  }
 
-/** Datos Cuadros */
-insertDatosCuadros(data: any): Observable<any> {
-  return this.http.post<any>(
-    `${this.apiUrl}/api/datos-cuadros`,
-    data
-  );
-}
+  /** Datos Cuadros */
+  insertDatosCuadros(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/api/datos-cuadros`,
+      data
+    );
+  }
 
-/** Promedios */
-insertPromedios(data: any): Observable<any> {
-  return this.http.post<any>(
-    `${this.apiUrl}/api/promedios`,
-    data
-  );
-}
+  /** Promedios */
+  insertPromedios(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/api/promedios`,
+      data
+    );
+  }
 
 }

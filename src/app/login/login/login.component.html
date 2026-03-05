@@ -5,34 +5,25 @@
 
     <form (ngSubmit)="onLogin()">
       <label for="email">Correo electrónico</label>
-      <input 
-        type="email" 
-        id="email" 
-        [(ngModel)]="email" 
-        name="email" 
-        placeholder="ejemplo@correo.com" 
-        required 
-      />
+      <input type="email" id="email" [(ngModel)]="email" name="email" placeholder="ejemplo@correo.com" required />
 
       <label for="password">Contraseña</label>
-      <input 
-        type="password" 
-        id="password" 
-        [(ngModel)]="password" 
-        name="password" 
-        placeholder="********" 
-        required 
-      />
+      <input type="password" id="password" [(ngModel)]="password" name="password" placeholder="********" required />
 
-     
+
       <p *ngIf="error" class="error">{{ error }}</p>
 
       <button type="submit">Entrar</button>
     </form>
 
     <p class="register">
-      ¿Quieres crear una cuenta?  
+      ¿Quieres crear una cuenta?
       <button type="button" class="btn-admin" (click)="openAdminModal()">Ir a Registro</button>
+    </p>
+    <p class="register">
+      ¿Quieres añadir un administrador?
+      <button type="button" class="btn-admin registrar-admin" (click)="openRegisterAdminAuthModal()">Registrar
+        Admin</button>
     </p>
   </div>
 </div>
@@ -43,24 +34,12 @@
     <p>Introduce tus credenciales para continuar</p>
 
     <label for="adminEmail">Correo electrónico</label>
-    <input
-      type="email"
-      id="adminEmail"
-      [(ngModel)]="adminEmail"
-      name="adminEmail"
-      placeholder="admin@correo.com"
-      required
-    />
+    <input type="email" id="adminEmail" [(ngModel)]="adminEmail" name="adminEmail" placeholder="admin@correo.com"
+      required />
 
     <label for="adminPassword">Contraseña</label>
-    <input
-      type="password"
-      id="adminPassword"
-      [(ngModel)]="adminPassword"
-      name="adminPassword"
-      placeholder="********"
-      required
-    />
+    <input type="password" id="adminPassword" [(ngModel)]="adminPassword" name="adminPassword" placeholder="********"
+      required />
 
     <p *ngIf="adminError" class="error">{{ adminError }}</p>
 
@@ -71,3 +50,61 @@
   </div>
 </div>
 
+<!-- 1. Modal para Autorizar (Pedir credenciales de un Admin existente) -->
+<div class="modal auth-admin-modal" *ngIf="showRegisterAdminAuthModal">
+  <div class="modal-content">
+    <h3>🔑 Autorización Requerida</h3>
+    <p>Ingresa como administrador para registrar a uno nuevo.</p>
+
+    <label for="authAdminEmail">Correo electrónico</label>
+    <input type="email" id="authAdminEmail" [(ngModel)]="authAdminEmail" name="authAdminEmail"
+      placeholder="admin@correo.com" required />
+
+    <label for="authAdminPassword">Contraseña</label>
+    <input type="password" id="authAdminPassword" [(ngModel)]="authAdminPassword" name="authAdminPassword"
+      placeholder="********" required />
+
+    <p *ngIf="authAdminError" class="error">{{ authAdminError }}</p>
+
+    <div class="modal-buttons">
+      <button (click)="verifyToRegisterAdmin()">Verificar</button>
+      <button class="btn-cancel" (click)="closeRegisterAdminAuthModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Modal Formulario para Registrar Nuevo Admin -->
+<div class="modal form-admin-modal" *ngIf="showRegisterAdminFormModal">
+  <div class="modal-content">
+    <h3>📝 Registrar Administrador</h3>
+
+    <label for="newAdminNombre">Nombre</label>
+    <input type="text" id="newAdminNombre" [(ngModel)]="newAdminNombre" name="newAdminNombre"
+      placeholder="Nombre del nuevo admin" required />
+
+    <label for="newAdminEmail">Correo electrónico</label>
+    <input type="email" id="newAdminEmail" [(ngModel)]="newAdminEmail" name="newAdminEmail"
+      placeholder="correo@ejemplo.com" required />
+
+    <label for="newAdminPassword">Contraseña</label>
+    <input type="password" id="newAdminPassword" [(ngModel)]="newAdminPassword" name="newAdminPassword"
+      placeholder="********" required />
+
+    <p *ngIf="newAdminError" class="error">{{ newAdminError }}</p>
+
+    <div class="modal-buttons">
+      <button (click)="onRegisterAdmin()">Registrar</button>
+      <button class="btn-cancel" (click)="closeRegisterAdminFormModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Modal de Éxito -->
+<div class="modal success-modal" *ngIf="showSuccessModal">
+  <div class="modal-content text-center">
+    <h3>{{ newAdminSuccess }}</h3>
+    <div class="modal-buttons mt-3 justify-center">
+      <button (click)="closeSuccessModal()">Aceptar</button>
+    </div>
+  </div>
+</div>

@@ -170,3 +170,16 @@
 .btn-cancel:hover {
   background: #999;
 }
+
+/* Utilities for new modals */
+.text-center {
+  text-align: center;
+}
+
+.mt-3 {
+  margin-top: 1.5rem;
+}
+
+.justify-center {
+  justify-content: center;
+}
