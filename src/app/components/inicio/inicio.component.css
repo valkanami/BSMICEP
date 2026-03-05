@@ -1,9 +1,14 @@
 .container {
-  height: auto; /* Cambiado de min-height: 100vh */
-  min-height: 80vh; /* Altura mínima reducida */
-  max-height: 90vh; /* Altura máxima para prevenir desbordamiento */
-  width: 90%; /* Ancho reducido */
-  margin: 20px auto; /* Centrado con margen */
+  height: auto;
+  /* Cambiado de min-height: 100vh */
+  min-height: 80vh;
+  /* Altura mínima reducida */
+  max-height: 90vh;
+  /* Altura máxima para prevenir desbordamiento */
+  width: 90%;
+  /* Ancho reducido */
+  margin: 20px auto;
+  /* Centrado con margen */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -12,7 +17,25 @@
   padding: 15px;
   box-sizing: border-box;
   position: relative;
-  overflow: hidden; /* Previene cualquier desbordamiento */
+  overflow: hidden;
+  /* Previene cualquier desbordamiento */
+  z-index: 1;
+}
+
+.container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://scontent.fjal3-1.fna.fbcdn.net/v/t39.30808-6/334281585_528236972765335_5005719639453571784_n.png?stp=dst-png_s960x960&_nc_cat=106&ccb=1-7&_nc_sid=2a1932&_nc_ohc=mlulQICTYgUQ7kNvwHvyqg1&_nc_oc=AdmRbMfbQoWxhHcLGlhITjSn0GUZI0pzw1hBXG62l8ZMRBfkoVDw1CpZt2sXvYvqQZwtTORdp2zaLkyVwpYY-K3l&_nc_zt=23&_nc_ht=scontent.fjal3-1.fna&_nc_gid=TW7ByyyFvmjA8vvtMkiNXQ&_nc_ss=8&oh=00_AfxAPLS3ivmiwbHetEQawDHJxHz_-oV1C-rDDpu3Q7v2_A&oe=69AF7B0E');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+  /* Imagen traslúcida */
+  z-index: -1;
 }
 
 /* El resto de tus estilos pueden mantenerse igual */
@@ -28,8 +51,10 @@
 }
 
 .content {
-  margin-top: 60px; /* Espacio para el logo */
-  margin-bottom: 60px; /* Espacio para la sección inferior */
+  margin-top: 60px;
+  /* Espacio para el logo */
+  margin-bottom: 60px;
+  /* Espacio para la sección inferior */
   flex: 1;
   display: flex;
   flex-direction: column;
