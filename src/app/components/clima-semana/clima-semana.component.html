@@ -2,34 +2,36 @@
   <h1>Pronóstico semanal en Veracruz</h1>
 
   <div *ngIf="loading" class="loading">Cargando datos...</div>
-  
+
   <div *ngIf="error" class="error">{{error}}</div>
 
   <div *ngIf="forecastsData && !loading" class="locations-container">
     <div *ngFor="let forecast of forecastsData" class="location-section">
       <h2 class="location-title">{{forecast.city}}, {{forecast.country}}</h2>
-      
+
       <div class="weekly-forecast">
         <div *ngFor="let day of getSortedDailyForecasts(forecast.daily)" class="day-card">
           <h3 class="day-title">{{getDayName(day.date) | titlecase}} <small>{{day.date | date:'d/M'}}</small></h3>
-          
+
           <div class="weather-icon">
-            <img [src]="getWeatherIconUrl(day.mainIcon)" [alt]="day.mainDescription">
+            <i [ngClass]="getWeatherIconClass(day.mainIcon).class"
+              [ngStyle]="{'color': getWeatherIconClass(day.mainIcon).color, 'font-size': '2rem'}"
+              [title]="day.mainDescription"></i>
             <span>{{day.mainDescription | titlecase}}</span>
           </div>
-          
+
           <div class="weather-details">
-            <div class="detail">
-              <span class="label">Temp:</span>
+            <div class="detail" title="Temperatura">
+              <i class="fas fa-temperature-half label-icon"></i>
               <span class="value">{{day.avgTemperature}}°</span>
             </div>
-            <div class="detail">
-              <span class="label">Hum:</span>
+            <div class="detail" title="Humedad">
+              <i class="fas fa-tint label-icon"></i>
               <span class="value">{{day.avgHumidity}}%</span>
             </div>
-            <div class="detail">
-              <span class="label">Viento:</span>
-              <span class="value">{{day.avgWindSpeed}}m/s</span>
+            <div class="detail" title="Viento">
+              <i class="fas fa-wind label-icon"></i>
+              <span class="value">{{day.avgWindSpeed}} m/s</span>
             </div>
           </div>
         </div>

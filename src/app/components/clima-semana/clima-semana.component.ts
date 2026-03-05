@@ -43,7 +43,7 @@ export class ClimaSemanaComponent {
     { name: 'Manlio Fabio Altamirano', id: 'manlio fabio altamirano' }
   ];
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService) { }
 
   ngOnInit() {
     this.loadAllForecasts();
@@ -53,10 +53,10 @@ export class ClimaSemanaComponent {
     this.loading = true;
     this.error = null;
     this.forecastsData = [];
-    
+
     // Crear un array de observables para todas las localidades
-    const requests = this.locations.map(location => 
-       this.apiService.getWeatherForecast(location.id).pipe(
+    const requests = this.locations.map(location =>
+      this.apiService.getWeatherForecast(location.id).pipe(
         catchError(error => {
           console.error(`Error loading data for ${location.name}`, error);
           return of(null);
@@ -77,13 +77,33 @@ export class ClimaSemanaComponent {
     });
   }
 
-  getWeatherIconUrl(iconCode: string): string {
-    return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+  getWeatherIconClass(iconCode: string): { class: string, color: string } {
+    const iconMap: { [key: string]: { class: string, color: string } } = {
+      '01d': { class: 'fas fa-sun', color: '#f39c12' },
+      '01n': { class: 'fas fa-moon', color: '#2c3e50' },
+      '02d': { class: 'fas fa-cloud-sun', color: '#f39c12' },
+      '02n': { class: 'fas fa-cloud-moon', color: '#34495e' },
+      '03d': { class: 'fas fa-cloud', color: '#95a5a6' },
+      '03n': { class: 'fas fa-cloud', color: '#7f8c8d' },
+      '04d': { class: 'fas fa-cloud', color: '#7f8c8d' },
+      '04n': { class: 'fas fa-cloud', color: '#34495e' },
+      '09d': { class: 'fas fa-cloud-showers-heavy', color: '#3498db' },
+      '09n': { class: 'fas fa-cloud-showers-heavy', color: '#2980b9' },
+      '10d': { class: 'fas fa-cloud-sun-rain', color: '#f39c12' },
+      '10n': { class: 'fas fa-cloud-moon-rain', color: '#34495e' },
+      '11d': { class: 'fas fa-bolt', color: '#e67e22' },
+      '11n': { class: 'fas fa-bolt', color: '#d35400' },
+      '13d': { class: 'fas fa-snowflake', color: '#74b9ff' },
+      '13n': { class: 'fas fa-snowflake', color: '#0984e3' },
+      '50d': { class: 'fas fa-smog', color: '#95a5a6' },
+      '50n': { class: 'fas fa-smog', color: '#7f8c8d' },
+    };
+    return iconMap[iconCode] || { class: 'fas fa-cloud', color: '#95a5a6' };
   }
 
-  getSortedDailyForecasts(dailyData: {[date: string]: DailyForecast}): DailyForecast[] {
+  getSortedDailyForecasts(dailyData: { [date: string]: DailyForecast }): DailyForecast[] {
     if (!dailyData) return [];
-    return Object.values(dailyData).sort((a, b) => 
+    return Object.values(dailyData).sort((a, b) =>
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
   }

@@ -13,16 +13,18 @@
         <h3>{{ item.data.city }}, Veracruz</h3>
         <p class="compact-date">{{ formatDate(item.data.timestamp) }} {{ formatTime(item.data.timestamp) }}</p>
       </div>
-      
+
       <div class="compact-current">
         <div class="compact-main">
-          <img [src]="getWeatherIconUrl(item.data.icon)" [alt]="item.data.description">
+          <i [ngClass]="getWeatherIconClass(item.data.icon).class"
+            [ngStyle]="{'color': getWeatherIconClass(item.data.icon).color, 'font-size': '2rem', 'margin-right': '10px'}"
+            [title]="item.data.description"></i>
           <div class="compact-temp">
-            <h2>{{ item.data.temperature | number:'1.0-0' }}°C</h2>
+            <h2>{{ item.data.temperature | number:'1.0-0' }}°</h2>
             <small>{{ capitalize(item.data.description) }}</small>
           </div>
         </div>
-        
+
         <div class="compact-details">
           <div><i class="fas fa-temperature-low"></i> {{ item.data.feelsLike | number:'1.0-0' }}°C</div>
           <div><i class="fas fa-tint"></i> {{ item.data.humidity }}%</div>
@@ -36,9 +38,10 @@
         <div class="compact-periods">
           <div class="compact-period" *ngFor="let period of periods">
             <div class="period-time">{{ formatTime(item.data.periodos[period].timestamp) }}</div>
-            <img [src]="getWeatherIconUrl(item.data.periodos[period].icon)" 
-                 [alt]="item.data.periodos[period].description">
-            <div class="period-temp">{{ item.data.periodos[period].temperature | number:'1.0-0' }}°C</div>
+            <i [ngClass]="getWeatherIconClass(item.data.periodos[period].icon).class"
+              [ngStyle]="{'color': getWeatherIconClass(item.data.periodos[period].icon).color, 'font-size': '1.2rem', 'margin': '5px 0'}"
+              [title]="item.data.periodos[period].description"></i>
+            <div class="period-temp">{{ item.data.periodos[period].temperature | number:'1.0-0' }}°</div>
           </div>
         </div>
       </div>
