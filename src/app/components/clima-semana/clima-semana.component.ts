@@ -112,4 +112,20 @@ export class ClimaSemanaComponent {
     const date = new Date(dateString);
     return date.toLocaleDateString('es-MX', { weekday: 'long' });
   }
+
+  isDay(iconCode: string): boolean {
+    return iconCode ? iconCode.includes('d') : true;
+  }
+
+  isCloudy(iconCode: string): boolean {
+    if (!iconCode) return false;
+    const code = iconCode.substring(0, 2);
+    return ['02', '03', '04', '09', '10', '11'].includes(code);
+  }
+
+  isRainy(iconCode: string): boolean {
+    if (!iconCode) return false;
+    const code = iconCode.substring(0, 2);
+    return ['09', '10', '11'].includes(code);
+  }
 }

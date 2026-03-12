@@ -2,36 +2,77 @@
   <h1>Pronóstico semanal en Veracruz</h1>
 
   <div *ngIf="loading" class="loading">Cargando datos...</div>
-
-  <div *ngIf="error" class="error">{{error}}</div>
+  <div *ngIf="error" class="error-message">{{error}}</div>
 
   <div *ngIf="forecastsData && !loading" class="locations-container">
     <div *ngFor="let forecast of forecastsData" class="location-section">
       <h2 class="location-title">{{forecast.city}}, {{forecast.country}}</h2>
 
-      <div class="weekly-forecast">
-        <div *ngFor="let day of getSortedDailyForecasts(forecast.daily)" class="day-card">
-          <h3 class="day-title">{{getDayName(day.date) | titlecase}} <small>{{day.date | date:'d/M'}}</small></h3>
+      <div class="compact-weather-grid">
+        <div *ngFor="let day of getSortedDailyForecasts(forecast.daily)" class="frame">
+          <div class="box-clima">
+            <div class="box-animate" [ngClass]="{
+              'bg-day': isDay(day.mainIcon) && !isCloudy(day.mainIcon) && !isRainy(day.mainIcon),
+              'bg-night': !isDay(day.mainIcon) && !isCloudy(day.mainIcon) && !isRainy(day.mainIcon),
+              'bg-cloudy-day': isDay(day.mainIcon) && (isCloudy(day.mainIcon) || isRainy(day.mainIcon)),
+              'bg-cloudy-night': !isDay(day.mainIcon) && (isCloudy(day.mainIcon) || isRainy(day.mainIcon))
+            }">
+              <div class="header-card">
+                <h3>{{getDayName(day.date) | titlecase}}</h3>
+                <p>{{day.date | date:'d/M'}}</p>
+              </div>
 
-          <div class="weather-icon">
-            <i [ngClass]="getWeatherIconClass(day.mainIcon).class"
-              [ngStyle]="{'color': getWeatherIconClass(day.mainIcon).color, 'font-size': '2rem'}"
-              [title]="day.mainDescription"></i>
-            <span>{{day.mainDescription | titlecase}}</span>
-          </div>
+              <!-- Animation Elements -->
+              <ng-container *ngIf="!isRainy(day.mainIcon) && !isCloudy(day.mainIcon)">
+                <div *ngIf="isDay(day.mainIcon)" class="sol"></div>
+                <div *ngIf="!isDay(day.mainIcon)" class="luna"></div>
+              </ng-container>
 
-          <div class="weather-details">
-            <div class="detail" title="Temperatura">
-              <i class="fas fa-temperature-half label-icon"></i>
-              <span class="value">{{day.avgTemperature}}°</span>
+              <ng-container *ngIf="isCloudy(day.mainIcon) || isRainy(day.mainIcon)">
+                <div class="nuve1"></div>
+                <div class="nuve2"></div>
+                <div class="nuve3"></div>
+                <div class="nuve4"></div>
+                <div class="nuve5"></div>
+              </ng-container>
+
+              <ng-container *ngIf="isRainy(day.mainIcon)">
+                <div class="gotas gota-peque1"></div>
+                <div class="gotas gota-peque2"></div>
+                <div class="gotas gota-peque3"></div>
+                <div class="gotas gota-peque4"></div>
+                <div class="gotas gota-peque5"></div>
+                <div class="gotas gota-peque6"></div>
+                <div class="gotas gota-peque7"></div>
+                <div class="gotas gota-media1"></div>
+                <div class="gotas gota-media2"></div>
+                <div class="gotas gota-media3"></div>
+                <div class="gotas gota-media4"></div>
+                <div class="gotas gota-media5"></div>
+                <div class="gotas gota-media6"></div>
+                <div class="gotas gota-media7"></div>
+                <div class="gotas gota-grande1"></div>
+                <div class="gotas gota-grande2"></div>
+                <div class="gotas gota-grande3"></div>
+                <div class="gotas gota-grande4"></div>
+                <div class="gotas gota-grande5"></div>
+                <div class="gotas gota-grande6"></div>
+                <div class="gotas gota-grande7"></div>
+              </ng-container>
             </div>
-            <div class="detail" title="Humedad">
-              <i class="fas fa-tint label-icon"></i>
-              <span class="value">{{day.avgHumidity}}%</span>
-            </div>
-            <div class="detail" title="Viento">
-              <i class="fas fa-wind label-icon"></i>
-              <span class="value">{{day.avgWindSpeed}} m/s</span>
+            
+            <div class="box-info-clima">
+              <div class="temperatura" [title]="day.mainDescription | titlecase">
+                <span>{{ day.avgTemperature | number:'1.0-0' }}°</span>
+                <i [ngClass]="getWeatherIconClass(day.mainIcon).class" [ngStyle]="{'color': getWeatherIconClass(day.mainIcon).color}"></i>
+              </div>
+              <div class="caja-datos">
+                <div class="dato-cantidad">
+                  <p><b>Viento:</b> {{ day.avgWindSpeed }} m/s</p>
+                  <p><b>Humedad:</b> {{ day.avgHumidity }}%</p>
+                  <p><b>Cielo:</b> {{ day.mainDescription | titlecase }}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

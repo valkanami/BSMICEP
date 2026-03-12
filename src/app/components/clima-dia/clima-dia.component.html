@@ -3,45 +3,78 @@
 </div>
 
 <div class="compact-weather-grid">
-  <div class="compact-weather-card" *ngFor="let item of weatherDataList">
+  <div class="frame" *ngFor="let item of weatherDataList">
     <div *ngIf="item.error" class="error-message">
       {{ item.error }}
     </div>
 
-    <div *ngIf="item.data" class="compact-weather-content">
-      <div class="compact-header">
-        <h3>{{ item.data.city }}, Veracruz</h3>
-        <p class="compact-date">{{ formatDate(item.data.timestamp) }} {{ formatTime(item.data.timestamp) }}</p>
-      </div>
+    <div *ngIf="item.data" class="box-clima">
+      <div class="box-animate" [ngClass]="{
+        'bg-day': isDay(item.data.icon) && !isCloudy(item.data.icon) && !isRainy(item.data.icon),
+        'bg-night': !isDay(item.data.icon) && !isCloudy(item.data.icon) && !isRainy(item.data.icon),
+        'bg-cloudy-day': isDay(item.data.icon) && (isCloudy(item.data.icon) || isRainy(item.data.icon)),
+        'bg-cloudy-night': !isDay(item.data.icon) && (isCloudy(item.data.icon) || isRainy(item.data.icon))
+      }">
+        <div class="header-card">
+          <h3>{{ item.data.city }}, Veracruz</h3>
+          <p>{{ formatDate(item.data.timestamp) }} {{ formatTime(item.data.timestamp) }}</p>
+        </div>
 
-      <div class="compact-current">
-        <div class="compact-main">
-          <i [ngClass]="getWeatherIconClass(item.data.icon).class"
-            [ngStyle]="{'color': getWeatherIconClass(item.data.icon).color, 'font-size': '2rem', 'margin-right': '10px'}"
-            [title]="item.data.description"></i>
-          <div class="compact-temp">
-            <h2>{{ item.data.temperature | number:'1.0-0' }}°</h2>
-            <small>{{ capitalize(item.data.description) }}</small>
+        <!-- Animation Elements -->
+        <ng-container *ngIf="!isRainy(item.data.icon) && !isCloudy(item.data.icon)">
+          <div *ngIf="isDay(item.data.icon)" class="sol"></div>
+          <div *ngIf="!isDay(item.data.icon)" class="luna"></div>
+        </ng-container>
+
+        <ng-container *ngIf="isCloudy(item.data.icon) || isRainy(item.data.icon)">
+          <div class="nuve1"></div>
+          <div class="nuve2"></div>
+          <div class="nuve3"></div>
+          <div class="nuve4"></div>
+          <div class="nuve5"></div>
+        </ng-container>
+
+        <ng-container *ngIf="isRainy(item.data.icon)">
+          <div class="gotas gota-peque1"></div>
+          <div class="gotas gota-peque2"></div>
+          <div class="gotas gota-peque3"></div>
+          <div class="gotas gota-peque4"></div>
+          <div class="gotas gota-peque5"></div>
+          <div class="gotas gota-peque6"></div>
+          <div class="gotas gota-peque7"></div>
+          <div class="gotas gota-media1"></div>
+          <div class="gotas gota-media2"></div>
+          <div class="gotas gota-media3"></div>
+          <div class="gotas gota-media4"></div>
+          <div class="gotas gota-media5"></div>
+          <div class="gotas gota-media6"></div>
+          <div class="gotas gota-media7"></div>
+          <div class="gotas gota-grande1"></div>
+          <div class="gotas gota-grande2"></div>
+          <div class="gotas gota-grande3"></div>
+          <div class="gotas gota-grande4"></div>
+          <div class="gotas gota-grande5"></div>
+          <div class="gotas gota-grande6"></div>
+          <div class="gotas gota-grande7"></div>
+        </ng-container>
+      </div>
+      
+      <div class="box-info-clima">
+        <div class="temperatura" [title]="capitalize(item.data.description)">
+          <span>{{ item.data.temperature | number:'1.0-0' }}°</span>
+          <i [ngClass]="getWeatherIconClass(item.data.icon).class" [ngStyle]="{'color': getWeatherIconClass(item.data.icon).color}"></i>
+        </div>
+        <div class="caja-datos">
+          <div class="dato-cantidad">
+            <p><b>Viento:</b> {{ item.data.windSpeed }} m/s</p>
+            <p><b>Humedad:</b> {{ item.data.humidity }}%</p>
+            <p><b>S. Térmica:</b> {{ item.data.feelsLike | number:'1.0-0' }}°C</p>
           </div>
-        </div>
-
-        <div class="compact-details">
-          <div><i class="fas fa-temperature-low"></i> {{ item.data.feelsLike | number:'1.0-0' }}°C</div>
-          <div><i class="fas fa-tint"></i> {{ item.data.humidity }}%</div>
-          <div><i class="fas fa-wind"></i> {{ item.data.windSpeed }} m/s</div>
-          <div><i class="fas fa-tachometer-alt"></i> {{ item.data.pressure }} hPa</div>
-        </div>
-      </div>
-
-      <div class="compact-forecast">
-        <h4>Pronóstico {{ formatDate(item.data.periodos.madrugada.timestamp) }}</h4>
-        <div class="compact-periods">
-          <div class="compact-period" *ngFor="let period of periods">
-            <div class="period-time">{{ formatTime(item.data.periodos[period].timestamp) }}</div>
-            <i [ngClass]="getWeatherIconClass(item.data.periodos[period].icon).class"
-              [ngStyle]="{'color': getWeatherIconClass(item.data.periodos[period].icon).color, 'font-size': '1.2rem', 'margin': '5px 0'}"
-              [title]="item.data.periodos[period].description"></i>
-            <div class="period-temp">{{ item.data.periodos[period].temperature | number:'1.0-0' }}°</div>
+          <div class="datos-dias">
+            <p class="dia1"><b>Pronóstico</b></p>
+            <p *ngFor="let p of periods" class="dia1">
+               {{ capitalize(p) }} {{ item.data.periodos[p].temperature | number:'1.0-0' }}°
+            </p>
           </div>
         </div>
       </div>
