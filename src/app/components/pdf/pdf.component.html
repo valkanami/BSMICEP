@@ -1,1 +1,119 @@
-<p>pdf works!</p>
+<!-- Botón de acción principal -->
+<div class="pdf-action-header">
+  <h2>Generador de Reportes PDF</h2>
+  <p>Genera un documento PDF que contiene todas las gráficas e indicadores del sistema.</p>
+
+  <button class="btn-generate" (click)="generatePDF()" [disabled]="isGeneratingResult">
+    <i class="pi pi-file-pdf" *ngIf="!isGeneratingResult"></i>
+    <i class="pi pi-spin pi-spinner" *ngIf="isGeneratingResult"></i>
+    {{ isGeneratingResult ? 'Generando...' : 'Descargar PDF Completo' }}
+  </button>
+
+  <div class="progress-message" *ngIf="progressMessage">
+    {{ progressMessage }}
+  </div>
+</div>
+
+<!-- Overlay que bloquea la vista durante la generación -->
+<div class="pdf-overlay" *ngIf="isGeneratingResult">
+  <div class="pdf-overlay-content">
+    <i class="pi pi-spin pi-spinner" style="font-size: 3rem; color: #10b981;"></i>
+    <h3>Generando PDF...</h3>
+    <p>{{ progressMessage }}</p>
+  </div>
+</div>
+
+<!-- Contenedor de componentes: solo existe en el DOM durante la generación -->
+<div class="pdf-render-zone" *ngIf="showComponents">
+  <div class="components-grid" #pdfContent>
+    <app-inicio></app-inicio>
+    <app-clima-dia></app-clima-dia>
+    <app-clima-semana></app-clima-semana>
+    <app-reporte-cosecha></app-reporte-cosecha>
+    <app-reporte-cana-accidental></app-reporte-cana-accidental>
+    <app-cortadores></app-cortadores>
+    <app-frescura-hora></app-frescura-hora>
+    <app-tabla-frescura></app-tabla-frescura>
+    <app-rangos-frescura></app-rangos-frescura>
+    <app-perdidas-cosechamiento></app-perdidas-cosechamiento>
+    <app-cana-molida></app-cana-molida>
+    <app-dextranas-brix></app-dextranas-brix>
+    <app-bagazo></app-bagazo>
+    <app-pol-cana></app-pol-cana>
+    <app-eficiencia-fabrica></app-eficiencia-fabrica>
+    <app-reductores></app-reductores>
+    <app-ph-desmenuzado-mezclado></app-ph-desmenuzado-mezclado>
+    <app-ph-acm></app-ph-acm>
+    <app-ph-claro-filtrado></app-ph-claro-filtrado>
+    <app-ph-promedio></app-ph-promedio>
+    <app-reductores-claro-meladura></app-reductores-claro-meladura>
+    <app-reductores-promedio></app-reductores-promedio>
+    <app-turbidez-jugo-claro-chart></app-turbidez-jugo-claro-chart>
+    <app-brix-meladura></app-brix-meladura>
+    <app-pureza-miel-final></app-pureza-miel-final>
+    <app-pza-jugo-mezclado-tierra></app-pza-jugo-mezclado-tierra>
+    <app-cachaza-cana></app-cachaza-cana>
+    <app-perdidas-cana></app-perdidas-cana>
+    <app-ph-fcr></app-ph-fcr>
+    <app-ph-tratado></app-ph-tratado>
+    <app-color-fcr></app-color-fcr>
+    <app-rsd></app-rsd>
+    <app-rezasurina></app-rezasurina>
+    <app-productos-quimicos></app-productos-quimicos>
+    <app-columnas-carbon></app-columnas-carbon>
+    <app-tabla-rendimiento-cyr></app-tabla-rendimiento-cyr>
+    <app-calidad-azucar></app-calidad-azucar>
+    <app-datos-calderas></app-datos-calderas>
+    <app-comparativo-abl></app-comparativo-abl>
+    <app-comparativo-ton-solidos></app-comparativo-ton-solidos>
+    <app-consumo-bagazo-astilla></app-consumo-bagazo-astilla>
+    <app-calderas-datos-dia></app-calderas-datos-dia>
+    <app-relleno-torre></app-relleno-torre>
+    <app-tanque></app-tanque>
+    <app-comparativo-bb></app-comparativo-bb>
+    <app-condensados-impuros></app-condensados-impuros>
+    <app-consumo-agua-m3></app-consumo-agua-m3>
+    <app-consumo-agua-lts></app-consumo-agua-lts>
+    <app-consumo-medidor></app-consumo-medidor>
+    <app-consumo-gral-agua></app-consumo-gral-agua>
+    <app-descarga-gral-agua></app-descarga-gral-agua>
+    <app-pol-descarga-fabrica></app-pol-descarga-fabrica>
+    <app-ph-descarga-fabrica></app-ph-descarga-fabrica>
+    <app-pol-agua-torre></app-pol-agua-torre>
+    <app-ph-agua-torre></app-ph-agua-torre>
+    <app-muestreo></app-muestreo>
+    <app-ton-pol-perdidas></app-ton-pol-perdidas>
+    <app-datos-cana></app-datos-cana>
+    <app-frescura-rsd></app-frescura-rsd>
+    <app-cana-mayor></app-cana-mayor>
+    <app-ton-cana-imbibicion></app-ton-cana-imbibicion>
+    <app-cana-accidentada></app-cana-accidentada>
+    <app-cana-corralon></app-cana-corralon>
+    <app-cachaza-clarificadores></app-cachaza-clarificadores>
+    <app-fibra-pol></app-fibra-pol>
+    <app-ton-pol-cachaza></app-ton-pol-cachaza>
+    <app-color-icumsa></app-color-icumsa>
+    <app-bx-pza-miel-final></app-bx-pza-miel-final>
+    <app-silos></app-silos>
+    <app-tamano-grano></app-tamano-grano>
+    <app-rendimiento-turno></app-rendimiento-turno>
+    <app-produccion-fn></app-produccion-fn>
+    <app-produccion-oficial></app-produccion-oficial>
+    <app-azucar-refundida></app-azucar-refundida>
+    <app-rendimiento-cristales></app-rendimiento-cristales>
+    <app-molienda></app-molienda>
+    <app-imbibicion></app-imbibicion>
+    <app-molida-produccion></app-molida-produccion>
+    <app-molida-rendimiento></app-molida-rendimiento>
+    <app-sedimentos></app-sedimentos>
+    <app-pureza-jugo></app-pureza-jugo>
+    <app-rendimiento-cristales-dia></app-rendimiento-cristales-dia>
+    <app-color></app-color>
+    <app-dextranas-solidos></app-dextranas-solidos>
+    <app-ton-vapor-cana></app-ton-vapor-cana>
+    <app-turbidez-azucar></app-turbidez-azucar>
+    <app-masa-cocida></app-masa-cocida>
+    <app-rendimiento-cristales-semana></app-rendimiento-cristales-semana>
+    <app-recirculacion></app-recirculacion>
+  </div>
+</div>

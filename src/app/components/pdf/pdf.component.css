@@ -1,0 +1,109 @@
+/* --- Cabecera de acción --- */
+.pdf-action-header {
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin: 20px auto;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.pdf-action-header h2 {
+  color: var(--primary-color, #10b981);
+  margin-bottom: 10px;
+}
+
+.pdf-action-header p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* --- Botón de generar --- */
+.btn-generate {
+  background-color: var(--primary-color, #10b981);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.btn-generate:hover:not(:disabled) {
+  background-color: #0d9668;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-generate:disabled {
+  background-color: #a7f3d0;
+  cursor: not-allowed;
+}
+
+/* --- Mensaje de progreso --- */
+.progress-message {
+  margin-top: 20px;
+  font-weight: 500;
+  color: #3b82f6;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* --- Overlay durante generación --- */
+.pdf-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(255, 255, 255, 0.95);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.pdf-overlay-content h3 {
+  color: #1f2937;
+  margin-top: 20px;
+}
+
+.pdf-overlay-content p {
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+/* --- Zona de renderizado (detrás del overlay) --- */
+.pdf-render-zone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1200px;
+  z-index: 1;
+  background: white;
+  pointer-events: none;
+}
+
+.components-grid > * {
+  display: block;
+  margin-bottom: 20px;
+  background: white;
+  padding: 15px;
+}
+
+/* Forzar que no haya animaciones para que las gráficas rendericen inmediatamente */
+.pdf-render-zone * {
+  animation: none !important;
+  transition: none !important;
+}
