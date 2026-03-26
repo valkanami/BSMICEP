@@ -66,7 +66,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
   public errorMessage: string = '';
   public selectedDate: string = '';
   public availableDates: string[] = [];
-  public dataTypes: string[] = ['Desmenuzado', 'Mezclado']; 
+  public dataTypes: string[] = ['Desmenuzado', 'Mezclado'];
   public limits: Limit[] = [
     { id: 5, name: '', value: null, color: 'rgba(255, 99, 132, 1)', axis: 'y', unit: '' },
     { id: 6, name: '', value: null, color: 'rgba(54, 162, 235, 1)', axis: 'y', unit: '' },
@@ -74,7 +74,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
-    '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
+    '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
     '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
     '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
@@ -88,27 +88,27 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
   public isLoadingTabla = true;
   public errorMessageTabla = '';
   public fechaSeleccionadaTabla = '';
-  public readonly APARTADO_FILTRADO = 'Cuadro caña molida1';
+  public readonly APARTADO_FILTRADO = 'Reductores jugo desm. y jugo mezc.';
 
   private colorPalette = [
-    'rgba(255, 99, 132, 1)',    
-    'rgba(54, 162, 235, 1)',     
-    'rgba(255, 206, 86, 1)',     
+    'rgba(255, 99, 132, 1)',
+    'rgba(54, 162, 235, 1)',
+    'rgba(255, 206, 86, 1)',
     'rgba(75, 192, 192, 1)',
     'rgba(153, 102, 255, 1)',
     'rgba(255, 159, 64, 1)'
   ];
 
   constructor(
-  private http: HttpClient,
-  private apiService: ApiService,
-  @Inject(PLATFORM_ID) private platformId: Object
-) {
-  this.isBrowser = isPlatformBrowser(platformId);
-  if (this.isBrowser) {
-    Chart.register(...registerables);
+    private http: HttpClient,
+    private apiService: ApiService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+    if (this.isBrowser) {
+      Chart.register(...registerables);
+    }
   }
-}
 
   ngOnInit(): void {
     if (this.isBrowser) {
@@ -125,30 +125,30 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadTableData(): void {
     this.isLoadingTabla = true;
     this.apiService.getDatosCuadros().subscribe({
-        next: (data) => {
-          const datosFiltrados = data.filter(item => item.Apartado === this.APARTADO_FILTRADO);
-          
-          this.fechasDisponiblesTabla = [...new Set(datosFiltrados.map(item => {
-            const fechaOriginal = new Date(item.Fecha);
-            fechaOriginal.setDate(fechaOriginal.getDate() + 1); 
-            return this.formatDate(fechaOriginal);
-          }))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-          
-          this.datosOriginalesTabla = datosFiltrados;
-          
-          if (this.fechasDisponiblesTabla.length > 0) {
-            this.fechaSeleccionadaTabla = this.fechasDisponiblesTabla[0];
-            this.procesarDatosTabla();
-          }
-          
-          this.isLoadingTabla = false;
-        },
-        error: (err) => {
-          this.errorMessageTabla = 'Error al cargar los datos de la tabla';
-          this.isLoadingTabla = false;
-          console.error(err);
+      next: (data) => {
+        const datosFiltrados = data.filter(item => item.Apartado === this.APARTADO_FILTRADO);
+
+        this.fechasDisponiblesTabla = [...new Set(datosFiltrados.map(item => {
+          const fechaOriginal = new Date(item.Fecha);
+          fechaOriginal.setDate(fechaOriginal.getDate() + 1);
+          return this.formatDate(fechaOriginal);
+        }))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+        this.datosOriginalesTabla = datosFiltrados;
+
+        if (this.fechasDisponiblesTabla.length > 0) {
+          this.fechaSeleccionadaTabla = this.fechasDisponiblesTabla[0];
+          this.procesarDatosTabla();
         }
-      });
+
+        this.isLoadingTabla = false;
+      },
+      error: (err) => {
+        this.errorMessageTabla = 'Error al cargar los datos de la tabla';
+        this.isLoadingTabla = false;
+        console.error(err);
+      }
+    });
   }
 
   private procesarDatosTabla(): void {
@@ -157,22 +157,22 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
       fechaOriginal.setDate(fechaOriginal.getDate() + 1);
       return this.formatDate(fechaOriginal) === this.fechaSeleccionadaTabla;
     });
-    
+
     this.todosCampos = [...new Set(datosFiltrados.map(item => item.Dato))];
-    
+
     const categoriasUnicas = [...new Set(datosFiltrados.map(item => item.Categoria))];
-    
+
     this.gruposCategoria = categoriasUnicas.map(categoria => {
       const datosCategoria = datosFiltrados.filter(item => item.Categoria === categoria);
-      
+
       const campos: DatoCampo[] = this.todosCampos.map(nombreCampo => {
         const dato = datosCategoria.find(item => item.Dato === nombreCampo);
         return {
           nombre: nombreCampo,
-          valor: dato ? dato.Valor : 0 
+          valor: dato ? dato.Valor : 0
         };
       });
-      
+
       return {
         categoria,
         campos
@@ -203,10 +203,10 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private loadLimitValues(): void {
     this.limitsLoaded = false;
-    
-    const limitRequests = this.limits.map(limit => 
-  this.apiService.getLimiteById(limit.id).toPromise()
-);
+
+    const limitRequests = this.limits.map(limit =>
+      this.apiService.getLimiteById(limit.id).toPromise()
+    );
 
 
     Promise.all(limitRequests)
@@ -214,7 +214,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
         responses.forEach((response, index) => {
           this.limits[index].value = response?.LIMITE ?? null;
         });
-        
+
         this.limitsLoaded = true;
         if (this.dataLoaded) {
           this.initChartIfReady();
@@ -256,12 +256,12 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
 
   checkApiConnection(): void {
     this.dataLoaded = false;
-   this.apiService.getRegistroZafra().subscribe({
+    this.apiService.getRegistroZafra().subscribe({
       next: (response) => {
         this.apiConnectionStatus = ' ';
         this.originalData = this.preserveOriginalTimes(response as any[]);
         this.extractAvailableDates();
-        
+
         if (this.availableDates.length > 0) {
           this.selectedDate = this.availableDates[this.availableDates.length - 1];
           this.filterDataByDate();
@@ -310,8 +310,8 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
       const itemDate = new Date(item.fecha);
       if (isNaN(itemDate.getTime())) return false;
       const itemDateStr = itemDate.toISOString().split('T')[0];
-      return itemDateStr === this.selectedDate && 
-             (item.dato === 'Desmenuzado' || item.dato === 'Mezclado');
+      return itemDateStr === this.selectedDate &&
+        (item.dato === 'Desmenuzado' || item.dato === 'Mezclado');
     });
 
     this.filteredData.sort((a, b) => {
@@ -334,8 +334,8 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private preserveOriginalTimes(rawData: any[]): any[] {
     return rawData
-      .filter(item => item.apartado === 'Reductores' && 
-             (item.dato === 'Desmenuzado' || item.dato === 'Mezclado')) 
+      .filter(item => item.apartado === 'Reductores' &&
+        (item.dato === 'Desmenuzado' || item.dato === 'Mezclado'))
       .map(item => {
         let horaOriginal = '';
         if (item.hora) {
@@ -359,14 +359,14 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       const canvas = this.chartCanvas.nativeElement;
       const ctx = canvas.getContext('2d');
-      
+
       if (!ctx) {
         throw new Error('No se pudo obtener el contexto del canvas');
       }
-      
+
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
-      
+
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
       canvas.style.width = `${rect.width}px`;
@@ -374,7 +374,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
       ctx.scale(dpr, dpr);
 
       const labels = this.fixedHours;
-      
+
       const lineDatasets: LineDataset[] = this.dataTypes.map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
         return {
@@ -402,7 +402,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
       const datasets: (LineDataset | BarDataset)[] = [...lineDatasets, barDataset];
 
       const annotations: ChartAnnotations = {};
-      
+
       this.limits.forEach(limit => {
         if (limit.value !== null) {
           annotations[`${limit.name}LimitLine`] = {
@@ -470,14 +470,14 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
                 },
                 afterLabel: (context: TooltipItem<'line' | 'bar'>) => {
                   if (context.dataset.label === 'Diferencia') return undefined;
-                  
+
                   const hour = labels[context.dataIndex];
                   const dataItem = this.findDataItemByHour(hour, context.dataset.label);
-                  
+
                   if (!dataItem) return 'No hay datos para esta hora';
-                  
+
                   const justificacion = dataItem.justificacion || 'No hay justificación registrada';
-                  
+
                   return [
                     `─────────────────────`,
                     `Hora: ${hour}`,
@@ -504,17 +504,17 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
         plugins: [{
           id: 'limitLine',
           beforeDraw: (chart: any) => {
-            const {ctx, chartArea, scales} = chart;
-            
+            const { ctx, chartArea, scales } = chart;
+
             if (!ctx || !chartArea || !scales?.['y']) return;
-            
+
             ctx.save();
             ctx.translate(0.5, 0.5);
-            
+
             this.limits.forEach(limit => {
               if (limit.value !== null && scales[limit.axis]) {
                 const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
-                
+
                 ctx.beginPath();
                 ctx.strokeStyle = limit.color;
                 ctx.lineWidth = 2;
@@ -522,21 +522,21 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
                 ctx.moveTo(Math.floor(chartArea.left), yPixel);
                 ctx.lineTo(Math.floor(chartArea.right), yPixel);
                 ctx.stroke();
-                
+
                 ctx.fillStyle = 'rgba(255,255,255,0.8)';
                 ctx.fillRect(
-                  Math.floor(chartArea.right - 150), 
-                  Math.floor(yPixel - 15), 
-                  150, 
+                  Math.floor(chartArea.right - 150),
+                  Math.floor(yPixel - 15),
+                  150,
                   20
                 );
-                
+
                 ctx.fillStyle = limit.color;
                 ctx.textAlign = 'right';
                 ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
               }
             });
-            
+
             ctx.restore();
           }
         }]
@@ -575,10 +575,10 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
 
     for (const item of this.filteredData) {
       if (dataType && item.dato !== dataType) continue;
-      
+
       const itemMinutes = this.timeToMinutes(item.HORA_ORIGINAL);
       const diff = Math.abs(itemMinutes - targetMinutes);
-      
+
       if (diff < 30 && diff < smallestDiff) {
         smallestDiff = diff;
         closestItem = item;
@@ -590,7 +590,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public updateChartData(): void {
     if (!this.chart) return;
-  
+
     const lineDatasets: LineDataset[] = this.dataTypes.map((type, index) => {
       const color = this.colorPalette[index % this.colorPalette.length];
       return {
@@ -618,7 +618,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chart.data.datasets = [...lineDatasets, barDataset] as ChartDataset[];
 
     const annotations: ChartAnnotations = {};
-    
+
     this.limits.forEach(limit => {
       if (limit.value !== null) {
         annotations[`${limit.name}LimitLine`] = {
@@ -642,7 +642,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.chart.options?.plugins?.annotation) {
       this.chart.options.plugins.annotation.annotations = annotations;
     }
-  
+
     this.chart.update();
   }
 
@@ -659,7 +659,7 @@ export class ReductoresComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dataLoaded = false;
     this.limitsLoaded = false;
     this.loadInitialData();
-    
+
     // También refrescamos los datos de la tabla
     this.errorMessageTabla = '';
     this.isLoadingTabla = true;

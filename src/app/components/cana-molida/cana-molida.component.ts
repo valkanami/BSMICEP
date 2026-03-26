@@ -78,29 +78,29 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
   public isLoadingTabla = true;
   public errorMessageTabla = '';
   public fechaSeleccionadaTabla = '';
-  public readonly APARTADO_FILTRADO = 'Cuadro caña molida1';
+  public readonly APARTADO_FILTRADO = 'Caña Molida';
 
   private colorPalette = [
-    'rgba(255, 99, 132, 0.7)', 
-    'rgba(54, 162, 235, 0.7)',     
+    'rgba(255, 99, 132, 0.7)',
+    'rgba(54, 162, 235, 0.7)',
     'rgba(75, 192, 192, 0.7)',
-    'rgb(86, 255, 213)',     
+    'rgb(86, 255, 213)',
     'rgba(153, 102, 255, 1)',
     'rgba(255, 159, 64, 1)'
   ];
 
-  private weekDateRanges = new Map<string, {start: Date, end: Date}>();
+  private weekDateRanges = new Map<string, { start: Date, end: Date }>();
 
   constructor(
-  private http: HttpClient,
-  private apiService: ApiService,
-  @Inject(PLATFORM_ID) private platformId: Object
-) {
-  this.isBrowser = isPlatformBrowser(platformId);
-  if (this.isBrowser) {
-    Chart.register(...registerables);
+    private http: HttpClient,
+    private apiService: ApiService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+    if (this.isBrowser) {
+      Chart.register(...registerables);
+    }
   }
-}
 
   ngOnInit(): void {
     if (this.isBrowser) {
@@ -122,7 +122,7 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadInitialData(): void {
     this.checkApiConnection();
     this.loadLimitValues();
-    
+
     setTimeout(() => {
       if (!this.dataLoaded) {
         this.apiConnectionStatus = 'Conexión lenta, intentando recuperar datos...';
@@ -133,30 +133,30 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadTableData(): void {
     this.isLoadingTabla = true;
     this.apiService.getDatosCuadros().subscribe({
-        next: (data) => {
-          const datosFiltrados = data.filter(item => item.Apartado === this.APARTADO_FILTRADO);
-          
-          this.fechasDisponibles = [...new Set(datosFiltrados.map(item => {
-            const fechaOriginal = new Date(item.Fecha);
-            fechaOriginal.setDate(fechaOriginal.getDate() + 1); 
-            return this.formatDate(fechaOriginal);
-          }))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-          
-          this.datosOriginalesTabla = datosFiltrados;
-          
-          if (this.fechasDisponibles.length > 0) {
-            this.fechaSeleccionadaTabla = this.fechasDisponibles[0];
-            this.procesarDatosTabla();
-          }
-          
-          this.isLoadingTabla = false;
-        },
-        error: (err) => {
-          this.errorMessageTabla = 'Error al cargar los datos de la tabla';
-          this.isLoadingTabla = false;
-          console.error(err);
+      next: (data) => {
+        const datosFiltrados = data.filter(item => item.Apartado === this.APARTADO_FILTRADO);
+
+        this.fechasDisponibles = [...new Set(datosFiltrados.map(item => {
+          const fechaOriginal = new Date(item.Fecha);
+          fechaOriginal.setDate(fechaOriginal.getDate() + 1);
+          return this.formatDate(fechaOriginal);
+        }))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+        this.datosOriginalesTabla = datosFiltrados;
+
+        if (this.fechasDisponibles.length > 0) {
+          this.fechaSeleccionadaTabla = this.fechasDisponibles[0];
+          this.procesarDatosTabla();
         }
-      });
+
+        this.isLoadingTabla = false;
+      },
+      error: (err) => {
+        this.errorMessageTabla = 'Error al cargar los datos de la tabla';
+        this.isLoadingTabla = false;
+        console.error(err);
+      }
+    });
   }
 
   private procesarDatosTabla(): void {
@@ -165,22 +165,22 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
       fechaOriginal.setDate(fechaOriginal.getDate() + 1);
       return this.formatDate(fechaOriginal) === this.fechaSeleccionadaTabla;
     });
-    
+
     this.todosCampos = [...new Set(datosFiltrados.map(item => item.Dato))];
-    
+
     const categoriasUnicas = [...new Set(datosFiltrados.map(item => item.Categoria))];
-    
+
     this.gruposCategoria = categoriasUnicas.map(categoria => {
       const datosCategoria = datosFiltrados.filter(item => item.Categoria === categoria);
-      
+
       const campos: DatoCampo[] = this.todosCampos.map(nombreCampo => {
         const dato = datosCategoria.find(item => item.Dato === nombreCampo);
         return {
           nombre: nombreCampo,
-          valor: dato ? dato.Valor : 0 
+          valor: dato ? dato.Valor : 0
         };
       });
-      
+
       return {
         categoria,
         campos
@@ -201,10 +201,10 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private loadLimitValues(): void {
     this.limitsLoaded = false;
-    
-    const limitRequests = this.limits.map(limit => 
-  this.apiService.getLimiteById(limit.id).toPromise()
-);
+
+    const limitRequests = this.limits.map(limit =>
+      this.apiService.getLimiteById(limit.id).toPromise()
+    );
 
 
     Promise.all(limitRequests)
@@ -212,7 +212,7 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
         responses.forEach((response, index) => {
           this.limits[index].value = response?.LIMITE ?? null;
         });
-        
+
         this.limitsLoaded = true;
         if (this.dataLoaded) {
           this.initChartIfReady();
@@ -259,9 +259,9 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
         console.error('Fecha inválida:', dateString);
         return 0;
       }
-      
+
       date.setDate(date.getDate() + 1);
-      return date.getDay(); 
+      return date.getDay();
     } catch (error) {
       console.error('Error al procesar fecha:', dateString, error);
       return 0;
@@ -325,24 +325,24 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private extractAvailableWeeks(): void {
-    const weeksMap = new Map<string, {start: Date, end: Date}>();
-    
+    const weeksMap = new Map<string, { start: Date, end: Date }>();
+
     this.originalData.forEach(item => {
       if (item.fechaDate && !isNaN(item.fechaDate.getTime())) {
         const date = new Date(item.fechaDate);
-        
+
         date.setDate(date.getDate() + 1);
-        
+
         const sunday = new Date(date);
         sunday.setDate(date.getDate() - date.getDay());
         sunday.setHours(0, 0, 0, 0);
-        
+
         const saturday = new Date(sunday);
         saturday.setDate(sunday.getDate() + 6);
         saturday.setHours(23, 59, 59, 999);
-        
+
         const weekKey = sunday.toISOString().split('T')[0];
-        
+
         if (!weeksMap.has(weekKey)) {
           weeksMap.set(weekKey, {
             start: sunday,
@@ -351,14 +351,14 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
     });
-    
+
     const sortedWeeks = Array.from(weeksMap.entries())
       .sort((a, b) => a[1].start.getTime() - b[1].start.getTime());
-    
+
     this.availableWeeks = sortedWeeks.map(([_, range]) => {
       return this.formatDateRange(range.start, range.end);
     });
-    
+
     this.weekDateRanges = new Map();
     sortedWeeks.forEach(([weekKey, range], index) => {
       this.weekDateRanges.set(this.availableWeeks[index], range);
@@ -371,7 +371,7 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       return `${day}/${month}/${date.getFullYear()}`;
     };
-    
+
     return `${format(start)} - ${format(end)}`;
   }
 
@@ -396,10 +396,10 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.filteredData = this.originalData.filter(item => {
       if (!item.fechaDate) return false;
-      
+
       const adjustedDate = new Date(item.fechaDate);
       adjustedDate.setDate(adjustedDate.getDate() + 1);
-      
+
       return adjustedDate >= weekRange.start && adjustedDate <= weekRange.end;
     });
 
@@ -418,14 +418,14 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       const canvas = this.chartCanvas.nativeElement;
       const ctx = canvas.getContext('2d');
-      
+
       if (!ctx) {
         throw new Error('No se pudo obtener el contexto del canvas');
       }
-      
+
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
-      
+
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
       canvas.style.width = `${rect.width}px`;
@@ -433,7 +433,7 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
       ctx.scale(dpr, dpr);
 
       const labels = this.daysOfWeek;
-      
+
       const datasets = this.dataTypes.map((type, index) => {
         const color = this.colorPalette[index % this.colorPalette.length];
         return {
@@ -448,7 +448,7 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
       const annotations: ChartAnnotations = {};
-      
+
       this.limits.forEach(limit => {
         if (limit.value !== null) {
           annotations[`${limit.name}LimitLine`] = {
@@ -513,24 +513,24 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
                   const dayIndex = context.dataIndex;
                   const dayName = this.daysOfWeek[dayIndex];
                   const dataType = context.dataset.label;
-                  
-                  const dayData = this.filteredData.filter(item => 
+
+                  const dayData = this.filteredData.filter(item =>
                     item.dayOfWeek === dayIndex && item.dato === dataType
                   );
-                  
+
                   if (dayData.length === 0) return 'No hay datos para este día';
-                  
+
                   const justificaciones = new Set<string>();
                   dayData.forEach(item => {
                     if (item.justificacion) {
                       justificaciones.add(item.justificacion);
                     }
                   });
-                  
-                  const justText = justificaciones.size > 0 
-                    ? Array.from(justificaciones).join('\n') 
+
+                  const justText = justificaciones.size > 0
+                    ? Array.from(justificaciones).join('\n')
                     : 'No hay justificación registrada';
-                  
+
                   return [
                     `─────────────────────`,
                     `Día: ${dayName}`,
@@ -557,17 +557,17 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
         plugins: [{
           id: 'limitLine',
           beforeDraw: (chart: any) => {
-            const {ctx, chartArea, scales} = chart;
-            
+            const { ctx, chartArea, scales } = chart;
+
             if (!ctx || !chartArea || !scales?.['y']) return;
-            
+
             ctx.save();
             ctx.translate(0.5, 0.5);
-            
+
             this.limits.forEach(limit => {
               if (limit.value !== null && scales[limit.axis]) {
                 const yPixel = Math.floor(scales[limit.axis].getPixelForValue(limit.value));
-                
+
                 ctx.beginPath();
                 ctx.strokeStyle = limit.color;
                 ctx.lineWidth = 2;
@@ -575,21 +575,21 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
                 ctx.moveTo(Math.floor(chartArea.left), yPixel);
                 ctx.lineTo(Math.floor(chartArea.right), yPixel);
                 ctx.stroke();
-                
+
                 ctx.fillStyle = 'rgba(255,255,255,0.8)';
                 ctx.fillRect(
-                  Math.floor(chartArea.right - 150), 
-                  Math.floor(yPixel - 15), 
-                  150, 
+                  Math.floor(chartArea.right - 150),
+                  Math.floor(yPixel - 15),
+                  150,
                   20
                 );
-                
+
                 ctx.fillStyle = limit.color;
                 ctx.textAlign = 'right';
                 ctx.fillText(` ${limit.name}: ${limit.value}${limit.unit}`, Math.floor(chartArea.right - 10), yPixel);
               }
             });
-            
+
             ctx.restore();
           }
         }]
@@ -604,14 +604,14 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private mapDataToDaysOfWeek(dataType: string): (number | null)[] {
     return this.daysOfWeek.map((_, dayIndex) => {
-      const dayData = this.filteredData.filter(item => 
-        item.dayOfWeek === dayIndex && 
+      const dayData = this.filteredData.filter(item =>
+        item.dayOfWeek === dayIndex &&
         item.dato === dataType &&
         item.valor !== null
       );
-      
+
       if (dayData.length === 0) return null;
-      
+
       const sum = dayData.reduce((total, item) => total + (item.valor || 0), 0);
       return sum / dayData.length;
     });
@@ -619,7 +619,7 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public updateChartData(): void {
     if (!this.chart) return;
-  
+
     this.chart.data.datasets = this.dataTypes.map((type, index) => {
       const color = this.colorPalette[index % this.colorPalette.length];
       return {
@@ -634,7 +634,7 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     const annotations: ChartAnnotations = {};
-    
+
     this.limits.forEach(limit => {
       if (limit.value !== null) {
         annotations[`${limit.name}LimitLine`] = {
@@ -658,7 +658,7 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.chart.options?.plugins?.annotation) {
       this.chart.options.plugins.annotation.annotations = annotations;
     }
-  
+
     this.chart.update();
   }
 
@@ -675,7 +675,7 @@ export class CanaMolidaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dataLoaded = false;
     this.limitsLoaded = false;
     this.loadInitialData();
-    
+
     // También refrescamos los datos de la tabla
     this.errorMessageTabla = '';
     this.isLoadingTabla = true;
