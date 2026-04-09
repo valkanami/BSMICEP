@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Chart, ChartModule } from 'angular-highcharts';
-import { catchError, of } from 'rxjs';
+import { catchError, of, Subscription } from 'rxjs';
+import { inject } from '@angular/core';
+import { ChartSettingsService } from '../services/chart-settings.service';
 
 @Component({
   selector: 'app-stacked-bar-chart',
@@ -16,11 +18,28 @@ export class StackedBarChartComponent implements OnInit {
   apiStatus: 'testing' | 'connected' | 'error' = 'testing';
   errorMessage: string = '';
   data: any[] = [];
+  
+  private http = inject(HttpClient);
+  private chartSettingsService = inject(ChartSettingsService);
+  private labelsSubscription!: Subscription;
+  showDataLabels: boolean = false;
 
-  constructor(private http: HttpClient) {}
+  constructor() {}
 
   ngOnInit(): void {
+    this.labelsSubscription = this.chartSettingsService.showLabels$.subscribe(value => {
+      this.showDataLabels = value;
+      if (this.data.length > 0) {
+        this.createChart();
+      }
+    });
     this.testApiConnection();
+  }
+
+  ngOnDestroy(): void {
+    if (this.labelsSubscription) {
+      this.labelsSubscription.unsubscribe();
+    }
   }
 
   testApiConnection(): void {
@@ -85,7 +104,8 @@ export class StackedBarChartComponent implements OnInit {
         },
         column: {
           dataLabels: {
-            enabled: true
+            enabled: this.showDataLabels,
+            format: '{point.y:.2f}'
           }
         }
       },

@@ -1,4 +1,5 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
+import { ChartSettingsService } from '../services/chart-settings.service';
 import { CommonModule } from '@angular/common';
 import { LineChartComponent } from '../line-chart/line-chart.component';
 import { ColumnChartComponent } from '../column-chart/column-chart.component';
@@ -207,8 +208,10 @@ import { PdfComponent } from '../components/pdf/pdf.component';
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']
 })
-export class MainPageComponent {
+export class MainPageComponent implements OnInit {
+  private chartSettingsService = inject(ChartSettingsService);
   currentChart: string = 'inicio';
+  showDataLabels: boolean = false;
   openMenus: {[key: string]: boolean} = {
     clima: true
   };
@@ -309,6 +312,16 @@ export class MainPageComponent {
   ];
   
   selectedIndex = 0;
+
+  ngOnInit(): void {
+    this.chartSettingsService.showLabels$.subscribe(value => {
+      this.showDataLabels = value;
+    });
+  }
+
+  toggleDataLabels(event: any): void {
+    this.chartSettingsService.setShowLabels(event.target.checked);
+  }
 
   @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {

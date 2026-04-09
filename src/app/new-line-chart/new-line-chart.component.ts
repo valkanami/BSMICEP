@@ -2,6 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import Chart from 'chart.js/auto';
 import { AnnotationOptions } from 'chartjs-plugin-annotation';
 import annotationPlugin from 'chartjs-plugin-annotation';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { inject } from '@angular/core';
+import { ChartSettingsService } from '../services/chart-settings.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-new-line-chart',
@@ -14,22 +18,39 @@ export class NewLineChartComponent implements OnInit {
   public limit1: number = 6.5; 
   public limit2: number = 7; 
   public limit3: number = 7.5; 
+  
+  private chartSettingsService = inject(ChartSettingsService);
+  private labelsSubscription!: Subscription;
+  showDataLabels: boolean = false;
 
   ngOnInit(): void {
+    this.labelsSubscription = this.chartSettingsService.showLabels$.subscribe(value => {
+      this.showDataLabels = value;
+      this.updateDataLabels();
+    });
     this.createChart();
-
     
     setTimeout(() => {
       this.updateLimits(6.5, 7, 7.5); 
     }, 5000);
+  }
 
-    
-    
+  ngOnDestroy(): void {
+    if (this.labelsSubscription) {
+      this.labelsSubscription.unsubscribe();
+    }
+  }
+
+  updateDataLabels() {
+    if (this.chart) {
+      this.chart.options.plugins.datalabels.display = this.showDataLabels;
+      this.chart.update();
+    }
   }
 
   createChart() {
     
-    Chart.register(annotationPlugin);
+    Chart.register(annotationPlugin, ChartDataLabels);
 
     
     const annotation1: AnnotationOptions = {
@@ -138,6 +159,12 @@ export class NewLineChartComponent implements OnInit {
           legend: {
             display: true,
             position: 'top'
+          },
+          datalabels: {
+            display: this.showDataLabels,
+            anchor: 'end',
+            align: 'top',
+            formatter: (value: any) => value !== null ? value.toFixed(2) : ''
           }
         }
       }

@@ -4,7 +4,9 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
-import { catchError, of } from 'rxjs';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { catchError, of, Subscription } from 'rxjs';
+import { ChartSettingsService } from '../services/chart-settings.service';
 
 interface CanaMolidaData {
   id: number;
@@ -17,11 +19,15 @@ interface CanaMolidaData {
   selector: 'app-new-bar-chart',
   standalone: true,
   imports: [CommonModule, HttpClientModule, BaseChartDirective],
+  providers: [],
   templateUrl: './new-bar-chart.component.html',
   styleUrls: ['./new-bar-chart.component.css']
 })
 export class NewBarChartComponent implements OnInit {
   private http = inject(HttpClient);
+  private chartSettingsService = inject(ChartSettingsService);
+  private labelsSubscription!: Subscription;
+  showDataLabels: boolean = false;
 
   apiUrl = 'http://localhost:3000/api/canamolida';
   loading = true;
@@ -83,7 +89,29 @@ export class NewBarChartComponent implements OnInit {
 
   
   ngOnInit(): void {
+    this.labelsSubscription = this.chartSettingsService.showLabels$.subscribe(value => {
+      this.showDataLabels = value;
+      this.updateChartOptions();
+    });
     this.testConnection();
+  }
+
+  ngOnDestroy(): void {
+    if (this.labelsSubscription) {
+      this.labelsSubscription.unsubscribe();
+    }
+  }
+
+  updateChartOptions(): void {
+    if (!this.barChartOptions.plugins) {
+      this.barChartOptions.plugins = {};
+    }
+    this.barChartOptions.plugins.datalabels = {
+      display: this.showDataLabels,
+      anchor: 'end',
+      align: 'top',
+      formatter: (value: any) => value !== null ? value.toLocaleString() : ''
+    };
   }
 
   testConnection(): void {

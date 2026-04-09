@@ -4,6 +4,10 @@ import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { ChartSettingsService } from '../../services/chart-settings.service';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { Subscription } from 'rxjs';
+import { inject } from '@angular/core';
 
 interface LimitLineAnnotation {
   type: 'line';
@@ -64,6 +68,10 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
     '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
   ];
 
+  private chartSettingsService = inject(ChartSettingsService);
+  private labelsSubscription!: Subscription;
+  public showDataLabels: boolean = false;
+
   private colorPalette = [
     'rgba(255, 99, 132, 1)', 
     'rgba(54, 162, 235, 1)',     
@@ -80,12 +88,16 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
 ) {
   this.isBrowser = isPlatformBrowser(platformId);
   if (this.isBrowser) {
-    Chart.register(...registerables);
+    Chart.register(...registerables, ChartDataLabels);
   }
 }
 
   ngOnInit(): void {
     if (this.isBrowser) {
+      this.labelsSubscription = this.chartSettingsService.showLabels$.subscribe(value => {
+        this.showDataLabels = value;
+        this.updateDataLabels();
+      });
       this.loadInitialData();
     }
   }
@@ -103,6 +115,16 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
 
   ngOnDestroy(): void {
     this.destroyChart();
+    if (this.labelsSubscription) {
+      this.labelsSubscription.unsubscribe();
+    }
+  }
+
+  private updateDataLabels(): void {
+    if (this.chart) {
+      this.chart.options.plugins!.datalabels!.display = this.showDataLabels;
+      this.chart.update();
+    }
   }
 
   private loadLimitValues(): void {
@@ -383,6 +405,12 @@ export class PhClaroFiltradoComponent implements OnInit, AfterViewInit, OnDestro
             },
             annotation: {
               annotations: annotations
+            },
+            datalabels: {
+              display: this.showDataLabels,
+              anchor: 'end',
+              align: 'top',
+              formatter: (value: any) => value !== null ? value.toFixed(2) : ''
             }
           }
         },

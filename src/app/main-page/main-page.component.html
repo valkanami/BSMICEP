@@ -6,6 +6,13 @@
   <div class="sidebar" [class.hidden]="isSidebarHidden">
     <div class="sidebar-header">
       <span class="sidebar-title">Menú</span>
+      <div class="toggle-container">
+        <span class="toggle-label">Valores</span>
+        <label class="switch">
+          <input type="checkbox" [checked]="showDataLabels" (change)="toggleDataLabels($event)">
+          <span class="slider round"></span>
+        </label>
+      </div>
     </div>
     
     <ul class="menu">

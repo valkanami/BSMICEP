@@ -4,6 +4,10 @@ import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { ChartSettingsService } from '../../services/chart-settings.service';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { Subscription } from 'rxjs';
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-pureza-jugo',
@@ -28,6 +32,10 @@ export class PurezaJugoComponent implements OnInit, AfterViewInit, OnDestroy {
     '13:00'
   ];
 
+  private chartSettingsService = inject(ChartSettingsService);
+  private labelsSubscription!: Subscription;
+  public showDataLabels: boolean = false;
+
   constructor(
   private http: HttpClient,
   private apiService: ApiService,
@@ -35,12 +43,16 @@ export class PurezaJugoComponent implements OnInit, AfterViewInit, OnDestroy {
 ) {
   this.isBrowser = isPlatformBrowser(platformId);
   if (this.isBrowser) {
-    Chart.register(...registerables);
+    Chart.register(...registerables, ChartDataLabels);
   }
 }
 
   ngOnInit(): void {
     if (this.isBrowser) {
+      this.labelsSubscription = this.chartSettingsService.showLabels$.subscribe(value => {
+        this.showDataLabels = value;
+        this.updateDataLabels();
+      });
       this.loadData();
     }
   }
@@ -53,6 +65,16 @@ export class PurezaJugoComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyChart();
+    if (this.labelsSubscription) {
+      this.labelsSubscription.unsubscribe();
+    }
+  }
+
+  private updateDataLabels(): void {
+    if (this.chart) {
+      this.chart.options.plugins!.datalabels!.display = this.showDataLabels;
+      this.chart.update();
+    }
   }
 
   private initChartIfReady(): void {
@@ -299,6 +321,12 @@ export class PurezaJugoComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             legend: {
               position: 'top'
+            },
+            datalabels: {
+              display: this.showDataLabels,
+              anchor: 'end',
+              align: 'top',
+              formatter: (value: any) => value !== null ? value.toFixed(2) : ''
             }
           }
         }

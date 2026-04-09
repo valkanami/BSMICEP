@@ -2,8 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Chart, ChartModule } from 'angular-highcharts';
-import { catchError, of } from 'rxjs';
+import { catchError, of, Subscription } from 'rxjs';
 import type { XAxisOptions } from 'highcharts';
+import { ChartSettingsService } from '../services/chart-settings.service';
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-line-chart',
@@ -21,10 +23,25 @@ export class LineChartComponent implements OnInit {
   phClaroLimits = { min: 7, max: 0 };
   phFiltradoLimits = { min: 7.5, max: 0 };
 
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
+  private chartSettingsService = inject(ChartSettingsService);
+  private labelsSubscription!: Subscription;
+  showDataLabels: boolean = false;
 
   ngOnInit(): void {
+    this.labelsSubscription = this.chartSettingsService.showLabels$.subscribe(value => {
+      this.showDataLabels = value;
+      if (this.data.length > 0) {
+        this.createChart();
+      }
+    });
     this.testApiConnection();
+  }
+
+  ngOnDestroy(): void {
+    if (this.labelsSubscription) {
+      this.labelsSubscription.unsubscribe();
+    }
   }
 
   testApiConnection(): void {
@@ -123,7 +140,11 @@ export class LineChartComponent implements OnInit {
       },
       plotOptions: {
         series: {
-          marker: { radius: 4 }
+          marker: { radius: 4 },
+          dataLabels: {
+            enabled: this.showDataLabels,
+            format: '{point.y:.2f}'
+          }
         }
       },
       series: [
