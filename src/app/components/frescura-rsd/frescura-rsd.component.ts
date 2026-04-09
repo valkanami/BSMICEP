@@ -4,6 +4,10 @@ import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { ChartSettingsService } from '../../services/chart-settings.service';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { Subscription } from 'rxjs';
+import { inject } from '@angular/core';
 
 interface LimitLineAnnotation {
   type: 'line';
@@ -57,11 +61,12 @@ export class FrescuraRsdComponent implements OnInit, AfterViewInit, OnDestroy {
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
   public fixedHours: string[] = [
-    '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
-    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
-    '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
     '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'
   ];
+
+  private chartSettingsService = inject(ChartSettingsService);
+  private labelsSubscription!: Subscription;
+  public showDataLabels: boolean = false;
 
   private colorPalette = [
     'rgba(255, 99, 132, 1)',    
@@ -78,14 +83,25 @@ export class FrescuraRsdComponent implements OnInit, AfterViewInit, OnDestroy {
   @Inject(PLATFORM_ID) private platformId: Object
 ) {
   this.isBrowser = isPlatformBrowser(platformId);
-  if (this.isBrowser) {
-    Chart.register(...registerables);
-  }
+    if (this.isBrowser) {
+      Chart.register(...registerables, ChartDataLabels);
+    }
 }
 
   ngOnInit(): void {
     if (this.isBrowser) {
+      this.labelsSubscription = this.chartSettingsService.showLabels$.subscribe(value => {
+        this.showDataLabels = value;
+        this.updateDataLabels();
+      });
       this.loadInitialData();
+    }
+  }
+
+  private updateDataLabels(): void {
+    if (this.chart) {
+      this.chart.options.plugins!.datalabels!.display = this.showDataLabels;
+      this.chart.update();
     }
   }
 
@@ -102,6 +118,9 @@ export class FrescuraRsdComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyChart();
+    if (this.labelsSubscription) {
+      this.labelsSubscription.unsubscribe();
+    }
   }
 
   private loadLimitValues(): void {
@@ -403,6 +422,21 @@ export class FrescuraRsdComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             annotation: {
               annotations: annotations
+            },
+            datalabels: {
+              display: this.showDataLabels,
+              anchor: 'end',
+              align: 'top',
+              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              borderRadius: 4,
+              borderWidth: 1,
+              borderColor: '#333333',
+              padding: 4,
+              font: {
+                weight: 'bold'
+              },
+              color: '#000000',
+              formatter: (value: any) => value !== null ? value.toFixed(2) : ''
             }
           }
         },

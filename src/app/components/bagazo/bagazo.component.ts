@@ -522,6 +522,15 @@ export class BagazoComponent implements OnInit, AfterViewInit, OnDestroy {
               display: this.showDataLabels,
               anchor: 'end',
               align: 'top',
+              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              borderRadius: 4,
+              borderWidth: 1,
+              borderColor: '#333333',
+              padding: 4,
+              font: {
+                weight: 'bold'
+              },
+              color: '#000000',
               formatter: (value: any) => value !== null ? value.toFixed(2) : ''
             }
           }

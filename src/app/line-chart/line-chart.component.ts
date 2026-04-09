@@ -143,7 +143,17 @@ export class LineChartComponent implements OnInit {
           marker: { radius: 4 },
           dataLabels: {
             enabled: this.showDataLabels,
-            format: '{point.y:.2f}'
+            format: '{point.y:.2f}',
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            borderWidth: 1,
+            borderColor: '#333333',
+            borderRadius: 4,
+            padding: 4,
+            style: {
+              color: '#000000',
+              fontWeight: 'bold',
+              textOutline: 'none'
+            }
           }
         }
       },

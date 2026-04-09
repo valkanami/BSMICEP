@@ -4,6 +4,10 @@ import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { ChartSettingsService } from '../../services/chart-settings.service';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { Subscription } from 'rxjs';
+import { inject } from '@angular/core';
 
 interface LimitLineAnnotation {
   type: 'line';
@@ -55,7 +59,11 @@ export class TonPolPerdidasComponent implements OnInit, AfterViewInit, OnDestroy
   ];
   public dataLoaded: boolean = false;
   public limitsLoaded: boolean = false;
-  public rightSideDataType: string = ''; 
+  public rightSideDataType: string = '';
+
+  private chartSettingsService = inject(ChartSettingsService);
+  private labelsSubscription!: Subscription;
+  public showDataLabels: boolean = false;
 
   private colorPalette = [
     'rgba(255, 99, 132, 0.7)', 
@@ -73,12 +81,16 @@ export class TonPolPerdidasComponent implements OnInit, AfterViewInit, OnDestroy
 ) {
   this.isBrowser = isPlatformBrowser(platformId);
   if (this.isBrowser) {
-    Chart.register(...registerables);
+    Chart.register(...registerables, ChartDataLabels);
   }
 }
 
   ngOnInit(): void {
     if (this.isBrowser) {
+      this.labelsSubscription = this.chartSettingsService.showLabels$.subscribe(value => {
+        this.showDataLabels = value;
+        this.updateDataLabels();
+      });
       this.loadInitialData();
     }
   }
@@ -102,6 +114,16 @@ export class TonPolPerdidasComponent implements OnInit, AfterViewInit, OnDestroy
 
   ngOnDestroy(): void {
     this.destroyChart();
+    if (this.labelsSubscription) {
+      this.labelsSubscription.unsubscribe();
+    }
+  }
+
+  private updateDataLabels(): void {
+    if (this.chart) {
+      this.chart.options.plugins!.datalabels!.display = this.showDataLabels;
+      this.chart.update();
+    }
   }
 
   private loadLimitValues(): void {
@@ -422,6 +444,21 @@ export class TonPolPerdidasComponent implements OnInit, AfterViewInit, OnDestroy
             },
             annotation: {
               annotations: annotations
+            },
+            datalabels: {
+              display: this.showDataLabels,
+              anchor: 'end',
+              align: 'top',
+              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              borderRadius: 4,
+              borderWidth: 1,
+              borderColor: '#333333',
+              padding: 4,
+              font: {
+                weight: 'bold'
+              },
+              color: '#000000',
+              formatter: (value: any) => value !== null ? value.toFixed(2) : ''
             }
           }
         },

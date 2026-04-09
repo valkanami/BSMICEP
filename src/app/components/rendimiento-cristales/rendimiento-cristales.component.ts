@@ -4,6 +4,10 @@ import { Chart, registerables } from 'chart.js';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { ChartSettingsService } from '../../services/chart-settings.service';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { Subscription } from 'rxjs';
+import { inject } from '@angular/core';
 
 interface RendimientoData {
   FECHA: Date;
@@ -41,6 +45,10 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
   public availableWeeks: WeekRange[] = [];
   public currentWeekLabel: string = '';
 
+  private chartSettingsService = inject(ChartSettingsService);
+  private labelsSubscription!: Subscription;
+  public showDataLabels: boolean = false;
+
   private weekDays = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
   constructor(
@@ -50,13 +58,24 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
 ) {
   this.isBrowser = isPlatformBrowser(platformId);
   if (this.isBrowser) {
-    Chart.register(...registerables);
+    Chart.register(...registerables, ChartDataLabels);
   }
 }
 
   ngOnInit(): void {
     if (this.isBrowser) {
+      this.labelsSubscription = this.chartSettingsService.showLabels$.subscribe(value => {
+        this.showDataLabels = value;
+        this.updateDataLabels();
+      });
       this.checkApiConnection();
+    }
+  }
+
+  private updateDataLabels(): void {
+    if (this.chart) {
+      this.chart.options.plugins!.datalabels!.display = this.showDataLabels;
+      this.chart.update();
     }
   }
 
@@ -68,6 +87,9 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
 
   ngOnDestroy(): void {
     this.destroyChart();
+    if (this.labelsSubscription) {
+      this.labelsSubscription.unsubscribe();
+    }
   }
 
   checkApiConnection(): void {
@@ -340,6 +362,21 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
               labels: {
                 boxWidth: 12
               }
+            },
+            datalabels: {
+              display: this.showDataLabels,
+              anchor: 'end',
+              align: 'top',
+              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              borderRadius: 4,
+              borderWidth: 1,
+              borderColor: '#333333',
+              padding: 4,
+              font: {
+                weight: 'bold'
+              },
+              color: '#000000',
+              formatter: (value: any) => value !== null ? value.toFixed(2) : ''
             }
           }
         }
