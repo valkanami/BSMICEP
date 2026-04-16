@@ -74,7 +74,7 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
 
   private updateDataLabels(): void {
     if (this.chart) {
-      this.chart.options.plugins!.datalabels!.display = this.showDataLabels;
+      (this.chart.options.plugins!.datalabels! as any).display = (context: any) => this.showDataLabels;
       this.chart.update();
     }
   }
@@ -309,8 +309,6 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
           scales: {
             y: {
               beginAtZero: false,
-              min: 0,
-              max: 100,
               title: { display: true, text: 'Rendimiento (%)' },
               grid: { display: true }
             },
@@ -364,18 +362,27 @@ export class RendimientoCristalesComponent implements OnInit, AfterViewInit, OnD
               }
             },
             datalabels: {
-              display: this.showDataLabels,
+              display: (context: any) => this.showDataLabels,
               anchor: 'end',
-              align: 'top',
-              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              align: (context: any) => {
+                const idx = context.datasetIndex % 4;
+                if (idx === 0) return 'end';
+                if (idx === 1) return 'start';
+                if (idx === 2) return 'right';
+                return 'left';
+              },
+              offset: 8,
+              backgroundColor: (context: any) => { const c = context.dataset.borderColor as string; return c ? c.replace(/[\d.]+\)$/, '0.85)') : 'rgba(100,100,100,0.85)'; },
               borderRadius: 4,
               borderWidth: 1,
-              borderColor: '#333333',
-              padding: 4,
+              borderColor: (context: any) => (context.dataset.borderColor as string) || '#333333',
+              padding: 2,
               font: {
-                weight: 'bold'
+                weight: 'bold',
+                size: 10
               },
-              color: '#000000',
+              color: '#ffffff',
+              clamp: true,
               formatter: (value: any) => value !== null ? value.toFixed(2) : ''
             }
           }

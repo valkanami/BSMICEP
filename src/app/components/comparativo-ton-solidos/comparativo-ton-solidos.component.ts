@@ -109,7 +109,7 @@ export class ComparativoTonSolidosComponent implements OnInit, AfterViewInit, On
 
   private updateDataLabels(): void {
     if (this.chart) {
-      this.chart.options.plugins!.datalabels!.display = this.showDataLabels;
+      (this.chart.options.plugins!.datalabels! as any).display = (context: any) => this.showDataLabels;
       this.chart.update();
     }
   }
@@ -420,7 +420,7 @@ export class ComparativoTonSolidosComponent implements OnInit, AfterViewInit, On
                 display: true,
                 text: ''
               },
-              min: 0,
+              beginAtZero: false,
               stacked: false // Para barras agrupadas (no apiladas)
             },
             x: {
@@ -481,18 +481,39 @@ export class ComparativoTonSolidosComponent implements OnInit, AfterViewInit, On
               annotations: annotations
             },
             datalabels: {
-              display: this.showDataLabels,
+              display: (context: any) => this.showDataLabels,
               anchor: 'end',
-              align: 'top',
-              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              align: (context: any) => {
+                const idx = context.datasetIndex % 4;
+                if (idx === 0) return 'end';
+                if (idx === 1) return 'start';
+                if (idx === 2) return 'right';
+                return 'left';
+              },
+              offset: 8,
+              backgroundColor: (context: any) => {
+                let c = context.dataset.borderColor;
+                if (Array.isArray(c)) {
+                  c = c[context.dataIndex];
+                }
+                return c ? (c as string).replace(/[\d.]+\)$/, '0.85)') : 'rgba(100,100,100,0.85)';
+              },
               borderRadius: 4,
               borderWidth: 1,
-              borderColor: '#333333',
-              padding: 4,
-              font: {
-                weight: 'bold'
+              borderColor: (context: any) => {
+                let c = context.dataset.borderColor;
+                if (Array.isArray(c)) {
+                  c = c[context.dataIndex];
+                }
+                return (c as string) || '#333333';
               },
-              color: '#000000',
+              padding: 2,
+              font: {
+                weight: 'bold',
+                size: 10
+              },
+              color: '#ffffff',
+              clamp: true,
               formatter: (value: any) => value !== null ? value.toFixed(2) : ''
             }
           }

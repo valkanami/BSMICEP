@@ -92,7 +92,8 @@ export class ConsumoAguaM3Component implements OnInit, AfterViewInit, OnDestroy 
 }
 
 
-  private formatNumberWithCommas(num: number): string {
+  private formatNumberWithCommas(num: number | null | undefined): string {
+    if (num === null || num === undefined) return '0';
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
@@ -108,7 +109,7 @@ export class ConsumoAguaM3Component implements OnInit, AfterViewInit, OnDestroy 
 
   private updateDataLabels(): void {
     if (this.chart) {
-      this.chart.options.plugins!.datalabels!.display = this.showDataLabels;
+      (this.chart.options.plugins!.datalabels! as any).display = (context: any) => this.showDataLabels;
       this.chart.update();
     }
   }
@@ -366,7 +367,7 @@ export class ConsumoAguaM3Component implements OnInit, AfterViewInit, OnDestroy 
                 display: true,
                 text: 'Consumo de agua (m³)'
               },
-              min: 0
+              beginAtZero: false
             },
             x: {
               title: {
@@ -428,18 +429,39 @@ export class ConsumoAguaM3Component implements OnInit, AfterViewInit, OnDestroy 
               annotations: annotations
             },
             datalabels: {
-              display: this.showDataLabels,
+              display: (context: any) => this.showDataLabels,
               anchor: 'end',
-              align: 'top',
-              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              align: (context: any) => {
+                const idx = context.datasetIndex % 4;
+                if (idx === 0) return 'end';
+                if (idx === 1) return 'start';
+                if (idx === 2) return 'right';
+                return 'left';
+              },
+              offset: 8,
+              backgroundColor: (context: any) => {
+                let c = context.dataset.borderColor;
+                if (Array.isArray(c)) {
+                  c = c[context.dataIndex];
+                }
+                return c ? (c as string).replace(/[\d.]+\)$/, '0.85)') : 'rgba(100,100,100,0.85)';
+              },
               borderRadius: 4,
               borderWidth: 1,
-              borderColor: '#333333',
-              padding: 4,
-              font: {
-                weight: 'bold'
+              borderColor: (context: any) => {
+                let c = context.dataset.borderColor;
+                if (Array.isArray(c)) {
+                  c = c[context.dataIndex];
+                }
+                return (c as string) || '#333333';
               },
-              color: '#000000',
+              padding: 2,
+              font: {
+                weight: 'bold',
+                size: 10
+              },
+              color: '#ffffff',
+              clamp: true,
               formatter: (value: any) => value !== null ? value.toFixed(2) : ''
             }
           }
